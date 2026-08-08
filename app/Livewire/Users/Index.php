@@ -3,6 +3,7 @@
 namespace App\Livewire\Users;
 
 use App\Helpers\ActivityLogger;
+use App\Models\Site;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -12,9 +13,7 @@ class Index extends Component
 {
     use WithPagination;
 
-    public string $filterName = '';
-    public string $filterEmail = '';
-    public string $filterNik = '';
+    public string $filterSearch = '';
     public string $filterSite = '';
     public string $filterRole = '';
     public string $filterStatusEmployee = '';
@@ -31,9 +30,7 @@ class Index extends Component
     public string $bulkEditValue = '';
 
     protected $queryString = [
-        'filterName' => ['except' => ''],
-        'filterEmail' => ['except' => ''],
-        'filterNik' => ['except' => ''],
+        'filterSearch' => ['except' => ''],
         'filterSite' => ['except' => ''],
         'filterRole' => ['except' => ''],
         'filterStatusEmployee' => ['except' => ''],
@@ -58,6 +55,13 @@ class Index extends Component
             $this->sortDirection = 'asc';
         }
         $this->resetPage();
+    }
+
+    public function getSiteOptions(): array
+    {
+        return Site::orderBy('site')->get(['id_site', 'site'])
+            ->mapWithKeys(fn ($s) => [$s->id_site => $s->site.' ('.$s->id_site.')'])
+            ->toArray();
     }
 
     public function getRoleList(): array
@@ -264,10 +268,12 @@ class Index extends Component
             ->with(['roles', 'employee'])
             ->leftJoin('employees', 'employees.nik', '=', 'users.nik')
             ->select('users.*')
-            ->when($this->filterName, fn ($q) => $q->where('users.name', 'like', "%{$this->filterName}%"))
-            ->when($this->filterEmail, fn ($q) => $q->where('users.email', 'like', "%{$this->filterEmail}%"))
-            ->when($this->filterNik, fn ($q) => $q->where('users.nik', 'like', "%{$this->filterNik}%"))
-            ->when($this->filterSite, fn ($q) => $q->whereHas('employee', fn ($q) => $q->where('site', 'like', "%{$this->filterSite}%")))
+            ->when($this->filterSearch, fn ($q) => $q->where(function ($q) {
+                $q->where('users.name', 'like', "%{$this->filterSearch}%")
+                    ->orWhere('users.email', 'like', "%{$this->filterSearch}%")
+                    ->orWhere('users.nik', 'like', "%{$this->filterSearch}%");
+            }))
+            ->when($this->filterSite, fn ($q) => $q->whereHas('employee', fn ($q) => $q->where('site', $this->filterSite)))
             ->when($this->filterRole, fn ($q) => $q->role($this->filterRole))
             ->when($this->filterStatusEmployee, fn ($q) => $q->whereHas('employee', fn ($q) => $q->where('status', $this->filterStatusEmployee)))
             ->when($this->filterAccessLogin, fn ($q) => $q->where('users.status', $this->filterAccessLogin));

@@ -11,8 +11,7 @@ class Index extends Component
 {
     use WithPagination;
 
-    public string $filterId = '';
-    public string $filterSite = '';
+    public string $filterSearch = '';
     public string $filterBuss = '';
     public string $filterCorp = '';
     public string $filterCountry = '';
@@ -28,8 +27,7 @@ class Index extends Component
     public string $bulkEditValue = '';
 
     protected $queryString = [
-        'filterId' => ['except' => ''],
-        'filterSite' => ['except' => ''],
+        'filterSearch' => ['except' => ''],
         'filterBuss' => ['except' => ''],
         'filterCorp' => ['except' => ''],
         'filterCountry' => ['except' => ''],
@@ -42,6 +40,31 @@ class Index extends Component
         if (str_starts_with($property, 'filter')) {
             $this->resetPage();
         }
+    }
+
+    public function getBussOptions(): array
+    {
+        return Site::whereNotNull('buss')->where('buss', '!=', '')->orderBy('buss')->distinct()->pluck('buss')->toArray();
+    }
+
+    public function getCorpOptions(): array
+    {
+        return Site::whereNotNull('id_corp')->where('id_corp', '!=', '')->orderBy('id_corp')->distinct()->pluck('id_corp')->toArray();
+    }
+
+    public function getCountryOptions(): array
+    {
+        return Site::whereNotNull('country')->where('country', '!=', '')->orderBy('country')->distinct()->pluck('country')->toArray();
+    }
+
+    public function getProvincyOptions(): array
+    {
+        return Site::whereNotNull('provincy')->where('provincy', '!=', '')->orderBy('provincy')->distinct()->pluck('provincy')->toArray();
+    }
+
+    public function getCityOptions(): array
+    {
+        return Site::whereNotNull('city')->where('city', '!=', '')->orderBy('city')->distinct()->pluck('city')->toArray();
     }
 
     public function confirmDelete(string $idSite, string $name): void
@@ -142,13 +165,15 @@ class Index extends Component
     private function filteredQuery()
     {
         return Site::query()
-            ->when($this->filterId, fn ($q) => $q->where('id_site', 'like', "%{$this->filterId}%"))
-            ->when($this->filterSite, fn ($q) => $q->where('site', 'like', "%{$this->filterSite}%"))
-            ->when($this->filterBuss, fn ($q) => $q->where('buss', 'like', "%{$this->filterBuss}%"))
-            ->when($this->filterCorp, fn ($q) => $q->where('id_corp', 'like', "%{$this->filterCorp}%"))
-            ->when($this->filterCountry, fn ($q) => $q->where('country', 'like', "%{$this->filterCountry}%"))
-            ->when($this->filterProvincy, fn ($q) => $q->where('provincy', 'like', "%{$this->filterProvincy}%"))
-            ->when($this->filterCity, fn ($q) => $q->where('city', 'like', "%{$this->filterCity}%"));
+            ->when($this->filterSearch, fn ($q) => $q->where(function ($q) {
+                $q->where('id_site', 'like', "%{$this->filterSearch}%")
+                    ->orWhere('site', 'like', "%{$this->filterSearch}%");
+            }))
+            ->when($this->filterBuss, fn ($q) => $q->where('buss', $this->filterBuss))
+            ->when($this->filterCorp, fn ($q) => $q->where('id_corp', $this->filterCorp))
+            ->when($this->filterCountry, fn ($q) => $q->where('country', $this->filterCountry))
+            ->when($this->filterProvincy, fn ($q) => $q->where('provincy', $this->filterProvincy))
+            ->when($this->filterCity, fn ($q) => $q->where('city', $this->filterCity));
     }
 
     public function render()

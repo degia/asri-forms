@@ -5,7 +5,7 @@ namespace App\Livewire\Admin\Employees;
 use App\Helpers\ActivityLogger;
 use App\Models\Employee;
 use App\Models\Position;
-use App\Models\SubDepartement;
+use App\Models\Site;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -13,11 +13,8 @@ class Index extends Component
 {
     use WithPagination;
 
-    public string $filterName = '';
-    public string $filterEmail = '';
-    public string $filterNik = '';
+    public string $filterSearch = '';
     public string $filterSite = '';
-    public string $filterSubDepartement = '';
     public string $filterPosition = '';
     public string $filterStatus = '';
     public string $sortBy = 'name';
@@ -32,11 +29,8 @@ class Index extends Component
     public string $viewAssetsEmployeeName = '';
 
     protected $queryString = [
-        'filterName' => ['except' => ''],
-        'filterEmail' => ['except' => ''],
-        'filterNik' => ['except' => ''],
+        'filterSearch' => ['except' => ''],
         'filterSite' => ['except' => ''],
-        'filterSubDepartement' => ['except' => ''],
         'filterPosition' => ['except' => ''],
         'filterStatus' => ['except' => ''],
         'sortBy' => ['except' => 'name'],
@@ -174,22 +168,20 @@ class Index extends Component
     {
         return Employee::withCount('assignedAssets')
             ->with(['siteDetail', 'user', 'directorate', 'divisi', 'departement', 'subDepartement', 'position'])
-            ->when($this->filterName, fn ($q) => $q->where('name', 'like', "%{$this->filterName}%"))
-            ->when($this->filterEmail, fn ($q) => $q->where('email', 'like', "%{$this->filterEmail}%"))
-            ->when($this->filterNik, fn ($q) => $q->where('nik', 'like', "%{$this->filterNik}%"))
-            ->when($this->filterSite, fn ($q) => $q->where(function ($q) {
-                $q->where('site', 'like', "%{$this->filterSite}%")
-                    ->orWhereHas('siteDetail', fn ($q) => $q->where('site', 'like', "%{$this->filterSite}%"));
+            ->when($this->filterSearch, fn ($q) => $q->where(function ($q) {
+                $q->where('name', 'like', "%{$this->filterSearch}%")
+                    ->orWhere('email', 'like', "%{$this->filterSearch}%")
+                    ->orWhere('nik', 'like', "%{$this->filterSearch}%");
             }))
-            ->when($this->filterSubDepartement, fn ($q) => $q->where('sub_departement_id', $this->filterSubDepartement))
+            ->when($this->filterSite, fn ($q) => $q->where('site', $this->filterSite))
             ->when($this->filterPosition, fn ($q) => $q->where('position_id', $this->filterPosition))
             ->when($this->filterStatus, fn ($q) => $q->where('status', $this->filterStatus));
     }
 
-    public function getSubDepartementOptions(): array
+    public function getSiteOptions(): array
     {
-        return SubDepartement::orderBy('name')->get(['id', 'name'])
-            ->mapWithKeys(fn ($s) => [$s->id => $s->name])
+        return Site::orderBy('site')->get(['id_site', 'site'])
+            ->mapWithKeys(fn ($s) => [$s->id_site => $s->site.' ('.$s->id_site.')'])
             ->toArray();
     }
 

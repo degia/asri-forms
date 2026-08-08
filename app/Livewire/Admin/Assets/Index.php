@@ -12,17 +12,13 @@ class Index extends Component
 {
     use WithPagination;
 
-    public string $filterNoAsset = '';
-
-    public string $filterNama = '';
+    public string $filterSearch = '';
 
     public string $filterKategori = '';
 
     public string $filterBrand = '';
 
     public string $filterTipe = '';
-
-    public string $filterNoSerial = '';
 
     public string $filterStatus = '';
 
@@ -47,12 +43,10 @@ class Index extends Component
     public string $bulkEditValue = '';
 
     protected $queryString = [
-        'filterNoAsset' => ['except' => ''],
-        'filterNama' => ['except' => ''],
+        'filterSearch' => ['except' => ''],
         'filterKategori' => ['except' => ''],
         'filterBrand' => ['except' => ''],
         'filterTipe' => ['except' => ''],
-        'filterNoSerial' => ['except' => ''],
         'filterStatus' => ['except' => ''],
         'filterOperatingUnit' => ['except' => ''],
         'filterPerawatanStatus' => ['except' => ''],
@@ -63,6 +57,21 @@ class Index extends Component
         if (str_starts_with($property, 'filter')) {
             $this->resetPage();
         }
+    }
+
+    public function getKategoriOptions(): array
+    {
+        return Asset::whereNotNull('kategori')->where('kategori', '!=', '')->orderBy('kategori')->distinct()->pluck('kategori')->toArray();
+    }
+
+    public function getBrandOptions(): array
+    {
+        return Asset::whereNotNull('brand')->where('brand', '!=', '')->orderBy('brand')->distinct()->pluck('brand')->toArray();
+    }
+
+    public function getTipeOptions(): array
+    {
+        return Asset::whereNotNull('tipe')->where('tipe', '!=', '')->orderBy('tipe')->distinct()->pluck('tipe')->toArray();
     }
 
     public function confirmDelete(int $id, string $name): void
@@ -188,12 +197,14 @@ class Index extends Component
     private function filteredQuery()
     {
         $query = Asset::with('assignedEmployee', 'operatingUnitSite', 'siteAsset')
-            ->when($this->filterNoAsset, fn ($q) => $q->where('no_asset', 'like', "%{$this->filterNoAsset}%"))
-            ->when($this->filterNama, fn ($q) => $q->where('nama_perangkat', 'like', "%{$this->filterNama}%"))
-            ->when($this->filterKategori, fn ($q) => $q->where('kategori', 'like', "%{$this->filterKategori}%"))
-            ->when($this->filterBrand, fn ($q) => $q->where('brand', 'like', "%{$this->filterBrand}%"))
-            ->when($this->filterTipe, fn ($q) => $q->where('tipe', 'like', "%{$this->filterTipe}%"))
-            ->when($this->filterNoSerial, fn ($q) => $q->where('no_serial', 'like', "%{$this->filterNoSerial}%"))
+            ->when($this->filterSearch, fn ($q) => $q->where(function ($q) {
+                $q->where('no_asset', 'like', "%{$this->filterSearch}%")
+                    ->orWhere('nama_perangkat', 'like', "%{$this->filterSearch}%")
+                    ->orWhere('no_serial', 'like', "%{$this->filterSearch}%");
+            }))
+            ->when($this->filterKategori, fn ($q) => $q->where('kategori', $this->filterKategori))
+            ->when($this->filterBrand, fn ($q) => $q->where('brand', $this->filterBrand))
+            ->when($this->filterTipe, fn ($q) => $q->where('tipe', $this->filterTipe))
             ->when($this->filterStatus, fn ($q) => $q->where('status', $this->filterStatus));
 
         if ($this->filterOperatingUnit) {

@@ -66,7 +66,7 @@
     <div class="glass-card p-4">
         <div class="flex items-center justify-between mb-3">
             <p class="text-xs font-medium text-muted uppercase tracking-wider">{{ __('Filter Data') }}</p>
-            @if($filterNoAsset || $filterNama || $filterKategori || $filterBrand || $filterTipe || $filterNoSerial || $filterStatus || $filterOperatingUnit || $filterPerawatanStatus)
+            @if($filterSearch || $filterKategori || $filterBrand || $filterTipe || $filterStatus || $filterOperatingUnit || $filterPerawatanStatus)
                 <a href="{{ route('admin.assets.index') }}" wire:navigate
                     class="inline-flex items-center px-3 py-1 rounded-lg text-xs transition-colors duration-200"
                     style="background: var(--color-glass-bg); border: 1px solid var(--color-border); color: var(--color-text-secondary);">
@@ -74,44 +74,47 @@
                 </a>
             @endif
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <div>
-                <label class="block text-xs font-medium text-muted mb-1">{{ __('No Asset') }}</label>
-                <input wire:model.live.debounce.300ms="filterNoAsset" type="text" placeholder="{{ __('No asset') }}..."
+        <div class="flex flex-wrap gap-3 items-end">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-xs font-medium text-muted mb-1">{{ __('Search') }}</label>
+                <input wire:model.live.debounce.300ms="filterSearch" type="text" placeholder="{{ __('Cari no. asset, nama, atau serial...') }}"
                     class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
                     style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
             </div>
-            <div>
-                <label class="block text-xs font-medium text-muted mb-1">{{ __('Nama Perangkat') }}</label>
-                <input wire:model.live.debounce.300ms="filterNama" type="text" placeholder="{{ __('Nama perangkat') }}..."
-                    class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
-            </div>
-            <div>
+            <div class="flex-1 min-w-[150px]">
                 <label class="block text-xs font-medium text-muted mb-1">{{ __('Kategori') }}</label>
-                <input wire:model.live.debounce.300ms="filterKategori" type="text" placeholder="{{ __('Kategori') }}..."
+                <select wire:model.live="filterKategori"
                     class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
+                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                    <option value="">{{ __('Semua Kategori') }}</option>
+                    @foreach($this->getKategoriOptions() as $value)
+                        <option value="{{ $value }}">{{ $value }}</option>
+                    @endforeach
+                </select>
             </div>
-            <div>
+            <div class="flex-1 min-w-[150px]">
                 <label class="block text-xs font-medium text-muted mb-1">{{ __('Brand') }}</label>
-                <input wire:model.live.debounce.300ms="filterBrand" type="text" placeholder="{{ __('Brand') }}..."
+                <select wire:model.live="filterBrand"
                     class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
+                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                    <option value="">{{ __('Semua Brand') }}</option>
+                    @foreach($this->getBrandOptions() as $value)
+                        <option value="{{ $value }}">{{ $value }}</option>
+                    @endforeach
+                </select>
             </div>
-            <div>
+            <div class="flex-1 min-w-[150px]">
                 <label class="block text-xs font-medium text-muted mb-1">{{ __('Tipe') }}</label>
-                <input wire:model.live.debounce.300ms="filterTipe" type="text" placeholder="{{ __('Tipe') }}..."
+                <select wire:model.live="filterTipe"
                     class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
+                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                    <option value="">{{ __('Semua Tipe') }}</option>
+                    @foreach($this->getTipeOptions() as $value)
+                        <option value="{{ $value }}">{{ $value }}</option>
+                    @endforeach
+                </select>
             </div>
-            <div>
-                <label class="block text-xs font-medium text-muted mb-1">{{ __('No Serial') }}</label>
-                <input wire:model.live.debounce.300ms="filterNoSerial" type="text" placeholder="{{ __('No serial') }}..."
-                    class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
-            </div>
-            <div>
+            <div class="flex-1 min-w-[150px]">
                 <label class="block text-xs font-medium text-muted mb-1">{{ __('Status') }}</label>
                 <select wire:model.live="filterStatus"
                     class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
@@ -123,7 +126,7 @@
                     <option value="disposed">Disposed</option>
                 </select>
             </div>
-            <div>
+            <div class="flex-1 min-w-[150px]">
                 <label class="block text-xs font-medium text-muted mb-1">{{ __('Operating Unit') }}</label>
                 <select wire:model.live="filterOperatingUnit"
                     class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
@@ -134,7 +137,7 @@
                     @endforeach
                 </select>
             </div>
-            <div>
+            <div class="flex-1 min-w-[150px]">
                 <label class="block text-xs font-medium text-muted mb-1">{{ __('Status Perawatan') }}</label>
                 <select wire:model.live="filterPerawatanStatus"
                     class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"

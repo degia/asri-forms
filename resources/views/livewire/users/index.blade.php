@@ -72,7 +72,7 @@
     <div class="glass-card p-4">
         <div class="flex items-center justify-between mb-3">
             <p class="text-xs font-medium text-muted uppercase tracking-wider">{{ __('Filter Data') }}</p>
-            @if($filterName || $filterEmail || $filterNik || $filterSite || $filterRole || $filterStatusEmployee || $filterAccessLogin)
+            @if($filterSearch || $filterSite || $filterRole || $filterStatusEmployee || $filterAccessLogin)
                 <a href="{{ route('admin.users.index') }}" wire:navigate
                     class="inline-flex items-center px-3 py-1 rounded-lg text-xs transition-colors duration-200"
                     style="background: var(--color-glass-bg); border: 1px solid var(--color-border); color: var(--color-text-secondary);">
@@ -80,32 +80,25 @@
                 </a>
             @endif
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <div>
-                <label class="block text-xs font-medium text-muted mb-1">{{ __('Nama') }}</label>
-                <input wire:model.live.debounce.300ms="filterName" type="text" placeholder="{{ __('Nama user') }}..."
+        <div class="flex flex-wrap gap-3 items-end">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-xs font-medium text-muted mb-1">{{ __('Search') }}</label>
+                <input wire:model.live.debounce.300ms="filterSearch" type="text" placeholder="{{ __('Cari nama, email, atau NIK...') }}"
                     class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
                     style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
             </div>
-            <div>
-                <label class="block text-xs font-medium text-muted mb-1">{{ __('Email') }}</label>
-                <input wire:model.live.debounce.300ms="filterEmail" type="text" placeholder="{{ __('Email') }}..."
-                    class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-muted mb-1">NIK</label>
-                <input wire:model.live.debounce.300ms="filterNik" type="text" placeholder="NIK..."
-                    class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
-            </div>
-            <div>
+            <div class="flex-1 min-w-[150px]">
                 <label class="block text-xs font-medium text-muted mb-1">{{ __('Site') }}</label>
-                <input wire:model.live.debounce.300ms="filterSite" type="text" placeholder="{{ __('Site') }}..."
+                <select wire:model.live="filterSite"
                     class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
+                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                    <option value="">{{ __('Semua Site') }}</option>
+                    @foreach($this->getSiteOptions() as $id => $label)
+                        <option value="{{ $id }}">{{ $label }}</option>
+                    @endforeach
+                </select>
             </div>
-            <div>
+            <div class="flex-1 min-w-[150px]">
                 <label class="block text-xs font-medium text-muted mb-1">{{ __('Role') }}</label>
                 <select wire:model.live="filterRole"
                     class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
@@ -116,7 +109,7 @@
                     @endforeach
                 </select>
             </div>
-            <div>
+            <div class="flex-1 min-w-[150px]">
                 <label class="block text-xs font-medium text-muted mb-1">{{ __('Status Employee') }}</label>
                 <select wire:model.live="filterStatusEmployee"
                     class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
@@ -126,7 +119,7 @@
                     <option value="Resigned">Resigned</option>
                 </select>
             </div>
-            <div>
+            <div class="flex-1 min-w-[150px]">
                 <label class="block text-xs font-medium text-muted mb-1">{{ __('Access Login') }}</label>
                 <select wire:model.live="filterAccessLogin"
                     class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
