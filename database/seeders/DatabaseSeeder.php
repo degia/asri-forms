@@ -13,9 +13,11 @@ class DatabaseSeeder extends Seeder
             ChecklistTemplateSeeder::class,
             SiteSeeder::class,
             UserSeeder::class,
+            OrganizationStructureSeeder::class,
             AssetSeeder::class,
             FormPemeriksaanSeeder::class,
             FormPerawatanSeeder::class,
+            FormPengembalianSeeder::class,
             FormApprovalSeeder::class,
         ]);
     }

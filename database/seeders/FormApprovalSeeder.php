@@ -6,7 +6,6 @@ use App\Enums\ApprovalLevel;
 use App\Models\FormPemeriksaan;
 use App\Models\FormPerawatan;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 class FormApprovalSeeder extends Seeder
@@ -26,32 +25,39 @@ class FormApprovalSeeder extends Seeder
 
         foreach ($forms as $form) {
             $submittedAt = $form->submitted_at;
-            if (!$submittedAt) continue;
+
+            if (! $submittedAt || $form->approvals()->exists()) {
+                continue;
+            }
+
+            $teknisiEmail = $form->teknisi?->email;
+            $penggunaUserId = $form->pengguna?->user?->email;
 
             // Diperiksa oleh (teknisi) - auto-approved when submitted
             if (in_array($form->status, ['submitted', 'diketahui', 'disetujui', 'selesai', 'revisi'])) {
                 $form->approvals()->create([
                     'approval_level' => ApprovalLevel::DiperiksaOleh->value,
-                    'user_id' => $form->teknisi->email,
+                    'user_id' => $teknisiEmail,
                     'status' => 'approved',
-                    'approved_at' => $submittedAt->copy()->addMinutes(rand(5, 30)),
+                    'approved_at' => $submittedAt->copy()->addMinutes(15),
                     'catatan' => ucfirst($label) . ' selesai dilakukan',
                 ]);
             }
 
-            // Diketahui oleh (pengguna) - for forms that have been acknowledged
-            if (in_array($form->status, ['diketahui', 'disetujui', 'selesai'])) {
-                $penggunaUserId = $form->pengguna?->user?->email;
+            // Diketahui oleh (pengguna)
+            if (in_array($form->status, ['diketahui', 'disetujui', 'selesai', 'revisi'])) {
                 $form->approvals()->create([
                     'approval_level' => ApprovalLevel::DiketahuiOleh->value,
                     'user_id' => $penggunaUserId,
                     'custom_signer_name' => $penggunaUserId ? null : $form->pengguna?->name,
                     'status' => 'approved',
-                    'approved_at' => $submittedAt->copy()->addHours(rand(1, 24)),
+                    'approved_at' => $submittedAt->copy()->addHours(6),
                     'catatan' => 'Mengetahui hasil ' . $label . ' dan kondisi sesuai',
                 ]);
+            }
 
-                // Disetujui oleh - pending (waiting for approval)
+            // Disetujui oleh (supervisor/manager)
+            if (in_array($form->status, ['diketahui', 'disetujui', 'selesai'])) {
                 if ($form->status === 'diketahui') {
                     $form->approvals()->create([
                         'approval_level' => ApprovalLevel::DisetujuiOleh->value,
@@ -59,51 +65,27 @@ class FormApprovalSeeder extends Seeder
                         'custom_signer_name' => $supervisor ? null : 'Supervisor IT',
                         'status' => 'pending',
                     ]);
+                } else {
+                    $form->approvals()->create([
+                        'approval_level' => ApprovalLevel::DisetujuiOleh->value,
+                        'user_id' => $manager?->email,
+                        'custom_signer_name' => $manager ? null : 'Manager IT',
+                        'status' => 'approved',
+                        'approved_at' => $submittedAt->copy()->addDays(2),
+                        'catatan' => 'Disetujui, ' . $label . ' sudah sesuai prosedur',
+                    ]);
                 }
             }
 
-            // Disetujui oleh (supervisor/manager) - for fully approved forms
-            if (in_array($form->status, ['disetujui', 'selesai'])) {
-                $approver = fake()->boolean(60) ? $manager : $supervisor;
-
-                $form->approvals()->create([
-                    'approval_level' => ApprovalLevel::DisetujuiOleh->value,
-                    'user_id' => $approver?->email,
-                    'custom_signer_name' => $approver ? null : ($manager ? null : 'Manager IT'),
-                    'status' => 'approved',
-                    'approved_at' => $submittedAt->copy()->addDays(rand(1, 3)),
-                    'catatan' => 'Disetujui, ' . $label . ' sudah sesuai prosedur',
-                ]);
-            }
-
-            // Revisi - create approval with rejection note
+            // Revisi - approval ditolak dengan catatan revisi
             if ($form->status === 'revisi') {
-                // Diketahui but rejected (needs revision)
-                $penggunaUserId = $form->pengguna?->user?->email;
-                $form->approvals()->create([
-                    'approval_level' => ApprovalLevel::DiketahuiOleh->value,
-                    'user_id' => $penggunaUserId,
-                    'custom_signer_name' => $penggunaUserId ? null : $form->pengguna?->name,
-                    'status' => 'approved',
-                    'approved_at' => $submittedAt->copy()->addHours(rand(1, 24)),
-                    'catatan' => 'Mengetahui hasil ' . $label,
-                ]);
-
-                // Disetujui - rejected with revision notes
-                $rejector = fake()->boolean(50) ? $manager : $supervisor;
                 $form->approvals()->create([
                     'approval_level' => ApprovalLevel::DisetujuiOleh->value,
-                    'user_id' => $rejector?->email,
-                    'custom_signer_name' => $rejector ? null : 'Approver',
+                    'user_id' => $supervisor?->email,
+                    'custom_signer_name' => $supervisor ? null : 'Supervisor IT',
                     'status' => 'rejected',
-                    'approved_at' => $submittedAt->copy()->addDays(rand(1, 2)),
-                    'catatan' => 'Perlu revisi: ' . fake()->randomElement([
-                        'Data kondisi tidak lengkap',
-                        'Foto pendukung belum dilampirkan',
-                        'Terdapat item yang belum diperiksa',
-                        'Mohon dilengkapi keterangan untuk item yang tidak baik',
-                        'Tanda tangan pengguna belum ada',
-                    ]),
+                    'approved_at' => $submittedAt->copy()->addDay(),
+                    'catatan' => 'Perlu revisi: data kondisi tidak lengkap dan foto pendukung belum dilampirkan',
                 ]);
             }
         }

@@ -15,7 +15,7 @@ class AssetSeeder extends Seeder
 
         $assets = [
             // Laptops
-            ['kategori' => 'Laptop', 'brand' => 'Lenovo', 'tipe' => 'ThinkPad T480', 'nama_perangkat' => 'Laptop Kantor Finance', 'no_serial' => 'SN-LNV-001', 'no_asset' => 'ASR-LPT-2024-001', 'assigned_user_email' => 'user@asri.co.id', 'operating_unit' => 'A01', 'site_location_asset' => 'A01'],
+            ['kategori' => 'Laptop', 'brand' => 'Lenovo', 'tipe' => 'ThinkPad T480', 'nama_perangkat' => 'Laptop Kantor Finance', 'no_serial' => 'SN-LNV-001', 'no_asset' => 'ASR-LPT-2024-001', 'assigned_user_email' => 'user1@asri.co.id', 'operating_unit' => 'A01', 'site_location_asset' => 'A01'],
             ['kategori' => 'Laptop', 'brand' => 'Lenovo', 'tipe' => 'ThinkPad T14s', 'nama_perangkat' => 'Laptop Kantor HRD', 'no_serial' => 'SN-LNV-002', 'no_asset' => 'ASR-LPT-2024-002', 'assigned_user_email' => 'user3@asri.co.id', 'operating_unit' => 'A02', 'site_location_asset' => 'A02'],
             ['kategori' => 'Laptop', 'brand' => 'HP', 'tipe' => 'ProBook 450 G9', 'nama_perangkat' => 'Laptop Marketing', 'no_serial' => 'SN-HP-003', 'no_asset' => 'ASR-LPT-2024-003', 'assigned_user_email' => 'user2@asri.co.id', 'operating_unit' => 'F01', 'site_location_asset' => 'F01'],
             ['kategori' => 'Laptop', 'brand' => 'Dell', 'tipe' => 'Latitude 5530', 'nama_perangkat' => 'Laptop Purchasing', 'no_serial' => 'SN-DEL-004', 'no_asset' => 'ASR-LPT-2024-004', 'assigned_user_email' => null, 'operating_unit' => 'A03', 'site_location_asset' => 'A03'],
@@ -26,7 +26,7 @@ class AssetSeeder extends Seeder
 
             // Desktops
             ['kategori' => 'Desktop', 'brand' => 'Lenovo', 'tipe' => 'ThinkCentre M70q', 'nama_perangkat' => 'PC Admin', 'no_serial' => 'SN-LNV-010', 'no_asset' => 'ASR-DTK-2024-001', 'assigned_user_email' => null, 'operating_unit' => 'A01', 'site_location_asset' => 'A01'],
-            ['kategori' => 'Desktop', 'brand' => 'HP', 'tipe' => 'ProDesk 400 G9', 'nama_perangkat' => 'PC Finance', 'no_serial' => 'SN-HP-011', 'no_asset' => 'ASR-DTK-2024-002', 'assigned_user_email' => 'user@asri.co.id', 'operating_unit' => 'A02', 'site_location_asset' => 'A02'],
+            ['kategori' => 'Desktop', 'brand' => 'HP', 'tipe' => 'ProDesk 400 G9', 'nama_perangkat' => 'PC Finance', 'no_serial' => 'SN-HP-011', 'no_asset' => 'ASR-DTK-2024-002', 'assigned_user_email' => 'user1@asri.co.id', 'operating_unit' => 'A02', 'site_location_asset' => 'A02'],
             ['kategori' => 'Desktop', 'brand' => 'Dell', 'tipe' => 'OptiPlex 7010', 'nama_perangkat' => 'PC GA', 'no_serial' => 'SN-DEL-012', 'no_asset' => 'ASR-DTK-2024-003', 'assigned_user_email' => null, 'operating_unit' => 'M02', 'site_location_asset' => 'M02'],
             ['kategori' => 'Desktop', 'brand' => 'Acer', 'tipe' => 'Veriton N268', 'nama_perangkat' => 'PC Resepsionis', 'no_serial' => 'SN-ACR-013', 'no_asset' => 'ASR-DTK-2024-004', 'assigned_user_email' => null, 'operating_unit' => 'A01', 'site_location_asset' => 'A01'],
 

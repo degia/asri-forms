@@ -13,56 +13,56 @@ class UserSeeder extends Seeder
     {
         $users = [
             [
-                'name' => 'Rizky Pratama',
+                'name' => 'Administrator',
                 'email' => 'admin@asri.co.id',
-                'nik' => 'ADM001',
+                'nik' => 'SEED01',
                 'site' => 'O99',
                 'role' => 'admin',
             ],
             [
-                'name' => 'Ahmad Fauzi',
-                'email' => 'teknisi@asri.co.id',
-                'nik' => 'IT001',
+                'name' => 'Technician 1',
+                'email' => 'technician1@asri.co.id',
+                'nik' => 'SEED02',
                 'site' => 'O99',
                 'role' => 'teknisi',
             ],
             [
-                'name' => 'Dedi Kurniawan',
-                'email' => 'teknisi2@asri.co.id',
-                'nik' => 'IT002',
+                'name' => 'Technician 2',
+                'email' => 'technician2@asri.co.id',
+                'nik' => 'SEED03',
                 'site' => 'O99',
                 'role' => 'teknisi',
             ],
             [
-                'name' => 'Siti Nurhaliza',
-                'email' => 'user@asri.co.id',
-                'nik' => 'USR001',
+                'name' => 'User 1',
+                'email' => 'user1@asri.co.id',
+                'nik' => 'SEED04',
                 'site' => 'A01',
                 'role' => 'pengguna',
             ],
             [
-                'name' => 'Budi Santoso',
+                'name' => 'User 2',
                 'email' => 'user2@asri.co.id',
-                'nik' => 'USR002',
+                'nik' => 'SEED05',
                 'site' => 'F01',
                 'role' => 'pengguna',
             ],
             [
-                'name' => 'Maya Indah',
+                'name' => 'User 3',
                 'email' => 'user3@asri.co.id',
-                'nik' => 'USR003',
+                'nik' => 'SEED06',
                 'site' => 'A02',
                 'role' => 'pengguna',
             ],
             [
-                'name' => 'Andi Wijaya',
+                'name' => 'Supervisor IT',
                 'email' => 'supervisor@asri.co.id',
                 'nik' => 'SUP001',
                 'site' => 'O99',
                 'role' => 'supervisor_it',
             ],
             [
-                'name' => 'Dewi Kartika',
+                'name' => 'Manager IT',
                 'email' => 'manager@asri.co.id',
                 'nik' => 'MGR001',
                 'site' => 'O99',
@@ -94,11 +94,15 @@ class UserSeeder extends Seeder
                 $user->assignRole($role);
             }
 
-            Employee::where('nik', $user->nik)->update([
-                'email' => $user->email,
-                'akun_login' => 'Connect',
-                'status' => Employee::STATUS_ACTIVE,
-            ]);
+            $employee = Employee::query()->where('nik', $user->nik)->first();
+
+            if ($employee) {
+                $employee->update([
+                    'email' => $user->email,
+                    'akun_login' => 'Connect',
+                    'status' => Employee::STATUS_ACTIVE,
+                ]);
+            }
         }
     }
 }
