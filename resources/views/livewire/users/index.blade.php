@@ -306,36 +306,14 @@
                         <option value="">{{ __('Pilih Field') }}</option>
                         <option value="role">Role</option>
                         <option value="access_login">{{ __('Access Login') }}</option>
-                        <option value="name">{{ __('Nama') }}</option>
-                        <option value="email">Email</option>
-                        <option value="nik">NIK</option>
                     </select>
                     @error('bulkEditField') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-muted mb-1">{{ __('Nilai Baru') }}</label>
-                    @if($bulkEditField === 'role')
-                        <select wire:model="bulkEditValue"
-                            class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                            style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
-                            <option value="">{{ __('Pilih Role') }}</option>
-                            @foreach($this->getRoleList() as $role)
-                                <option value="{{ $role }}">{{ $this->getRoleLabel($role) }}</option>
-                            @endforeach
-                        </select>
-                    @elseif($bulkEditField === 'access_login')
-                        <select wire:model="bulkEditValue"
-                            class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                            style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
-                            <option value="">{{ __('Pilih Access Login') }}</option>
-                            <option value="Enable">Enable</option>
-                            <option value="Disable">Disable</option>
-                        </select>
-                    @else
-                        <input type="text" wire:model="bulkEditValue" placeholder="{{ __('Nilai baru') }}"
-                            class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                            style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
-                    @endif
+                    <input wire:model.debounce.300ms="bulkEditValue" type="text" placeholder="{{ __('Masukkan nilai baru...') }}"
+                        class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
+                        style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
                     @error('bulkEditValue') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="flex gap-2">

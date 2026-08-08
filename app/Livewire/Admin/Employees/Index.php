@@ -6,6 +6,8 @@ use App\Helpers\ActivityLogger;
 use App\Models\Employee;
 use App\Models\Position;
 use App\Models\Site;
+use App\Models\SubDepartement;
+use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -24,6 +26,9 @@ class Index extends Component
     public string $deleteEmployeeName = '';
     public array $selected = [];
     public bool $showBulkDeleteModal = false;
+    public bool $showBulkEditModal = false;
+    public string $bulkEditField = '';
+    public string $bulkEditValue = '';
     public bool $showAssetsModal = false;
     public array $viewAssets = [];
     public string $viewAssetsEmployeeName = '';
@@ -164,6 +169,101 @@ class Index extends Component
         $this->dispatch('employee-deleted');
     }
 
+    public function openBulkEdit(): void
+    {
+        $this->bulkEditField = '';
+        $this->bulkEditValue = '';
+        $this->showBulkEditModal = true;
+    }
+
+    public function updatedBulkEditField(): void
+    {
+        $this->bulkEditValue = '';
+    }
+
+    public function cancelBulkEdit(): void
+    {
+        $this->showBulkEditModal = false;
+        $this->bulkEditField = '';
+        $this->bulkEditValue = '';
+    }
+
+    public function bulkEdit(): void
+    {
+        if (empty($this->selected)) {
+            $this->cancelBulkEdit();
+
+            return;
+        }
+
+        $allowed = ['status', 'site', 'position_id', 'sub_departement_id'];
+        if (! in_array($this->bulkEditField, $allowed)) {
+            $this->addError('bulkEditField', 'Pilih field terlebih dahulu.');
+
+            return;
+        }
+
+        if ($this->bulkEditField === 'status' && ! $this->bulkEditValue) {
+            $this->addError('bulkEditValue', 'Pilih status terlebih dahulu.');
+
+            return;
+        }
+
+        if ($this->bulkEditField === 'status' && $this->bulkEditValue === Employee::STATUS_RESIGNED) {
+            $withAssets = Employee::whereIn('nik', $this->selected)
+                ->whereHas('assignedAssets')
+                ->count();
+
+            if ($withAssets > 0) {
+                $this->dispatch('show-toast', message: 'Tidak bisa set Resigned: masih ada employee terpilih yang memiliki asset terpasang. Kembalikan asset terlebih dahulu.', type: 'error');
+
+                return;
+            }
+        }
+
+        $value = $this->bulkEditField === 'status'
+            ? $this->bulkEditValue
+            : (trim($this->bulkEditValue) ?: null);
+
+        $employees = Employee::whereIn('nik', $this->selected)->get();
+
+        foreach ($employees as $employee) {
+            $data = [$this->bulkEditField => $value];
+            $user = $employee->user;
+
+            if ($this->bulkEditField === 'status') {
+                if ($value === Employee::STATUS_RESIGNED) {
+                    $data['akun_login'] = 'No Access';
+                    $data['date_resign'] = $employee->date_resign ?? today();
+                    $user?->update(['status' => User::STATUS_RESIGNED]);
+                } else {
+                    $data['akun_login'] = $employee->email ? 'Connect' : 'No Access';
+                    $data['date_resign'] = null;
+                    $user?->update(['status' => User::STATUS_ACTIVE]);
+                }
+            }
+
+            $employee->update($data);
+        }
+
+        ActivityLogger::log('update', "Mengubah {$this->bulkEditField} ".count($employees)." employee menjadi '{$value}'");
+        $this->selected = [];
+        $this->cancelBulkEdit();
+        $this->dispatch('show-toast', message: "{$this->getBulkEditFieldLabel($this->bulkEditField)} ".count($employees).' employee diperbarui.', type: 'success');
+        $this->dispatch('employee-updated');
+    }
+
+    public function getBulkEditFieldLabel(string $field): string
+    {
+        return match ($field) {
+            'status' => 'Status',
+            'site' => 'Site',
+            'position_id' => 'Position',
+            'sub_departement_id' => 'Sub Departemen',
+            default => ucfirst($field),
+        };
+    }
+
     private function filteredQuery()
     {
         return Employee::withCount('assignedAssets')
@@ -189,6 +289,13 @@ class Index extends Component
     {
         return Position::orderBy('sort_order')->orderBy('name')->get(['id', 'name'])
             ->mapWithKeys(fn ($p) => [$p->id => $p->name])
+            ->toArray();
+    }
+
+    public function getSubDepartementOptions(): array
+    {
+        return SubDepartement::orderBy('name')->get(['id', 'name'])
+            ->mapWithKeys(fn ($s) => [$s->id => $s->name])
             ->toArray();
     }
 

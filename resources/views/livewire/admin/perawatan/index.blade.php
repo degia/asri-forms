@@ -374,35 +374,9 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-muted mb-1">{{ __('Nilai Baru') }}</label>
-                    @if($bulkEditField === 'kondisi_akhir')
-                        <select wire:model="bulkEditValue"
-                            class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                            style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
-                            <option value="">{{ __('Pilih Kondisi') }}</option>
-                            <option value="good_normal">Good / Normal</option>
-                            <option value="caution_poor">Caution / Poor</option>
-                            <option value="good">Good</option>
-                            <option value="fair">Fair</option>
-                            <option value="critical">Critical</option>
-                            <option value="poor">Poor</option>
-                        </select>
-                    @elseif($bulkEditField === 'status')
-                        <select wire:model="bulkEditValue"
-                            class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                            style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
-                            <option value="">{{ __('Pilih Status') }}</option>
-                            <option value="draft">Draft</option>
-                            <option value="submitted">Submitted</option>
-                            <option value="diketahui">Diketahui</option>
-                            <option value="disetujui">Disetujui</option>
-                            <option value="selesai">Selesai</option>
-                            <option value="revisi">Revisi</option>
-                        </select>
-                    @else
-                        <input type="text" wire:model="bulkEditValue" placeholder="{{ __('Nilai baru') }}"
-                            class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                            style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
-                    @endif
+                    <input wire:model.debounce.300ms="bulkEditValue" type="text" placeholder="{{ __('Masukkan nilai baru...') }}"
+                        class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
+                        style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
                     @error('bulkEditValue') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="flex gap-2">

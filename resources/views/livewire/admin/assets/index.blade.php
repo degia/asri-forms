@@ -329,21 +329,9 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-muted mb-1">{{ __('Nilai Baru') }}</label>
-                    @if($bulkEditField === 'status')
-                        <select wire:model="bulkEditValue"
-                            class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                            style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
-                            <option value="">{{ __('Pilih Status') }}</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="maintenance">Maintenance</option>
-                            <option value="disposed">Disposed</option>
-                        </select>
-                    @else
-                        <input type="text" wire:model="bulkEditValue" placeholder="{{ __('Nilai baru') }}"
-                            class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                            style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
-                    @endif
+                    <input wire:model.debounce.300ms="bulkEditValue" type="text" placeholder="{{ __('Masukkan nilai baru...') }}"
+                        class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
+                        style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
                     @error('bulkEditValue') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="flex gap-2">

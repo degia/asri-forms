@@ -283,9 +283,10 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-muted mb-1">{{ __('Nilai Baru') }}</label>
-                    <input type="text" wire:model="bulkEditValue" placeholder="{{ __('Nilai baru') }}"
+                    <input wire:model.debounce.300ms="bulkEditValue" type="text" placeholder="{{ __('Masukkan nilai baru...') }}"
                         class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
                         style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
+                    @error('bulkEditValue') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="flex gap-2">
                     <button wire:click="cancelBulkEdit" type="button" class="glass-button-secondary text-sm flex-1">{{ __('Batal') }}</button>

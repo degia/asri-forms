@@ -193,6 +193,11 @@ class Index extends Component
         $this->showBulkEditModal = true;
     }
 
+    public function updatedBulkEditField(): void
+    {
+        $this->bulkEditValue = '';
+    }
+
     public function cancelBulkEdit(): void
     {
         $this->showBulkEditModal = false;
@@ -207,7 +212,7 @@ class Index extends Component
             return;
         }
 
-        $allowed = ['role', 'access_login', 'name', 'email', 'nik'];
+        $allowed = ['role', 'access_login'];
         if (!in_array($this->bulkEditField, $allowed)) {
             $this->addError('bulkEditField', 'Pilih field terlebih dahulu.');
             return;
@@ -237,29 +242,11 @@ class Index extends Component
 
             ActivityLogger::log('update', "Mengubah akses login {$count} user menjadi " . $this->getAccessLoginLabel($this->bulkEditValue));
             $this->dispatch('show-toast', message: "Access Login {$count} user diperbarui menjadi {$this->getAccessLoginLabel($this->bulkEditValue)}.", type: 'success');
-        } else {
-            $value = trim($this->bulkEditValue);
-            $count = User::whereIn('email', $this->selected)->update([$this->bulkEditField => $value ?: null]);
-
-            ActivityLogger::log('update', "Mengubah {$this->bulkEditField} {$count} user menjadi '{$value}'");
-            $this->dispatch('show-toast', message: "{$this->getBulkEditFieldLabel($this->bulkEditField)} {$count} user diperbarui.", type: 'success');
         }
 
         $this->selected = [];
         $this->cancelBulkEdit();
         $this->dispatch('user-updated');
-    }
-
-    public function getBulkEditFieldLabel(string $field): string
-    {
-        return match ($field) {
-            'role' => 'Role',
-            'access_login' => 'Access Login',
-            'name' => 'Nama',
-            'email' => 'Email',
-            'nik' => 'NIK',
-            default => ucfirst($field),
-        };
     }
 
     private function filteredQuery()

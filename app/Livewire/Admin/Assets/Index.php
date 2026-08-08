@@ -74,6 +74,21 @@ class Index extends Component
         return Asset::whereNotNull('tipe')->where('tipe', '!=', '')->orderBy('tipe')->distinct()->pluck('tipe')->toArray();
     }
 
+    public function getNoSerialOptions(): array
+    {
+        return Asset::whereNotNull('no_serial')->where('no_serial', '!=', '')->orderBy('no_serial')->distinct()->pluck('no_serial')->toArray();
+    }
+
+    public function getOperatingUnitOptions(): array
+    {
+        return Asset::whereNotNull('operating_unit')->where('operating_unit', '!=', '')->orderBy('operating_unit')->distinct()->pluck('operating_unit')->toArray();
+    }
+
+    public function getSiteLocationOptions(): array
+    {
+        return Asset::whereNotNull('site_location_asset')->where('site_location_asset', '!=', '')->orderBy('site_location_asset')->distinct()->pluck('site_location_asset')->toArray();
+    }
+
     public function confirmDelete(int $id, string $name): void
     {
         $this->deleteAssetId = $id;
@@ -142,6 +157,11 @@ class Index extends Component
         $this->bulkEditField = '';
         $this->bulkEditValue = '';
         $this->showBulkEditModal = true;
+    }
+
+    public function updatedBulkEditField(): void
+    {
+        $this->bulkEditValue = '';
     }
 
     public function cancelBulkEdit(): void

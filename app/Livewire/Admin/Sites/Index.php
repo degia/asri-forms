@@ -132,6 +132,11 @@ class Index extends Component
         $this->showBulkEditModal = true;
     }
 
+    public function updatedBulkEditField(): void
+    {
+        $this->bulkEditValue = '';
+    }
+
     public function cancelBulkEdit(): void
     {
         $this->showBulkEditModal = false;
