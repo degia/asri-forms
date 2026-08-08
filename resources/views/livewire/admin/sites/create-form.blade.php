@@ -1,7 +1,14 @@
 <div class="glass-card p-6 space-y-5"
-    x-data="{ errors: {} }"
+    x-data="{ errors: {}, toast: false, message: '', type: 'success' }"
     x-on:validation-error.window="errors = $event.detail.errors[0]"
-    x-on:site-created.window="errors = {}">
+    @show-toast.window="toast = true; message = $event.detail.message; type = $event.detail.type || 'success'; setTimeout(() => toast = false, 4000)"
+    x-on:site-created.window="errors = {}; setTimeout(() => window.location = '{{ route('admin.sites.index') }}', 2000)">
+
+    <div x-show="toast" x-transition
+        class="fixed top-20 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium max-w-xs"
+        :class="type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'"
+        x-text="message">
+    </div>
 
     {{-- ID Site --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -60,10 +60,15 @@ class CreateForm extends Component
             ]);
 
             ActivityLogger::log('create', "Menambahkan site baru: {$this->idSite} - {$this->site}", 'App\Models\Site', $this->idSite);
+
+            $this->dispatch('show-toast', message: "Site {$this->idSite} - {$this->site} berhasil disimpan.", type: 'success');
             $this->dispatch('site-created');
             $this->reset();
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->dispatch('validation-error', errors: $e->errors());
+            $this->dispatch('show-toast', message: 'Data gagal disimpan: ' . (collect($e->errors())->flatten()->first() ?? 'Periksa kembali isian form.'), type: 'error');
+        } catch (\Throwable $e) {
+            $this->dispatch('show-toast', message: 'Data gagal disimpan: ' . $e->getMessage(), type: 'error');
         }
     }
 
