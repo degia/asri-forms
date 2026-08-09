@@ -123,7 +123,7 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                         No. Form @if ($sortBy === 'nomor_form')
                             {{ $sortDir === 'asc' ? '↑' : '↓' }} @endif
                     </th>
-                    <th class="text-left py-2 px-3 text-xs text-muted font-medium whitespace-nowrap">Tipe</th>
+                    {{-- <th class="text-left py-2 px-3 text-xs text-muted font-medium whitespace-nowrap">Tipe</th> --}}
                     <th class="text-left py-2 px-3 text-xs text-muted font-medium whitespace-nowrap">Teknisi</th>
                     <th class="text-left py-2 px-3 text-xs text-muted font-medium whitespace-nowrap">Pengguna</th>
                     <th class="text-left py-2 px-3 text-xs text-muted font-medium whitespace-nowrap">Perangkat</th>
@@ -158,13 +158,13 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                                 {{ $form['nomor_form'] }}
                             @endif
                         </td>
-                        <td class="py-2.5 px-3 whitespace-nowrap">
+                        {{-- <td class="py-2.5 px-3 whitespace-nowrap">
                             <span
                                 class="px-2 py-0.5 rounded-full text-[10px] font-semibold
                                         {{ $form['type'] === 'pemeriksaan' ? 'bg-blue-500/15 text-blue-400' : 'bg-purple-500/15 text-purple-400' }}">
                                 {{ ucfirst($form['type']) }}
                             </span>
-                        </td>
+                        </td> --}}
                         <td class="py-2.5 px-3 text-primary whitespace-nowrap">{{ $form['teknisi'] }}</td>
                         <td class="py-2.5 px-3 text-primary whitespace-nowrap">{{ $form['pengguna'] }}</td>
                         <td class="py-2.5 px-3 text-primary whitespace-nowrap">{{ $form['perangkat'] }}</td>

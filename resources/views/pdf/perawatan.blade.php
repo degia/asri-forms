@@ -8,10 +8,10 @@
         body { margin: 0; font-family: 'Helvetica', 'Arial', sans-serif; font-size: 12px; color: #1a1a1a; line-height: 1.4; }
         div, p, h1, h2, h3, table, tr, td, th, ul, ol, li, img, strong, span { margin: 0; padding: 0; box-sizing: border-box; }
         .pdf-content { margin: 0; }
-        .pdf-section { margin-bottom: 6px; }
+        /* .pdf-section { margin-bottom: 6px; } */
 
-        .pdf-header { position: fixed; top: -30mm; left: 0; right: 0; background: #ffffff; }
-        .pdf-footer { position: fixed; bottom: -15mm; left: 0; right: 0; text-align: center; font-size: 9px; color: #999; border-top: 1px solid #eee; padding-top: 4px; background: #ffffff; }
+        .pdf-header { position: fixed; top: -25mm; left: 0; right: 0; background: #ffffff; }
+        .pdf-footer { position: fixed; bottom: -10mm; left: 0; right: 0; text-align: center; font-size: 9px; color: #999; border-top: 1px solid #eee; padding-top: 4px; background: #ffffff; }
         table { border-collapse: collapse; }
         td, th { padding: 3px 6px; }
 
@@ -114,20 +114,22 @@
     <div class="section-title">Informasi Pengguna</div>
     <table class="info-table">
         <tr>
-            <td class="lbl" style="width:16%;">Nama User</td>
-            <td style="width:34%;">{{ $form->pengguna->name ?? '-' }}</td>
-            <td class="lbl" style="width:16%;">NIK User</td>
-            <td style="width:34%;">{{ $form->pengguna->nik ?? '-' }}</td>
+            <td class="lbl">Nama - [ NIK ]</td>
+            <td class="val">{{ $form->pengguna->name ?? '-' }} - [ {{ $form->pengguna->nik ?? '-' }} ]</td>
+            <td class="lbl">Position</td>
+            <td class="val">{{ $form->pengguna->position?->name ?? '-' }}</td>
         </tr>
         <tr>
-            <td class="lbl">Site</td>
-            <td>{{ $form->pengguna->site_name ?? '-' }}</td>
+            <td class="lbl">Alamat Email</td>
+            <td class="val">{{ $form->pengguna->email ?? '-' }}</td>
+            <td class="lbl">SO</td>
+            <td class="val">{{ $form->pengguna->divisi?->name ?? '-' }}</td>
         </tr>
         <tr>
             <td class="lbl">No. Telepon</td>
-            <td>{{ $form->pengguna->no_telepon ?? '-' }}</td>
-            <td class="lbl">Alamat Email</td>
-            <td>{{ $form->pengguna->email ?? '-' }}</td>
+            <td class="val">{{ $form->pengguna->no_telepon ?? '-' }}</td>
+            <td class="lbl">Unit Site</td>
+            <td class="val">{{ $form->pengguna->site_name ?? '-' }}</td>
         </tr>
     </table>
     <div class="section-sub-title">Location Perawatan

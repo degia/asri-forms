@@ -9,8 +9,8 @@
         div, p, h1, h2, h3, table, tr, td, th, ul, ol, li, img, strong, span { margin: 0; padding: 0; box-sizing: border-box; }
         .pdf-content { margin: 0; }
 
-        .pdf-header { position: fixed; top: -30mm; left: 0; right: 0; background: #ffffff; }
-        .pdf-footer { position: fixed; bottom: -15mm; left: 0; right: 0; background: #ffffff; }
+        .pdf-header { position: fixed; top: -25mm; left: 0; right: 0; background: #ffffff; }
+        .pdf-footer { position: fixed; bottom: -10mm; left: 0; right: 0; background: #ffffff; }
         table { border-collapse: collapse; }
         td, th { padding: 3px 6px; }
 
