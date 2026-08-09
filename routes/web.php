@@ -6,6 +6,7 @@ use App\Http\Controllers\UserExportController;
 use App\Http\Controllers\SiteExportController;
 use App\Http\Controllers\AssetExportController;
 use App\Http\Controllers\EmployeeExportController;
+use App\Http\Controllers\PositionExportController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -153,6 +154,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Structure Organization
         Volt::route('structure-organization', 'admin.pages.structure-organization.index')
             ->name('structure-organization.index');
+
+        Volt::route('structure-organization/positions/import', 'admin.pages.structure-organization.positions-import')
+            ->name('positions.import');
+
+        Route::get('structure-organization/positions/export/{format}', [PositionExportController::class, 'export'])
+            ->whereIn('format', ['pdf', 'xlsx', 'xls', 'csv', 'html'])
+            ->name('positions.export');
+
+        Route::get('structure-organization/positions/import/template', [PositionExportController::class, 'template'])
+            ->name('positions.import.template');
 
         // Form Pemeriksaan (PMR)
         Volt::route('pemeriksaan', 'admin.pages.pemeriksaan.index')
