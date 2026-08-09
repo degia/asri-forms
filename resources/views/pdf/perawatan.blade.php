@@ -252,35 +252,55 @@
         </tr>
     </table>
 
-    {{-- KONDISI SETELAH PERAWATAN + CATATAN (two-col) --}}
-    <div class="section-title" style="margin-top:0;">Kondisi Setelah Perawatan :</div>
-    <div class="catatan">
-        <strong>Catatan :
-            @php
-                $kondisiOptions = [
-                    'good' => ['label' => 'Good', 'color' => '#10b981'],
-                    'fair' => ['label' => 'Fair', 'color' => '#3b82f6'],
-                    'critical' => ['label' => 'Critical', 'color' => '#f59e0b'],
-                    'poor' => ['label' => 'Poor', 'color' => '#ef4444'],
-                ];
-                $selected = $kondisiOptions[$form->kondisi_akhir] ?? null;
-            @endphp
-            @if($selected)
-                <div style="padding: 2px; border: 1px solid #ccc; font-size: 12px; font-weight: bold; color: {{ $selected['color'] }};">
-                    <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:{{ $selected['color'] }}; vertical-align:middle; margin-right:2px;"></span>
-                        {{ $selected['label'] }}
+    {{-- KONDISI SETELAH PERAWATAN + NOTE (two-col) --}}
+    <table class="two-col">
+        <tr>
+            {{-- KONDISI SETELAH PERAWATAN --}}
+            <td style="vertical-align: top; width: 50%; padding: 0 2px 0 0; border: none;">
+                <div class="section-title" style="margin-top:0;">Kondisi Setelah Perawatan :</div>
+                <div class="catatan">
+                    <strong>Catatan :
+                        @php
+                            $kondisiOptions = [
+                                'good' => ['label' => 'Good', 'color' => '#10b981'],
+                                'fair' => ['label' => 'Fair', 'color' => '#3b82f6'],
+                                'critical' => ['label' => 'Critical', 'color' => '#f59e0b'],
+                                'poor' => ['label' => 'Poor', 'color' => '#ef4444'],
+                            ];
+                            $selected = $kondisiOptions[$form->kondisi_akhir] ?? null;
+                        @endphp
+                        @if($selected)
+                            <div style="padding: 2px; border: 1px solid #ccc; font-size: 12px; font-weight: bold; color: {{ $selected['color'] }};">
+                                <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:{{ $selected['color'] }}; vertical-align:middle; margin-right:2px;"></span>
+                                    {{ $selected['label'] }}
+                            </div>
+                        @else
+                            <div style="padding: 2px; border: 1px solid #ccc; font-size: 12px; color: #999;">-</div>
+                        @endif
+                        @if($form->kondisi_akhir_notes)
+                            <div style="font-size:10px; margin-top:4px;">
+                                <strong>Keterangan:</strong> {{ $form->kondisi_akhir_notes }}
+                            </div>
+                        @endif
+                    </strong>
                 </div>
-            @else
-                <div style="padding: 2px; border: 1px solid #ccc; font-size: 12px; color: #999;">-</div>
-            @endif
-            @if($form->kondisi_akhir_notes)
-                <div style="font-size:10px; margin-top:4px;">
-                    <strong>Keterangan:</strong> {{ $form->kondisi_akhir_notes }}
+            </td>
+
+            {{-- NOTE --}}
+            <td style="vertical-align: top; width: 50%; padding: 0 0 0 2px; border: none;">
+                <div class="section-title" style="margin-top:0;">Note</div>
+                <div class="catatan">
+                    <strong>Barcode Fisik :</strong> {{ $form->barcode_fisik ? 'Ada' : 'Tidak Ada' }}
                 </div>
-            @endif
-        </strong>
-        Barcode Fisik : {{ $form->barcode_fisik ? 'Ada' : 'Tidak Ada' }}
-    </div>
+                @if($form->notes)
+                    <div class="catatan">
+                        <strong>></strong>
+                        {{ $form->notes }}
+                    </div>
+                @endif
+            </td>
+        </tr>
+    </table>
 
     {{-- KOTA & TANGGAL --}}
     <div style="font-size:11px; margin-top:8px;">Jakarta, {{ $form->submitted_at ? $form->submitted_at->format('d F Y') : '_______________' }}</div>

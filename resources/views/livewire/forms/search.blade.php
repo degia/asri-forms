@@ -403,7 +403,7 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                                 Brand, Tipe</td>
                             <td
                                 class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">
-                                {{ $_isPemeriksaan ? 'Hostname' : 'Nama Perangkat' }}</td>
+                                Hostname</td>
                             <td
                                 class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">
                                 No. Serial</td>
@@ -671,7 +671,7 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                             {{-- KONDISI SETELAH PERAWATAN --}}
                             <td class="w-1/2 pr-2 align-top">
                                 <div class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500"
-                                    style="margin-top:0;">Kondisi Setelah Perawatan</div>
+                                    style="margin-top:0;">Kondisi Setelah Perawatan :</div>
                                 @if ($_selectedKondisi)
                                     <div class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-sm font-bold"
                                         style="color: {{ $_selectedKondisi['color'] }};">
@@ -694,28 +694,25 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                         <td class="w-1/2 align-top">
                             <div class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500"
                                 style="margin-top:0;">Note</div>
-                            <div
-                                class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 text-xs text-gray-500">
-                                @if ($_isPemeriksaan)
+                            @if ($_isPemeriksaan)
+                                <div
+                                    class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 text-xs text-gray-500">
                                     <strong>V : BAIK</strong><br>
                                     <strong>X : TIDAK BAIK</strong><br>
                                     <span class="text-[10px]">(Mohon jelaskan kerusakan atau masalah yang ada)</span>
-                                @else
-                                    <strong>Kondisi :</strong><br>
-                                    <strong>V : DONE</strong><br>
-                                    <strong>X : NOT YET</strong>
-                                @endif
-                            </div>
-                            @if ($_isPemeriksaan)
+                                </div>
                                 <div class="mt-2 px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs">
                                     <strong class="block mb-0.5">CATATAN
                                         :</strong>{{ $_form['notes'] ?? '*) : diisi untuk perangkat lama' }}
                                 </div>
                             @else
+                                <div class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs">
+                                    <strong class="block mb-0.5">Barcode Fisik :</strong>
+                                    {{ !empty($_form['barcode_fisik']) ? 'Ada' : 'Tidak Ada' }}
+                                </div>
                                 <div class="mt-2 px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs">
-                                    <strong class="block mb-0.5">Catatan Tambahan :</strong>
-                                    <p>Barcode Fisik : {{ !empty($_form['barcode_fisik']) ? 'Ada' : 'Tidak Ada' }}</p>
-                                    <p>{{ $_form['notes'] ?? '*) : diisi untuk perangkat lama' }}</p>
+                                    <strong>></strong>
+                                    {{ $_form['notes'] ?? '*) : diisi untuk perangkat lama' }}
                                 </div>
                             @endif
                         </td>

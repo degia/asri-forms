@@ -159,26 +159,20 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                 Info Perangkat
             </h3>
-            <table class="w-full text-sm" style="border-collapse: collapse;">
+            <table class="w-full text-sm" style="border-collapse: collapse; text-align: center;">
+                <tr style="background: var(--color-bg-secondary);">
+                    <th class="px-3 py-2 font-semibold text-xs w-[20%]" style="border: 1px solid var(--color-border);">Kategori</th>
+                    <th class="px-3 py-2 font-semibold text-xs w-[20%]" style="border: 1px solid var(--color-border);">Brand, Tipe</th>
+                    <th class="px-3 py-2 font-semibold text-xs w-[20%]" style="border: 1px solid var(--color-border);">Hostname</th>
+                    <th class="px-3 py-2 font-semibold text-xs w-[20%]" style="border: 1px solid var(--color-border);">No. Serial</th>
+                    <th class="px-3 py-2 font-semibold text-xs w-[20%]" style="border: 1px solid var(--color-border);">No. Asset</th>
+                </tr>
                 <tr>
-                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">Kategori</td>
                     <td class="px-3 py-2 text-primary" style="border: 1px solid var(--color-border);">{{ $form->asset->kategori ?? '-' }}</td>
-                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">Brand, Tipe</td>
                     <td class="px-3 py-2 text-primary" style="border: 1px solid var(--color-border);">{{ $form->asset->brand ?? '-' }}, {{ $form->asset->tipe ?? '-' }}</td>
-                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">{{ $formType === 'pemeriksaan' ? 'Hostname' : 'Nama Perangkat' }}</td>
                     <td class="px-3 py-2 text-primary" style="border: 1px solid var(--color-border);">{{ $form->asset->nama_perangkat ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">No. Serial</td>
                     <td class="px-3 py-2 font-mono text-primary" style="border: 1px solid var(--color-border);">{{ $form->asset->no_serial ?? '-' }}</td>
-                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">No. Asset</td>
                     <td class="px-3 py-2 font-mono text-primary" style="border: 1px solid var(--color-border);">{{ $form->asset->no_asset ?? '-' }}</td>
-                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">Site Location</td>
-                    <td class="px-3 py-2 text-primary" style="border: 1px solid var(--color-border);">{{ $form->site->site ?? $form->site_location ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">Location Detail</td>
-                    <td colspan="5" class="px-3 py-2 text-primary" style="border: 1px solid var(--color-border);">{{ $form->location_detail ?? '-' }}</td>
                 </tr>
             </table>
         </div>
@@ -233,7 +227,7 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
             <div class="glass-card p-4">
                 <h3 class="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Kondisi Setelah Perawatan
+                    Kondisi Setelah Perawatan :
                 </h3>
                 @if($editing)
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
@@ -258,16 +252,28 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                         </div>
                     </div>
                 @else
-                    <div class="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                            <span class="text-xs text-muted">Kondisi Akhir</span>
-                            <p class="{{ $this->getStatusColor($form->kondisi_akhir ?? '') }}">{{ $this->getStatusLabel($form->kondisi_akhir ?? '') }}</p>
-                        </div>
-                        @if($form->kondisi_akhir_notes)
-                            <div>
-                                <span class="text-xs text-muted">Keterangan</span>
-                                <p class="text-primary">{{ $form->kondisi_akhir_notes }}</p>
+                    <div class="text-sm">
+                        <span class="text-xs text-muted">Catatan :</span>
+                        @php
+                            $kondisiColor = match ($form->kondisi_akhir ?? '') {
+                                'good' => '#10b981',
+                                'fair' => '#3b82f6',
+                                'critical' => '#f59e0b',
+                                'poor' => '#ef4444',
+                                default => null,
+                            };
+                        @endphp
+                        @if($kondisiColor)
+                            <div class="mt-1 inline-flex items-center gap-1.5 px-1.5 py-0.5 border rounded text-sm font-bold"
+                                style="border-color: {{ $kondisiColor }}; color: {{ $kondisiColor }};">
+                                <span class="inline-block w-3.5 h-3.5 rounded-full" style="background: {{ $kondisiColor }};"></span>
+                                {{ $this->getStatusLabel($form->kondisi_akhir ?? '') }}
                             </div>
+                        @else
+                            <div class="mt-1 inline-flex items-center px-1.5 py-0.5 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-400">-</div>
+                        @endif
+                        @if($form->kondisi_akhir_notes)
+                            <p class="mt-2 text-xs text-muted"><strong>Keterangan:</strong> <span class="text-primary">{{ $form->kondisi_akhir_notes }}</span></p>
                         @endif
                     </div>
                 @endif
@@ -340,6 +346,20 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                                                         style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
                                                 </div>
                                             @else
+                                                @if($item->value)
+                                                    <span class="text-xs text-muted">{{ $item->value }}</span>
+                                                @endif
+                                                {{ $item->keterangan ?? '-' }}
+                                                @if(($item->name === 'Battery' || $item->name === 'Battery Report') && ($item->full_charge_capacity || $item->design_capacity))
+                                                    @if($item->full_charge_capacity && $item->design_capacity && $item->design_capacity > 0)
+                                                        <strong>{{ round(($item->full_charge_capacity / $item->design_capacity) * 100) }} %</strong>
+                                                    @else
+                                                        <strong>-</strong>
+                                                    @endif
+                                                    [FCC {{ $item->full_charge_capacity ?? '-' }} / DC {{ $item->design_capacity ?? '-' }}]
+                                                @endif
+                                            @endif
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -463,13 +483,16 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
         {{-- Notes --}}
         <div class="glass-card p-4">
             <h3 class="text-sm font-semibold text-primary mb-2">Catatan</h3>
+            @if($formType === 'perawatan')
+                <p class="text-sm text-secondary mb-2"><strong>Barcode Fisik :</strong> {{ $form->barcode_fisik ? 'Ada' : 'Tidak Ada' }}</p>
+            @endif
             @if($editing)
                 <textarea wire:model="editNotes" rows="3"
                     class="w-full px-3 py-2 rounded-lg text-sm resize-none transition-colors duration-200"
                     style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);"
                     placeholder="Tambahkan catatan..."></textarea>
             @else
-                <p class="text-sm text-secondary whitespace-pre-wrap">{{ $form->notes ?? '-' }}</p>
+                <p class="text-sm text-secondary whitespace-pre-wrap">{{ $form->notes ?? '*) : diisi untuk perangkat lama' }}</p>
             @endif
         </div>
 
