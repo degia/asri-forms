@@ -531,45 +531,19 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                                                         </td>
                                                         <td
                                                             class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">
-                                                            {{ $_item['keterangan'] ?? '' }}</td>
+                                                            {{ $_item['keterangan'] ?? '' }}
+                                                            @if ((($_item['name'] ?? '') === 'Battery' || ($_item['name'] ?? '') === 'Battery Report') && (!empty($_item['full_charge_capacity']) || !empty($_item['design_capacity'])))
+                                                                @if (!empty($_item['full_charge_capacity']) && !empty($_item['design_capacity']) && $_item['design_capacity'] > 0)
+                                                                    <strong>{{ round(($_item['full_charge_capacity'] / $_item['design_capacity']) * 100) }}
+                                                                        %</strong>
+                                                                @else
+                                                                    <strong>-</strong>
+                                                                @endif
+                                                                [FCC {{ $_item['full_charge_capacity'] ?? '-' }} / DC
+                                                                {{ $_item['design_capacity'] ?? '-' }}]
+                                                            @endif
+                                                        </td>
                                                     </tr>
-                                                    @if (
-                                                        $_isPemeriksaan &&
-                                                            ($_item['name'] ?? '') === 'Battery' &&
-                                                            (!empty($_item['full_charge_capacity']) || !empty($_item['design_capacity'])))
-                                                        <tr class="bg-gray-50 dark:bg-gray-800/50">
-                                                            <td colspan="3"
-                                                                class="border border-gray-300 dark:border-gray-600 px-2 py-1"
-                                                                style="border-top:none;">
-                                                                <table class="w-full text-[10px]">
-                                                                    <tr>
-                                                                        <td
-                                                                            class="font-semibold text-right pr-1 w-[25%]">
-                                                                            Full Charge Capacity</td>
-                                                                        <td class="w-[25%]">
-                                                                            {{ $_item['full_charge_capacity'] ?? '-' }}
-                                                                            mWh</td>
-                                                                        <td
-                                                                            class="font-semibold text-right pr-1 w-[25%]">
-                                                                            Design Capacity</td>
-                                                                        <td class="w-[25%]">
-                                                                            {{ $_item['design_capacity'] ?? '-' }} mWh
-                                                                        </td>
-                                                                        <td
-                                                                            class="font-semibold text-right pr-1 w-[25%]">
-                                                                            Battery Health</td>
-                                                                        <td class="font-semibold w-[25%]">
-                                                                            @if (!empty($_item['full_charge_capacity']) && !empty($_item['design_capacity']) && $_item['design_capacity'] > 0)
-                                                                                {{ round(($_item['full_charge_capacity'] / $_item['design_capacity']) * 100) }}%
-                                                                            @else
-                                                                                -
-                                                                            @endif
-                                                                        </td>
-                                                                    </tr>
-                                                                </table>
-                                                            </td>
-                                                        </tr>
-                                                    @endif
                                                 @endforeach
                                             </tbody>
                                         </table>

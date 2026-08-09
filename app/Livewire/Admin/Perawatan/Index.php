@@ -82,6 +82,8 @@ class Index extends Component
                 'category' => $item->category,
                 'status' => $item->status,
                 'keterangan' => $item->keterangan,
+                'full_charge_capacity' => $item->full_charge_capacity,
+                'design_capacity' => $item->design_capacity,
             ])->toArray(),
             'approvals' => $form->approvals->map(fn ($a) => [
                 'approval_level' => $a->approval_level,

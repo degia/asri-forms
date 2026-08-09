@@ -284,6 +284,16 @@
                                                     </span>
                                                 </div>
                                             </div>
+                                            @if(($item['name'] === 'Battery' || $item['name'] === 'Battery Report') && (!empty($item['full_charge_capacity']) || !empty($item['design_capacity'])))
+                                                <div class="px-3 pb-1.5 text-[10px]" style="color: var(--color-text-muted);">
+                                                    @if(!empty($item['full_charge_capacity']) && !empty($item['design_capacity']) && $item['design_capacity'] > 0)
+                                                        <span class="font-semibold" style="color: var(--color-text-primary);">{{ round(($item['full_charge_capacity'] / $item['design_capacity']) * 100) }} %</span>
+                                                    @else
+                                                        <span class="font-semibold" style="color: var(--color-text-primary);">-</span>
+                                                    @endif
+                                                    [FCC {{ $item['full_charge_capacity'] ?? '-' }} / DC {{ $item['design_capacity'] ?? '-' }}]
+                                                </div>
+                                            @endif
                                         @endforeach
                                     </div>
                                 </div>

@@ -17,6 +17,8 @@ class FormPerawatanItem extends Model
         'name',
         'status',
         'keterangan',
+        'full_charge_capacity',
+        'design_capacity',
         'sort_order',
     ];
 

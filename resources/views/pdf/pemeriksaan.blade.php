@@ -33,6 +33,8 @@
         .device-table { width: 100%; border: 1px solid #999; margin-bottom: 8px; }
         .device-table td { border: 1px solid #ccc; padding: 3px 6px; font-size: 11px; text-align: center; }
         .device-table .lbl { background: #f0f0f0; font-weight: 600; font-size: 10px; }
+        .device-table .lbl-1 { background: #f0f0f0; font-weight: 600; font-size: 10px; text-align: left; }
+        .device-table .val { text-align: left; font-size: 10px; }
 
         .two-col { width: 100%; margin-bottom: 6px; }
         .two-col > td { vertical-align: top; padding: 0 4px 0 0; border: none; width: 50%; }
@@ -119,31 +121,35 @@
             <td class="val">{{ $form->pengguna->site_name ?? '-' }}</td>
         </tr>
     </table>
-    <div class="section-sub-title">Location Perawatan
-        Site : {{ $form->site->site ?? $form->site_location ?? '-' }}, {{ $form->location_detail ?? '-' }}
+    <div class="section-sub-title">Location Pemeriksaan
+        Site : {{ $form->site->site ?? $form->site_location ?? '-' }}, on{{ $form->location_detail ?? '-' }}
     </div>
 
     {{-- INFORMASI PERANGKAT --}}
     <div class="section-title">Informasi Perangkat</div>
     <table class="device-table">
         <tr>
-            <td class="lbl" style="width:12%;">Kategori</td>
-            <td class="lbl" style="width:10%;">Brand</td>
-            <td class="lbl" style="width:10%;">Tipe</td>
-            <td class="lbl" style="width:13%;">Nama Perangkat</td>
-            <td class="lbl">No. Serial</td>
-            <td class="lbl">No. Asset</td>
-            <td class="lbl">Kondisi</td>
-
+            <td class="lbl" style="width:10%;">Kategori</td>
+            <td class="lbl" style="width:10%;">Brand, Tipe</td>
+            <td class="lbl" style="width:10%;">Hostname</td>
+            <td class="lbl" style="width:10%;">No. Serial</td>
+            <td class="lbl" style="width:10%;">No. Asset</td>
         </tr>
         <tr>
             <td style="width:14%;">{{ $form->asset->kategori ?? '-' }}</td>
-            <td style="width:14%;">{{ $form->asset->brand ?? '-' }}</td>
-            <td style="width:14%;">{{ $form->asset->tipe ?? '-' }}</td>
-            <td style="width:13%;">{{ $form->asset->nama_perangkat ?? '-' }}</td>
-            <td>{{ $form->asset->no_serial ?? '-' }}</td>
+            <td style="width:14%;">{{ $form->asset->brand ?? '-' }}, {{ $form->asset->tipe ?? '-' }}</td>
+            <td style="width:14%;">{{ $form->asset->nama_perangkat ?? '-' }}</td>
+            <td style="width:13%;">{{ $form->asset->no_serial ?? '-' }}</td>
             <td>{{ $form->asset->no_asset ?? '-' }}</td>
-            <td colspan="3">
+        </tr>
+    </table>
+    {{-- INFORMASI PERANGKAT --}}
+    <table class="device-table">
+        <tr>
+            <td class="lbl-1" style="width:100%;">Kondisi, Keterangan</td>
+        </tr>
+        <tr>
+            <td class="val" colspan="3">
                 @if($form->kondisi === 'baru')
                     <strong>BARU</strong>
                 @elseif($form->kondisi === 'lama')
@@ -158,6 +164,7 @@
             </td>
         </tr>
     </table>
+
 
     {{-- PEMERIKSAAN HARDWARE + APLIKASI + OS (side by side) --}}
     @php
@@ -188,30 +195,18 @@
                                     @elseif($item->status === 'tidak_baik') Tidak Baik
                                     @else - @endif
                                 </td>
-                                <td>{{ $item->keterangan ?? '' }}</td>
+                                <td>
+                                    {{ $item->keterangan ?? '' }}
+                                    @if($item->name === 'Battery' && ($item->full_charge_capacity || $item->design_capacity))
+                                        @if($item->full_charge_capacity && $item->design_capacity && $item->design_capacity > 0)
+                                            <strong>{{ round(($item->full_charge_capacity / $item->design_capacity) * 100) }} %</strong>
+                                        @else
+                                            <strong>-</strong>
+                                        @endif
+                                        [FCC {{ $item->full_charge_capacity ?? '-' }} / DC {{ $item->design_capacity ?? '-' }}]
+                                    @endif
+                                </td>
                             </tr>
-                            @if($item->name === 'Battery' && ($item->full_charge_capacity || $item->design_capacity))
-                                <tr class="battery-detail">
-                                    <td colspan="3" style="border-top: none; padding: 1px 4px 3px;">
-                                        <table style="width: 100%; border-collapse: collapse;">
-                                            <tr>
-                                                <td class="lbl">Full Charge Capacity</td>
-                                                <td class="val">{{ $item->full_charge_capacity ?? '-' }} mWh</td>
-                                                <td class="lbl">Design Capacity</td>
-                                                <td class="val">{{ $item->design_capacity ?? '-' }} mWh</td>
-                                                <td class="lbl">Battery Health</td>
-                                                <td class="val" style="font-weight: bold;">
-                                                    @if($item->full_charge_capacity && $item->design_capacity && $item->design_capacity > 0)
-                                                        {{ round(($item->full_charge_capacity / $item->design_capacity) * 100) }}%
-                                                    @else
-                                                        -
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            @endif
                         @empty
                             <tr><td>-</td><td class="col-kondisi">-</td><td>-</td></tr>
                         @endforelse

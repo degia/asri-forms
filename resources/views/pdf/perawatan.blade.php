@@ -182,30 +182,18 @@
                                     @elseif($item->status === 'tidak_baik') Tidak Baik
                                     @else - @endif
                                 </td>
-                                <td>{{ $item->keterangan ?? '' }}</td>
+                                <td>
+                                    {{ $item->keterangan ?? '' }}
+                                    @if(($item->name === 'Battery' || $item->name === 'Battery Report') && ($item->full_charge_capacity || $item->design_capacity))
+                                        @if($item->full_charge_capacity && $item->design_capacity && $item->design_capacity > 0)
+                                            <strong>{{ round(($item->full_charge_capacity / $item->design_capacity) * 100) }} %</strong>
+                                        @else
+                                            <strong>-</strong>
+                                        @endif
+                                        [FCC {{ $item->full_charge_capacity ?? '-' }} / DC {{ $item->design_capacity ?? '-' }}]
+                                    @endif
+                                </td>
                             </tr>
-                            @if(($item->name === 'Battery' || $item->name === 'Battery Report') && ($item->full_charge_capacity || $item->design_capacity))
-                                <tr class="battery-detail">
-                                    <td colspan="3" style="border-top: none; padding: 1px 4px 3px;">
-                                        <table style="width: 100%; border-collapse: collapse;">
-                                            <tr>
-                                                <td class="lbl">Full Charge Capacity</td>
-                                                <td class="val">{{ $item->full_charge_capacity ?? '-' }} mWh</td>
-                                                <td class="lbl">Design Capacity</td>
-                                                <td class="val">{{ $item->design_capacity ?? '-' }} mWh</td>
-                                                <td class="lbl">Battery Health</td>
-                                                <td class="val" style="font-weight: bold;">
-                                                    @if($item->full_charge_capacity && $item->design_capacity && $item->design_capacity > 0)
-                                                        {{ round(($item->full_charge_capacity / $item->design_capacity) * 100) }}%
-                                                    @else
-                                                        -
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            @endif
                         @empty
                             <tr><td>-</td><td class="col-kondisi">-</td><td>-</td></tr>
                         @endforelse

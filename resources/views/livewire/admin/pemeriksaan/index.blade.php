@@ -259,7 +259,14 @@
                                                 <span class="text-primary">{{ $item['name'] }}</span>
                                                 <div class="flex items-center gap-3">
                                                     @if($item['full_charge_capacity'] || $item['design_capacity'])
-                                                        <span class="text-muted">FCC: {{ $item['full_charge_capacity'] ?? '-' }} mWh | DC: {{ $item['design_capacity'] ?? '-' }} mWh</span>
+                                                        <span class="text-muted">
+                                                            @if(!empty($item['full_charge_capacity']) && !empty($item['design_capacity']) && $item['design_capacity'] > 0)
+                                                                <span class="font-semibold" style="color: var(--color-text-primary);">{{ round(($item['full_charge_capacity'] / $item['design_capacity']) * 100) }} %</span>
+                                                            @else
+                                                                <span class="font-semibold" style="color: var(--color-text-primary);">-</span>
+                                                            @endif
+                                                            [FCC {{ $item['full_charge_capacity'] ?? '-' }} / DC {{ $item['design_capacity'] ?? '-' }}]
+                                                        </span>
                                                     @endif
                                                     @if($item['keterangan'])
                                                         <span class="text-muted max-w-[200px] truncate" title="{{ $item['keterangan'] }}">{{ $item['keterangan'] }}</span>
