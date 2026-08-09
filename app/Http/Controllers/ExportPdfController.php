@@ -10,7 +10,7 @@ class ExportPdfController extends Controller
 {
     public function pemeriksaan(int $id)
     {
-        $form = FormPemeriksaan::with(['teknisi', 'pengguna', 'asset', 'site', 'items', 'approvals.user'])
+        $form = FormPemeriksaan::with(['teknisi', 'pengguna.position', 'pengguna.divisi', 'asset', 'site', 'items', 'approvals.user'])
             ->findOrFail($id);
 
         $pdf = Pdf::loadView('pdf.pemeriksaan', compact('form'))

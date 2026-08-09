@@ -101,21 +101,22 @@
     <div class="section-title">Infomasi Pengguna</div>
     <table class="info-table">
         <tr>
-            <td class="lbl">Nama User, NIK</td>
-            <td class="val">{{ $form->pengguna->name ?? '-' }}, {{ $form->pengguna->nik ?? '-' }}</td>
-            <td class="lbl">Divisi</td>
-            <td class="val">{{ $form->pengguna->divisi ?? '-' }}</td>
-
+            <td class="lbl">Nama - [ NIK ]</td>
+            <td class="val">{{ $form->pengguna->name ?? '-' }} - [ {{ $form->pengguna->nik ?? '-' }} ]</td>
+            <td class="lbl">Position</td>
+            <td class="val">{{ $form->pengguna->position?->name ?? '-' }}</td>
         </tr>
         <tr>
-            <td class="lbl">Site</td>
-            <td class="val">{{ $form->pengguna->site_name ?? '-' }}</td>
+            <td class="lbl">Alamat Email</td>
+            <td class="val">{{ $form->pengguna->email ?? '-' }}</td>
+            <td class="lbl">SO</td>
+            <td class="val">{{ $form->pengguna->divisi?->name ?? '-' }}</td>
         </tr>
         <tr>
             <td class="lbl">No. Telepon</td>
             <td class="val">{{ $form->pengguna->no_telepon ?? '-' }}</td>
-            <td class="lbl">Alamat Email</td>
-            <td class="val">{{ $form->pengguna->email ?? '-' }}</td>
+            <td class="lbl">Unit Site</td>
+            <td class="val">{{ $form->pengguna->site_name ?? '-' }}</td>
         </tr>
     </table>
     <div class="section-sub-title">Location Perawatan

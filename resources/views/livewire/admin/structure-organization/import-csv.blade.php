@@ -16,7 +16,7 @@
         x-on:livewire-upload-error.window="toast = true; message = '{{ __('Gagal mengunggah file CSV. Periksa ukuran (maks 10MB) dan format file, lalu coba lagi.') }}'; type = 'error'; setTimeout(() => toast = false, 4000)"
         x-show="toast" x-transition
         class="fixed top-20 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium max-w-xs"
-        :class="type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'"
+        :class="type === 'success' ? 'bg-emerald-500 text-white' : (type === 'warning' ? 'bg-amber-500 text-white' : 'bg-red-500 text-white')"
         x-text="message">
     </div>
 
@@ -33,6 +33,12 @@
                     <p class="text-xs text-muted">{{ __('Format') }}: {{ implode(', ', $this->headingColumns()) }}</p>
                 </div>
             </div>
+
+            @if($skippedRows > 0 && empty($importErrors))
+                <p class="text-xs text-amber-400">
+                    {{ $skippedRows }} {{ __('baris dilewati karena jumlah kolom kurang dari header. Periksa kembali file CSV.') }}
+                </p>
+            @endif
 
             <div class="relative border-2 border-dashed rounded-lg p-8 text-center transition-colors duration-200"
                  style="border-color: var(--color-border);"

@@ -23,6 +23,7 @@ class ImportCsv extends Component
     public $file;
     public array $preview = [];
     public int $totalRows = 0;
+    public int $skippedRows = 0;
     public int $successCount = 0;
     public int $errorCount = 0;
     public array $importErrors = [];
@@ -55,6 +56,7 @@ class ImportCsv extends Component
         $this->file = null;
         $this->preview = [];
         $this->totalRows = 0;
+        $this->skippedRows = 0;
         $this->successCount = 0;
         $this->errorCount = 0;
         $this->importErrors = [];
@@ -73,6 +75,7 @@ class ImportCsv extends Component
     {
         $this->preview = [];
         $this->totalRows = 0;
+        $this->skippedRows = 0;
         $this->importErrors = [];
         $this->importSuccess = [];
         $this->validRows = [];
@@ -104,6 +107,8 @@ class ImportCsv extends Component
 
         if (! empty($this->importErrors)) {
             $this->dispatch('show-toast', message: 'Data CSV tidak sesuai: '.$this->importErrors[0], type: 'error');
+        } elseif ($this->skippedRows > 0) {
+            $this->dispatch('show-toast', message: "File berhasil diunggah: {$this->totalRows} baris terdeteksi, {$this->skippedRows} baris dilewati karena jumlah kolom tidak sesuai.", type: 'warning');
         } else {
             $this->dispatch('show-toast', message: "File berhasil diunggah: {$this->totalRows} baris terdeteksi. Klik 'Proses Load' untuk memvalidasi.", type: 'success');
         }
@@ -128,15 +133,26 @@ class ImportCsv extends Component
         $missingColumns = array_diff($this->requiredColumns(), $normalizedHeader);
 
         if (! empty($missingColumns)) {
-            $this->importErrors[] = 'Kolom wajib tidak ditemukan: '.implode(', ', $missingColumns);
+            $this->importErrors[] = 'Kolom wajib tidak ditemukan: '.implode(', ', $missingColumns).'. Baris pertama (header) harus memuat kolom: '.implode(', ', $this->requiredColumns()).'.';
 
             return;
         }
 
         $rows = [];
         $count = 0;
+        $skippedRows = 0;
+        $totalCount = 0;
+
         while (($row = fgetcsv($handle)) !== false) {
-            if (count($row) < count($header)) {
+            if (count(array_filter(array_map('trim', $row), fn ($cell) => $cell !== '')) === 0) {
+                continue;
+            }
+
+            $totalCount++;
+
+            if (count($row) < count($normalizedHeader)) {
+                $skippedRows++;
+
                 continue;
             }
 
@@ -150,14 +166,14 @@ class ImportCsv extends Component
         }
         fclose($handle);
 
-        $handle = fopen($this->file->getPathname(), 'r');
-        fgetcsv($handle);
-        $this->totalRows = 0;
-        while (fgetcsv($handle) !== false) {
-            $this->totalRows++;
+        if ($count === 0 && $skippedRows > 0) {
+            $this->importErrors[] = "Tidak ada baris data yang terbaca: {$skippedRows} baris dilewati karena jumlah kolom kurang dari header (".count($normalizedHeader).'). Pastikan file dipisahkan koma (,) dan setiap baris memuat kolom: '.implode(', ', $this->requiredColumns()).'.';
+        } elseif ($count === 0) {
+            $this->importErrors[] = 'Tidak ada baris data ditemukan setelah baris header.';
         }
-        fclose($handle);
 
+        $this->skippedRows = $skippedRows;
+        $this->totalRows = $totalCount;
         $this->preview = $rows;
     }
 
@@ -191,7 +207,15 @@ class ImportCsv extends Component
         $rowNumber = 1;
         while (($row = fgetcsv($handle)) !== false) {
             $rowNumber++;
+
+            if (count(array_filter(array_map('trim', $row), fn ($cell) => $cell !== '')) === 0) {
+                continue;
+            }
+
             if (count($row) < count($header)) {
+                $this->importErrors[] = "Baris {$rowNumber}: jumlah kolom (".count($row).") kurang dari header (".count($header).'), baris dilewati.';
+                $this->errorCount++;
+
                 continue;
             }
 
