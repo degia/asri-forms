@@ -1,4 +1,15 @@
 <div class="space-y-6">
+    @php
+        $importColLabels = [
+            'name' => __('Nama'),
+            'code' => 'Code',
+            'directorate' => 'Directorat',
+            'divisi' => 'Divisi',
+            'departement' => 'Departemen',
+            'sort_order' => __('Urutan'),
+        ];
+    @endphp
+
     {{-- Toast Notification --}}
     <div x-data="{ toast: false, message: '', type: 'success' }"
         @show-toast.window="toast = true; message = $event.detail.message; type = $event.detail.type || 'success'; setTimeout(() => toast = false, 4000)"
@@ -19,7 +30,7 @@
                 </div>
                 <div>
                     <h3 class="font-semibold text-primary">{{ __('Upload File CSV') }}</h3>
-                    <p class="text-xs text-muted">{{ __('Format') }}: name, code, sort_order</p>
+                    <p class="text-xs text-muted">{{ __('Format') }}: {{ implode(', ', $this->headingColumns()) }}</p>
                 </div>
             </div>
 
@@ -75,18 +86,18 @@
                         <thead>
                             <tr class="border-b" style="border-color: var(--color-border);">
                                 <th class="px-3 py-2 text-left text-muted font-medium whitespace-nowrap">#</th>
-                                <th class="px-3 py-2 text-left text-muted font-medium whitespace-nowrap">{{ __('Nama') }}</th>
-                                <th class="px-3 py-2 text-left text-muted font-medium whitespace-nowrap">Code</th>
-                                <th class="px-3 py-2 text-left text-muted font-medium whitespace-nowrap">{{ __('Urutan') }}</th>
+                                @foreach($this->headingColumns() as $column)
+                                    <th class="px-3 py-2 text-left text-muted font-medium whitespace-nowrap">{{ $importColLabels[$column] ?? ucfirst($column) }}</th>
+                                @endforeach
                             </tr>
                         </thead>
                         <tbody class="divide-y" style="border-color: var(--color-border);">
                             @foreach($preview as $i => $row)
                                 <tr>
                                     <td class="px-3 py-2 text-muted whitespace-nowrap">{{ $i + 1 }}</td>
-                                    <td class="px-3 py-2 text-primary whitespace-nowrap">{{ $row['name'] ?? '-' }}</td>
-                                    <td class="px-3 py-2 text-primary font-mono font-medium whitespace-nowrap">{{ $row['code'] ?? '-' }}</td>
-                                    <td class="px-3 py-2 text-secondary whitespace-nowrap">{{ $row['sort_order'] ?? '-' }}</td>
+                                    @foreach($this->headingColumns() as $column)
+                                        <td class="px-3 py-2 text-primary whitespace-nowrap {{ $column === 'code' ? 'font-mono font-medium' : '' }}">{{ $row[$column] ?? '-' }}</td>
+                                    @endforeach
                                 </tr>
                             @endforeach
                         </tbody>
@@ -160,18 +171,18 @@
                                 <thead>
                                     <tr class="border-b" style="border-color: var(--color-border);">
                                         <th class="px-2 py-1.5 text-left text-muted font-medium whitespace-nowrap">{{ __('Baris') }}</th>
-                                        <th class="px-2 py-1.5 text-left text-muted font-medium whitespace-nowrap">{{ __('Nama') }}</th>
-                                        <th class="px-2 py-1.5 text-left text-muted font-medium whitespace-nowrap">Code</th>
-                                        <th class="px-2 py-1.5 text-left text-muted font-medium whitespace-nowrap">{{ __('Urutan') }}</th>
+                                        @foreach($this->headingColumns() as $column)
+                                            <th class="px-2 py-1.5 text-left text-muted font-medium whitespace-nowrap">{{ $importColLabels[$column] ?? ucfirst($column) }}</th>
+                                        @endforeach
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y" style="border-color: var(--color-border);">
                                     @foreach($importSuccess as $row)
                                         <tr>
                                             <td class="px-2 py-1.5 text-muted whitespace-nowrap">{{ $row['row'] }}</td>
-                                            <td class="px-2 py-1.5 text-primary whitespace-nowrap">{{ $row['data']['name'] }}</td>
-                                            <td class="px-2 py-1.5 text-primary font-mono font-medium whitespace-nowrap">{{ $row['data']['code'] }}</td>
-                                            <td class="px-2 py-1.5 text-secondary whitespace-nowrap">{{ $row['data']['sort_order'] }}</td>
+                                            @foreach($this->headingColumns() as $column)
+                                                <td class="px-2 py-1.5 text-primary whitespace-nowrap {{ $column === 'code' ? 'font-mono font-medium' : '' }}">{{ $row['data'][$column] ?? '-' }}</td>
+                                            @endforeach
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -232,7 +243,7 @@
             <div class="glass-card p-6 w-full max-w-md space-y-4" @click.away="$wire.dismissCancelImport()">
                 <h3 class="text-lg font-bold text-primary">{{ __('Batalkan Import') }}</h3>
                 @if($imported)
-                    <p class="text-sm text-muted">{{ __('Yakin ingin membatalkan import? Data position yang baru ditambahkan akan dihapus, dan position yang diperbarui akan dikembalikan ke data sebelumnya.') }}</p>
+                    <p class="text-sm text-muted">{{ __('Yakin ingin membatalkan import? Data') }} {{ strtolower($this->typeLabel()) }} {{ __('yang baru ditambahkan akan dihapus, dan data yang diperbarui akan dikembalikan ke data sebelumnya.') }}</p>
                 @else
                     <p class="text-sm text-muted">{{ __('Yakin ingin membatalkan import? Data yang sudah terbaca akan dibuang dan tidak akan dikirim ke database.') }}</p>
                 @endif
@@ -250,7 +261,7 @@
             x-data x-on:keydown.escape.window="$wire.dismissConfirmImport()">
             <div class="glass-card p-6 w-full max-w-md space-y-4" @click.away="$wire.dismissConfirmImport()">
                 <h3 class="text-lg font-bold text-primary">{{ __('Konfirmasi Kirim Data') }}</h3>
-                <p class="text-sm text-muted">{{ __('Yakin ingin mengirim') }} <span class="font-semibold text-primary">{{ $successCount }} {{ __('data position') }}</span> {{ __('ke database? Setelah dikirim, Anda akan diarahkan ke halaman Structure Organization.') }}</p>
+                <p class="text-sm text-muted">{{ __('Yakin ingin mengirim') }} <span class="font-semibold text-primary">{{ $successCount }} {{ __('data') }} {{ strtolower($this->typeLabel()) }}</span> {{ __('ke database? Setelah dikirim, Anda akan diarahkan ke halaman Structure Organization.') }}</p>
                 <div class="flex gap-2">
                     <button wire:click="dismissConfirmImport" type="button" class="glass-button-secondary text-sm flex-1">{{ __('Tidak') }}</button>
                     <button wire:click="confirmImport" wire:loading.attr="disabled"

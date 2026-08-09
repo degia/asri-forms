@@ -11,6 +11,11 @@ trait ExportsFormats
 {
     public function export(string $format)
     {
+        return $this->exportFormat($format);
+    }
+
+    protected function exportFormat(string $format)
+    {
         $baseName = "{$this->exportKey}_export_" . now()->format('Y-m-d_His');
         $headings = $this->exportHeadings();
         $rows = $this->exportRows();
@@ -37,7 +42,7 @@ trait ExportsFormats
             ->all();
     }
 
-    private function exportCsv(array $headings, array $rows, string $baseName): StreamedResponse
+    protected function exportCsv(array $headings, array $rows, string $baseName): StreamedResponse
     {
         $headers = [
             'Content-Type' => 'text/csv',
@@ -59,7 +64,7 @@ trait ExportsFormats
         return response()->stream($callback, 200, $headers);
     }
 
-    private function exportHtml(array $headings, array $rows, string $baseName)
+    protected function exportHtml(array $headings, array $rows, string $baseName)
     {
         $html = view('pdf.admin-export-html', [
             'title' => $this->exportTitle,

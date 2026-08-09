@@ -3,13 +3,22 @@
 namespace App\Livewire\Admin\StructureOrganization;
 
 use App\Helpers\ActivityLogger;
+use App\Models\Departement;
+use App\Models\Directorate;
+use App\Models\Divisi;
 use App\Models\Position;
+use App\Models\SubDepartement;
+use Illuminate\Database\Eloquent\Model;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-class PositionImportCsv extends Component
+class ImportCsv extends Component
 {
     use WithFileUploads;
+
+    #[Url(as: 'type', history: false)]
+    public string $type = 'directorate';
 
     public $file;
     public array $preview = [];
@@ -22,11 +31,24 @@ class PositionImportCsv extends Component
     public array $validRows = [];
     public bool $processed = false;
     public bool $imported = false;
-    public array $importedPositions = [];
+    public array $importedRecords = [];
     public bool $showCancelModal = false;
     public bool $showConfirmModal = false;
 
     protected $listeners = ['resetImport' => 'resetImport'];
+
+    public array $typeOptions = [
+        'directorate' => 'Directorat',
+        'divisi' => 'Divisi',
+        'departement' => 'Departemen',
+        'sub_departement' => 'Sub Departemen',
+        'position' => 'Position',
+    ];
+
+    public function updatedType(): void
+    {
+        $this->resetImport();
+    }
 
     public function resetImport(): void
     {
@@ -41,7 +63,7 @@ class PositionImportCsv extends Component
         $this->validRows = [];
         $this->processed = false;
         $this->imported = false;
-        $this->importedPositions = [];
+        $this->importedRecords = [];
         $this->showCancelModal = false;
         $this->showConfirmModal = false;
         $this->resetValidation();
@@ -103,8 +125,7 @@ class PositionImportCsv extends Component
         }
 
         $normalizedHeader = array_map('strtolower', array_map('trim', $header));
-        $requiredColumns = ['name'];
-        $missingColumns = array_diff($requiredColumns, $normalizedHeader);
+        $missingColumns = array_diff($this->requiredColumns(), $normalizedHeader);
 
         if (! empty($missingColumns)) {
             $this->importErrors[] = 'Kolom wajib tidak ditemukan: '.implode(', ', $missingColumns);
@@ -164,7 +185,7 @@ class PositionImportCsv extends Component
 
         $normalizedHeader = array_map('strtolower', array_map('trim', $header));
 
-        $seenNames = [];
+        $seenKeys = [];
         $seenCodes = [];
 
         $rowNumber = 1;
@@ -192,13 +213,34 @@ class PositionImportCsv extends Component
                     continue;
                 }
 
-                if (isset($seenNames[$name])) {
+                $parentId = null;
+                $parentName = null;
+                if ($this->parentColumn()) {
+                    $parentName = trim($data[$this->parentColumn()] ?? '');
+                    if ($parentName === '') {
+                        $this->importErrors[] = "Baris {$rowNumber}: {$this->parentLabel()} wajib diisi.";
+                        $this->errorCount++;
+
+                        continue;
+                    }
+
+                    $parentId = $this->resolveParentId($parentName);
+                    if ($parentId === null) {
+                        $this->importErrors[] = "Baris {$rowNumber}: {$this->parentLabel()} tidak ditemukan ({$parentName}).";
+                        $this->errorCount++;
+
+                        continue;
+                    }
+                }
+
+                $key = $this->type.'|'.($parentId ?? '').'|'.$name;
+                if (isset($seenKeys[$key])) {
                     $this->importErrors[] = "Baris {$rowNumber}: Nama duplikat di dalam file ({$name}).";
                     $this->errorCount++;
 
                     continue;
                 }
-                $seenNames[$name] = true;
+                $seenKeys[$key] = true;
 
                 $code = trim($data['code'] ?? '') ?: null;
                 if ($code !== null && mb_strlen($code) > 50) {
@@ -216,7 +258,7 @@ class PositionImportCsv extends Component
                         continue;
                     }
 
-                    if (Position::where('code', $code)->where('name', '!=', $name)->exists()) {
+                    if ($this->codeAlreadyTaken($code, $name, $parentId)) {
                         $this->importErrors[] = "Baris {$rowNumber}: Code sudah digunakan ({$code}).";
                         $this->errorCount++;
 
@@ -227,36 +269,52 @@ class PositionImportCsv extends Component
                 }
 
                 $sortOrder = 0;
-                $rawSortOrder = trim($data['sort_order'] ?? '');
-                if ($rawSortOrder !== '') {
-                    if (! ctype_digit($rawSortOrder)) {
-                        $this->importErrors[] = "Baris {$rowNumber}: Urutan harus berupa angka bulat (sort_order).";
-                        $this->errorCount++;
+                if ($this->hasSortOrder()) {
+                    $rawSortOrder = trim($data['sort_order'] ?? '');
+                    if ($rawSortOrder !== '') {
+                        if (! ctype_digit($rawSortOrder)) {
+                            $this->importErrors[] = "Baris {$rowNumber}: Urutan harus berupa angka bulat (sort_order).";
+                            $this->errorCount++;
 
-                        continue;
+                            continue;
+                        }
+                        $sortOrder = (int) $rawSortOrder;
                     }
-                    $sortOrder = (int) $rawSortOrder;
                 }
 
-                $existing = Position::where('name', $name)->first();
+                $existing = $this->findExisting($name, $parentId);
+
+                $rowData = [
+                    'name' => $name,
+                    'code' => $code,
+                    'existing_id' => $existing?->id,
+                ];
+
+                if ($this->parentColumn()) {
+                    $rowData['parent_id'] = $parentId;
+                    $rowData['parent_name'] = $parentName;
+                }
+
+                if ($this->hasSortOrder()) {
+                    $rowData['sort_order'] = $sortOrder;
+                }
 
                 $this->validRows[] = [
                     'row' => $rowNumber,
-                    'data' => [
-                        'name' => $name,
-                        'code' => $code,
-                        'sort_order' => $sortOrder,
-                        'existing_id' => $existing?->id,
-                    ],
+                    'data' => $rowData,
                 ];
+
+                $successData = ['name' => $name, 'code' => $code ?? '-'];
+                if ($this->parentColumn()) {
+                    $successData[$this->parentColumn()] = $parentName;
+                }
+                if ($this->hasSortOrder()) {
+                    $successData['sort_order'] = $sortOrder;
+                }
 
                 $this->importSuccess[] = [
                     'row' => $rowNumber,
-                    'data' => [
-                        'name' => $name,
-                        'code' => $code ?? '-',
-                        'sort_order' => $sortOrder,
-                    ],
+                    'data' => $successData,
                 ];
 
                 $this->successCount++;
@@ -304,30 +362,30 @@ class PositionImportCsv extends Component
                 $attributes = [
                     'name' => $data['name'],
                     'code' => $data['code'],
-                    'sort_order' => $data['sort_order'],
                 ];
 
+                if ($this->parentColumn()) {
+                    $attributes[$this->parentFkColumn()] = $data['parent_id'];
+                }
+
+                if ($this->hasSortOrder()) {
+                    $attributes['sort_order'] = $data['sort_order'];
+                }
+
                 if ($data['existing_id']) {
-                    $position = Position::find($data['existing_id']);
+                    $record = $this->modelClass()::find($data['existing_id']);
 
-                    if (! $position) {
-                        $position = Position::create($attributes);
-                        $this->importedPositions[] = ['id' => $position->id, 'existed' => false, 'original' => null];
+                    if (! $record) {
+                        $record = $this->modelClass()::create($attributes);
+                        $this->importedRecords[] = ['id' => $record->id, 'existed' => false, 'original' => null];
                     } else {
-                        $original = [
-                            'name' => $position->name,
-                            'code' => $position->code,
-                            'sort_order' => $position->sort_order,
-                        ];
-
-                        $position->update($attributes);
-
-                        $this->importedPositions[] = ['id' => $position->id, 'existed' => true, 'original' => $original];
+                        $original = $this->snapshot($record);
+                        $record->update($attributes);
+                        $this->importedRecords[] = ['id' => $record->id, 'existed' => true, 'original' => $original];
                     }
                 } else {
-                    $position = Position::create($attributes);
-
-                    $this->importedPositions[] = ['id' => $position->id, 'existed' => false, 'original' => null];
+                    $record = $this->modelClass()::create($attributes);
+                    $this->importedRecords[] = ['id' => $record->id, 'existed' => false, 'original' => null];
                 }
 
                 $importedCount++;
@@ -353,11 +411,12 @@ class PositionImportCsv extends Component
             return redirect()->route('admin.structure-organization.index');
         }
 
+        $label = $this->typeLabel();
         $message = $this->errorCount > 0
-            ? "Import selesai: {$importedCount} berhasil, {$this->errorCount} gagal."
-            : "Import selesai: {$importedCount} data position berhasil diimpor.";
+            ? "Import selesai: {$importedCount} {$label} berhasil, {$this->errorCount} gagal."
+            : "Import selesai: {$importedCount} data {$label} berhasil diimpor.";
 
-        ActivityLogger::log('import', "Mengimpor {$importedCount} data position".($this->errorCount ? " ({$this->errorCount} gagal)" : ''));
+        ActivityLogger::log('import', "Mengimpor {$importedCount} data {$label}".($this->errorCount ? " ({$this->errorCount} gagal)" : ''));
 
         session()->flash('success', $message);
 
@@ -395,27 +454,22 @@ class PositionImportCsv extends Component
             return;
         }
 
-        $count = count($this->importedPositions);
+        $count = count($this->importedRecords);
+        $label = $this->typeLabel();
 
         \Illuminate\Support\Facades\DB::beginTransaction();
 
         try {
-            foreach ($this->importedPositions as $imported) {
-                $position = Position::find($imported['id']);
-                if (! $position) {
+            foreach ($this->importedRecords as $imported) {
+                $record = $this->modelClass()::find($imported['id']);
+                if (! $record) {
                     continue;
                 }
 
                 if ($imported['existed']) {
-                    $original = $imported['original'];
-
-                    $position->update([
-                        'name' => $original['name'],
-                        'code' => $original['code'],
-                        'sort_order' => $original['sort_order'],
-                    ]);
+                    $record->update($imported['original']);
                 } else {
-                    $position->delete();
+                    $record->delete();
                 }
             }
 
@@ -430,13 +484,140 @@ class PositionImportCsv extends Component
             return;
         }
 
-        ActivityLogger::log('delete', "Membatalkan import: mengembalikan/menghapus {$count} data position");
-        $this->dispatch('show-toast', message: "Import dibatalkan: {$count} data position dikembalikan/dihapus.", type: 'success');
+        ActivityLogger::log('delete', "Membatalkan import: mengembalikan/menghapus {$count} data {$label}");
+        $this->dispatch('show-toast', message: "Import dibatalkan: {$count} data {$label} dikembalikan/dihapus.", type: 'success');
         $this->resetImport();
+    }
+
+    public function typeLabel(): string
+    {
+        return $this->typeOptions[$this->type] ?? 'Data';
+    }
+
+    public function parentColumn(): ?string
+    {
+        return match ($this->type) {
+            'divisi' => 'directorate',
+            'departement' => 'divisi',
+            'sub_departement' => 'departement',
+            default => null,
+        };
+    }
+
+    public function parentLabel(): string
+    {
+        return match ($this->type) {
+            'divisi' => 'Directorat',
+            'departement' => 'Divisi',
+            'sub_departement' => 'Departemen',
+            default => '',
+        };
+    }
+
+    public function hasSortOrder(): bool
+    {
+        return $this->type === 'position';
+    }
+
+    public function headingColumns(): array
+    {
+        $columns = ['name', 'code'];
+
+        if ($this->parentColumn()) {
+            $columns[] = $this->parentColumn();
+        }
+
+        if ($this->hasSortOrder()) {
+            $columns[] = 'sort_order';
+        }
+
+        return $columns;
+    }
+
+    private function modelClass(): string
+    {
+        return match ($this->type) {
+            'divisi' => Divisi::class,
+            'departement' => Departement::class,
+            'sub_departement' => SubDepartement::class,
+            'position' => Position::class,
+            default => Directorate::class,
+        };
+    }
+
+    private function parentFkColumn(): ?string
+    {
+        return match ($this->type) {
+            'divisi' => 'directorate_id',
+            'departement' => 'divisi_id',
+            'sub_departement' => 'departement_id',
+            default => null,
+        };
+    }
+
+    private function requiredColumns(): array
+    {
+        $columns = ['name'];
+
+        if ($this->parentColumn()) {
+            $columns[] = $this->parentColumn();
+        }
+
+        return $columns;
+    }
+
+    private function resolveParentId(string $name): ?int
+    {
+        return match ($this->type) {
+            'divisi' => Directorate::where('name', $name)->value('id'),
+            'departement' => Divisi::where('name', $name)->value('id'),
+            'sub_departement' => Departement::where('name', $name)->value('id'),
+            default => null,
+        };
+    }
+
+    private function findExisting(string $name, ?int $parentId): ?Model
+    {
+        $query = $this->modelClass()::where('name', $name);
+
+        if ($parentId !== null) {
+            $query->where($this->parentFkColumn(), $parentId);
+        }
+
+        return $query->first();
+    }
+
+    private function codeAlreadyTaken(string $code, string $name, ?int $parentId): bool
+    {
+        $query = $this->modelClass()::where('code', $code)->where('name', '!=', $name);
+
+        if ($parentId !== null) {
+            $query->where($this->parentFkColumn(), $parentId);
+        }
+
+        return $query->exists();
+    }
+
+    private function snapshot(Model $record): array
+    {
+        $snapshot = [
+            'name' => $record->name,
+            'code' => $record->code,
+        ];
+
+        if ($this->parentFkColumn()) {
+            $snapshot[$this->parentFkColumn()] = $record->{$this->parentFkColumn()};
+        }
+
+        if ($this->hasSortOrder()) {
+            $snapshot['sort_order'] = $record->sort_order;
+        }
+
+        return $snapshot;
     }
 
     public function render()
     {
-        return view('livewire.admin.structure-organization.position-import-csv');
+        return view('livewire.admin.structure-organization.import-csv');
     }
 }

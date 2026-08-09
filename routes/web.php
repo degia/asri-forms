@@ -6,7 +6,7 @@ use App\Http\Controllers\UserExportController;
 use App\Http\Controllers\SiteExportController;
 use App\Http\Controllers\AssetExportController;
 use App\Http\Controllers\EmployeeExportController;
-use App\Http\Controllers\PositionExportController;
+use App\Http\Controllers\StructureOrganizationExportController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -155,15 +155,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Volt::route('structure-organization', 'admin.pages.structure-organization.index')
             ->name('structure-organization.index');
 
-        Volt::route('structure-organization/positions/import', 'admin.pages.structure-organization.positions-import')
-            ->name('positions.import');
+        Volt::route('structure-organization/{type}/import', 'admin.pages.structure-organization.import')
+            ->whereIn('type', ['directorate', 'divisi', 'departement', 'sub_departement', 'position'])
+            ->name('structure-organization.import');
 
-        Route::get('structure-organization/positions/export/{format}', [PositionExportController::class, 'export'])
+        Route::get('structure-organization/{type}/export/{format}', [StructureOrganizationExportController::class, 'export'])
+            ->whereIn('type', ['directorate', 'divisi', 'departement', 'sub_departement', 'position'])
             ->whereIn('format', ['pdf', 'xlsx', 'xls', 'csv', 'html'])
-            ->name('positions.export');
+            ->name('structure-organization.export');
 
-        Route::get('structure-organization/positions/import/template', [PositionExportController::class, 'template'])
-            ->name('positions.import.template');
+        Route::get('structure-organization/{type}/import/template', [StructureOrganizationExportController::class, 'template'])
+            ->whereIn('type', ['directorate', 'divisi', 'departement', 'sub_departement', 'position'])
+            ->name('structure-organization.import.template');
 
         // Form Pemeriksaan (PMR)
         Volt::route('pemeriksaan', 'admin.pages.pemeriksaan.index')
