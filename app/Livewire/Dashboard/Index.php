@@ -205,6 +205,7 @@ class Index extends Component
     {
         $query = Asset::query()
             ->join('form_pemeriksaan', 'assets.id', '=', 'form_pemeriksaan.asset_id')
+            ->whereNull('form_pemeriksaan.deleted_at')
             ->selectRaw('assets.id, assets.nama_perangkat, assets.no_asset, assets.operating_unit, assets.site_location_asset, count(form_pemeriksaan.id) as total_pemeriksaan')
             ->groupBy('assets.id', 'assets.nama_perangkat', 'assets.no_asset', 'assets.operating_unit', 'assets.site_location_asset');
 
