@@ -113,6 +113,24 @@
         background-color: var(--color-bg-tertiary);
     }
 
+    .step-toggle {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .step-toggle-open {
+        opacity: 1;
+    }
+
+    .step-toggle-closed {
+        opacity: 0.6;
+    }
+
+    @media (hover: hover) {
+        .step-toggle-closed:hover {
+            opacity: 1;
+        }
+    }
+
     .bottom-nav {
         position: fixed;
         bottom: 0;

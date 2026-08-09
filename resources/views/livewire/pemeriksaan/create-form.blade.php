@@ -53,6 +53,16 @@
                 :style="'width: {{ round(($currentStep / count($stepTitles)) * 100) }}%'">
             </div>
         </div>
+        <div class="mt-3 sm:mt-4">
+            <label for="step-navigator" class="block text-xs font-medium text-muted mb-1">{{ __('Langkah') }}</label>
+            <select id="step-navigator" wire:model.live="currentStep"
+                class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200 cursor-pointer"
+                style="background: var(--color-input-bg, var(--color-bg-secondary)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                @foreach($stepTitles as $stepNum => $stepTitle)
+                    <option value="{{ $stepNum }}">{{ $stepNum }}. {{ $stepTitle }}</option>
+                @endforeach
+            </select>
+        </div>
     </div>
     @endif
 
@@ -62,8 +72,8 @@
         {{-- STEP 1: Info Pengguna --}}
         <div class="glass-card overflow-hidden">
             <button wire:click="goToStep(1)" type="button"
-                class="w-full flex items-center justify-between p-4 text-left transition-colors"
-                :class="openStep === 1 ? '' : 'opacity-70 hover:opacity-100'">
+                class="step-toggle w-full flex items-center justify-between p-4 text-left transition-colors cursor-pointer"
+                :class="openStep === 1 ? 'step-toggle-open' : 'step-toggle-closed'">
                 <div class="flex items-center gap-3">
                     <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
                         :class="openStep === 1 ? 'text-primary' : 'text-muted'"
@@ -82,13 +92,9 @@
                 </svg>
             </button>
 
-            <div x-show="openStep === 1" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 space-y-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 1 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 space-y-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     {{-- Teknisi (otomatis dari login) --}}
                     <div class="pt-4">
                         <h4 class="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Teknisi (Pemeriksa)</h4>
@@ -235,8 +241,8 @@
         {{-- STEP 2: Info Perangkat --}}
         <div class="glass-card overflow-hidden">
             <button wire:click="goToStep(2)" type="button"
-                class="w-full flex items-center justify-between p-4 text-left transition-colors"
-                :class="openStep === 2 ? '' : 'opacity-70 hover:opacity-100'">
+                class="step-toggle w-full flex items-center justify-between p-4 text-left transition-colors cursor-pointer"
+                :class="openStep === 2 ? 'step-toggle-open' : 'step-toggle-closed'">
                 <div class="flex items-center gap-3">
                     <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
                         :class="openStep === 2 ? 'text-primary' : 'text-muted'"
@@ -255,13 +261,9 @@
                 </svg>
             </button>
 
-            <div x-show="openStep === 2" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 space-y-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 2 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 space-y-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4">
                         <h4 class="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Data Perangkat</h4>
 
@@ -313,7 +315,7 @@
                                     </div>
                                     <div class="grid grid-cols-2 gap-2">
                                         <div>
-                                            <label class="text-xs text-muted">No. Asset <span class="text-red-400">*</span></label>
+                                            <label class="text-xs text-muted">Barcode <span class="text-red-400">*</span></label>
                                             <input type="text" wire:model.live="newAssetNoAsset" class="glass-input w-full rounded-lg px-3 py-1.5 text-sm mt-1" placeholder="Contoh: ASR-2024-001">
                                             @error('newAssetNoAsset') <span class="text-xs text-red-400">{{ $message }}</span> @enderror
                                         </div>
@@ -380,8 +382,8 @@
         {{-- STEP 3: Kondisi --}}
         <div class="glass-card overflow-hidden">
             <button wire:click="goToStep(3)" type="button"
-                class="w-full flex items-center justify-between p-4 text-left transition-colors"
-                :class="openStep === 3 ? '' : 'opacity-70 hover:opacity-100'">
+                class="step-toggle w-full flex items-center justify-between p-4 text-left transition-colors cursor-pointer"
+                :class="openStep === 3 ? 'step-toggle-open' : 'step-toggle-closed'">
                 <div class="flex items-center gap-3">
                     <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
                         :class="openStep === 3 ? 'text-primary' : 'text-muted'"
@@ -395,13 +397,9 @@
                 </svg>
             </button>
 
-            <div x-show="openStep === 3" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 space-y-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 3 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 space-y-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4">
                         <label class="text-xs font-semibold text-muted uppercase tracking-wider">Kondisi Perangkat</label>
                         <div class="flex gap-3 mt-2">
@@ -442,8 +440,8 @@
         {{-- STEP 4: Pemeriksaan Hardware --}}
         <div class="glass-card overflow-hidden">
             <button wire:click="goToStep(4)" type="button"
-                class="w-full flex items-center justify-between p-4 text-left transition-colors"
-                :class="openStep === 4 ? '' : 'opacity-70 hover:opacity-100'">
+                class="step-toggle w-full flex items-center justify-between p-4 text-left transition-colors cursor-pointer"
+                :class="openStep === 4 ? 'step-toggle-open' : 'step-toggle-closed'">
                 <div class="flex items-center gap-3">
                     <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
                         :class="openStep === 4 ? 'text-primary' : 'text-muted'"
@@ -460,14 +458,13 @@
                 </svg>
             </button>
 
-            <div x-show="openStep === 4" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 4 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4 space-y-3">
+                        @if(count($hardwareItems) === 0)
+                            <p class="text-sm text-muted py-2">{{ __('Belum ada item checklist hardware. Hubungi admin untuk mengisi template.') }}</p>
+                        @endif
                         @foreach($hardwareItems as $index => $item)
                             <div class="glass-card p-3 space-y-2" style="background: var(--color-bg-tertiary); border: none;">
                                 <div class="flex items-center justify-between">
@@ -567,8 +564,8 @@
         {{-- STEP 5: Pemeriksaan Aplikasi --}}
         <div class="glass-card overflow-hidden">
             <button wire:click="goToStep(5)" type="button"
-                class="w-full flex items-center justify-between p-4 text-left transition-colors"
-                :class="openStep === 5 ? '' : 'opacity-70 hover:opacity-100'">
+                class="step-toggle w-full flex items-center justify-between p-4 text-left transition-colors cursor-pointer"
+                :class="openStep === 5 ? 'step-toggle-open' : 'step-toggle-closed'">
                 <div class="flex items-center gap-3">
                     <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
                         :class="openStep === 5 ? 'text-primary' : 'text-muted'"
@@ -585,14 +582,13 @@
                 </svg>
             </button>
 
-            <div x-show="openStep === 5" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 5 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4 space-y-3">
+                        @if(count($aplikasiItems) === 0)
+                            <p class="text-sm text-muted py-2">{{ __('Belum ada item checklist aplikasi. Hubungi admin untuk mengisi template.') }}</p>
+                        @endif
                         @foreach($aplikasiItems as $index => $item)
                             <div class="glass-card p-3 space-y-2" style="background: var(--color-bg-tertiary); border: none;">
                                 <div class="flex items-center justify-between">
@@ -665,8 +661,8 @@
         {{-- STEP 6: Operating System --}}
         <div class="glass-card overflow-hidden">
             <button wire:click="goToStep(6)" type="button"
-                class="w-full flex items-center justify-between p-4 text-left transition-colors"
-                :class="openStep === 6 ? '' : 'opacity-70 hover:opacity-100'">
+                class="step-toggle w-full flex items-center justify-between p-4 text-left transition-colors cursor-pointer"
+                :class="openStep === 6 ? 'step-toggle-open' : 'step-toggle-closed'">
                 <div class="flex items-center gap-3">
                     <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
                         :class="openStep === 6 ? 'text-primary' : 'text-muted'"
@@ -683,14 +679,13 @@
                 </svg>
             </button>
 
-            <div x-show="openStep === 6" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 6 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4 space-y-3">
+                        @if(count($osItems) === 0)
+                            <p class="text-sm text-muted py-2">{{ __('Belum ada item checklist operating system. Hubungi admin untuk mengisi template.') }}</p>
+                        @endif
                         @foreach($osItems as $index => $item)
                             <div class="glass-card p-3 space-y-2" style="background: var(--color-bg-tertiary); border: none;">
                                 <span class="text-sm font-medium text-primary">{{ $item['name'] }}</span>
@@ -738,8 +733,8 @@
         {{-- STEP 7: Tindakan --}}
         <div class="glass-card overflow-hidden">
             <button wire:click="goToStep(7)" type="button"
-                class="w-full flex items-center justify-between p-4 text-left transition-colors"
-                :class="openStep === 7 ? '' : 'opacity-70 hover:opacity-100'">
+                class="step-toggle w-full flex items-center justify-between p-4 text-left transition-colors cursor-pointer"
+                :class="openStep === 7 ? 'step-toggle-open' : 'step-toggle-closed'">
                 <div class="flex items-center gap-3">
                     <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
                         :class="openStep === 7 ? 'text-primary' : 'text-muted'"
@@ -756,13 +751,9 @@
                 </svg>
             </button>
 
-            <div x-show="openStep === 7" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 7 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4 space-y-4">
                         @foreach($tindakanCategories as $catIndex => $category)
                             <div class="glass-card p-3" style="background: var(--color-bg-tertiary); border: none;">
@@ -805,8 +796,8 @@
         {{-- STEP 8: Catatan --}}
         <div class="glass-card overflow-hidden">
             <button wire:click="goToStep(8)" type="button"
-                class="w-full flex items-center justify-between p-4 text-left transition-colors"
-                :class="openStep === 8 ? '' : 'opacity-70 hover:opacity-100'">
+                class="step-toggle w-full flex items-center justify-between p-4 text-left transition-colors cursor-pointer"
+                :class="openStep === 8 ? 'step-toggle-open' : 'step-toggle-closed'">
                 <div class="flex items-center gap-3">
                     <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
                         :class="openStep === 8 ? 'text-primary' : 'text-muted'"
@@ -820,13 +811,9 @@
                 </svg>
             </button>
 
-            <div x-show="openStep === 8" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 8 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4 space-y-4">
                         <div>
                             <label class="text-xs font-semibold text-muted uppercase tracking-wider">Catatan / Tindakan Lanjutan</label>
@@ -847,8 +834,8 @@
         {{-- STEP 9: Review & Submit --}}
         <div class="glass-card overflow-hidden">
             <button wire:click="goToStep(9)" type="button"
-                class="w-full flex items-center justify-between p-4 text-left transition-colors"
-                :class="openStep === 9 ? '' : 'opacity-70 hover:opacity-100'">
+                class="step-toggle w-full flex items-center justify-between p-4 text-left transition-colors cursor-pointer"
+                :class="openStep === 9 ? 'step-toggle-open' : 'step-toggle-closed'">
                 <div class="flex items-center gap-3">
                     <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
                         :class="openStep === 9 ? 'text-primary' : 'text-muted'"
@@ -862,13 +849,9 @@
                 </svg>
             </button>
 
-            <div x-show="openStep === 9" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 9 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4 space-y-4">
 
                         {{-- No Form Preview --}}

@@ -97,14 +97,17 @@ new #[Layout('components.app-layout')] class extends Component
     {
         $pengguna = $this->form->pengguna;
         if ($pengguna) {
-            $pengguna->notify(new ApprovalRequestNotification(
-                formType: 'pemeriksaan',
-                formId: $this->form->id,
-                nomorForm: $this->form->nomor_form,
-                approvalLevel: ApprovalLevel::DiketahuiOleh->value,
-                submittedBy: $this->form->teknisi->name,
-                deviceName: $this->form->asset->nama_perangkat,
-            ));
+            $user = $pengguna->user;
+            if ($user) {
+                $user->notify(new ApprovalRequestNotification(
+                    formType: 'pemeriksaan',
+                    formId: $this->form->id,
+                    nomorForm: $this->form->nomor_form,
+                    approvalLevel: ApprovalLevel::DiketahuiOleh->value,
+                    submittedBy: $this->form->teknisi->name,
+                    deviceName: $this->form->asset->nama_perangkat,
+                ));
+            }
         }
     }
 

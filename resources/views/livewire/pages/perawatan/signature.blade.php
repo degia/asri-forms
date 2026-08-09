@@ -38,7 +38,7 @@ new #[Layout('components.app-layout')] class extends Component
             abort(403, 'Role Manager tidak dapat menandatangani form berstatus Submitted.');
         }
 
-        if ($this->form->user_id !== $user->id) {
+        if ($this->form->user_id !== $user->email) {
             abort(403, 'Hanya pembuat form yang dapat menandatangani form ini.');
         }
     }
@@ -49,7 +49,7 @@ new #[Layout('components.app-layout')] class extends Component
 
         if ($this->form->status !== FormStatus::Submitted->value
             || $user->hasRole('manager_it')
-            || $this->form->user_id !== $user->id) {
+            || $this->form->user_id !== $user->email) {
             $this->dispatch('error', message: 'Anda tidak memiliki akses untuk menandatangani form ini.');
 
             return;
@@ -88,14 +88,17 @@ new #[Layout('components.app-layout')] class extends Component
         $pengguna = $this->form->pengguna;
 
         if ($pengguna) {
-            $pengguna->notify(new ApprovalRequestNotification(
-                formType: 'perawatan',
-                formId: $this->form->id,
-                nomorForm: $this->form->nomor_form,
-                approvalLevel: ApprovalLevel::DiketahuiOleh->value,
-                submittedBy: $this->form->teknisi->name,
-                deviceName: $this->form->asset->nama_perangkat,
-            ));
+            $user = $pengguna->user;
+            if ($user) {
+                $user->notify(new ApprovalRequestNotification(
+                    formType: 'perawatan',
+                    formId: $this->form->id,
+                    nomorForm: $this->form->nomor_form,
+                    approvalLevel: ApprovalLevel::DiketahuiOleh->value,
+                    submittedBy: $this->form->teknisi->name,
+                    deviceName: $this->form->asset->nama_perangkat,
+                ));
+            }
         }
     }
 

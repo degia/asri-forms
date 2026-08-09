@@ -994,6 +994,7 @@ class CreateForm extends Component
             }
 
             FormApproval::create([
+                'approvable_type' => FormPemeriksaan::class,
                 'approvable_id' => $form->id,
                 'approval_level' => 'diperiksa_oleh',
                 'user_id' => Auth::id(),
