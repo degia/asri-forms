@@ -124,19 +124,32 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                 Info Pengguna
             </h3>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
-                <div>
-                    <span class="text-xs text-muted">Pengguna</span>
-                    <p class="text-primary">{{ $form->pengguna->name ?? '-' }}</p>
-                </div>
-                <div>
-                    <span class="text-xs text-muted">NIK</span>
-                    <p class="text-primary">{{ $form->pengguna->nik ?? '-' }}</p>
-                </div>
-                <div>
-                    <span class="text-xs text-muted">Site</span>
-                    <p class="text-primary">{{ $form->pengguna->site_name ?? '-' }}</p>
-                </div>
+            <table class="w-full text-sm" style="border-collapse: collapse;">
+                <tr>
+                    <td class="px-3 py-2 font-semibold text-xs w-[16%]" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">Nama - [ NIK ]</td>
+                    <td class="px-3 py-2 text-primary w-[34%]" style="border: 1px solid var(--color-border);">{{ $form->pengguna->name ?? '-' }} - [ {{ $form->pengguna->nik ?? '-' }} ]</td>
+                    <td class="px-3 py-2 font-semibold text-xs w-[16%]" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">Position</td>
+                    <td class="px-3 py-2 text-primary w-[34%]" style="border: 1px solid var(--color-border);">{{ $form->pengguna->position?->name ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">Alamat Email</td>
+                    <td class="px-3 py-2 text-primary" style="border: 1px solid var(--color-border);">{{ $form->pengguna->email ?? '-' }}</td>
+                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">SO</td>
+                    <td class="px-3 py-2 text-primary" style="border: 1px solid var(--color-border);">{{ $form->pengguna->divisi?->name ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">No. Telepon</td>
+                    <td class="px-3 py-2 text-primary" style="border: 1px solid var(--color-border);">{{ $form->pengguna->no_telepon ?? '-' }}</td>
+                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">Unit Site</td>
+                    <td class="px-3 py-2 text-primary" style="border: 1px solid var(--color-border);">{{ $form->pengguna->site_name ?? '-' }}</td>
+                </tr>
+            </table>
+            <div class="text-xs text-muted mt-2">
+                @if($formType === 'pemeriksaan')
+                    Location Pemeriksaan: Site: {{ $form->site->site ?? $form->site_location ?? '-' }}, on {{ $form->location_detail ?? '-' }}
+                @else
+                    Location Perawatan: Site: {{ $form->site->site ?? $form->site_location ?? '-' }}, {{ $form->location_detail ?? '-' }}
+                @endif
             </div>
         </div>
 
@@ -146,40 +159,28 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                 Info Perangkat
             </h3>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
-                <div>
-                    <span class="text-xs text-muted">Kategori</span>
-                    <p class="text-primary">{{ $form->asset->kategori ?? '-' }}</p>
-                </div>
-                <div>
-                    <span class="text-xs text-muted">Brand</span>
-                    <p class="text-primary">{{ $form->asset->brand ?? '-' }}</p>
-                </div>
-                <div>
-                    <span class="text-xs text-muted">Tipe</span>
-                    <p class="text-primary">{{ $form->asset->tipe ?? '-' }}</p>
-                </div>
-                <div>
-                    <span class="text-xs text-muted">Nama Perangkat</span>
-                    <p class="text-primary">{{ $form->asset->nama_perangkat ?? '-' }}</p>
-                </div>
-                <div>
-                    <span class="text-xs text-muted">No. Serial</span>
-                    <p class="font-mono text-primary">{{ $form->asset->no_serial ?? '-' }}</p>
-                </div>
-                <div>
-                    <span class="text-xs text-muted">No. Asset</span>
-                    <p class="font-mono text-primary">{{ $form->asset->no_asset ?? '-' }}</p>
-                </div>
-                <div>
-                    <span class="text-xs text-muted">Site Location</span>
-                    <p class="text-primary">{{ $form->site->site ?? $form->site_location ?? '-' }}</p>
-                </div>
-                <div>
-                    <span class="text-xs text-muted">Location Detail</span>
-                    <p class="text-primary">{{ $form->location_detail ?? '-' }}</p>
-                </div>
-            </div>
+            <table class="w-full text-sm" style="border-collapse: collapse;">
+                <tr>
+                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">Kategori</td>
+                    <td class="px-3 py-2 text-primary" style="border: 1px solid var(--color-border);">{{ $form->asset->kategori ?? '-' }}</td>
+                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">Brand, Tipe</td>
+                    <td class="px-3 py-2 text-primary" style="border: 1px solid var(--color-border);">{{ $form->asset->brand ?? '-' }}, {{ $form->asset->tipe ?? '-' }}</td>
+                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">{{ $formType === 'pemeriksaan' ? 'Hostname' : 'Nama Perangkat' }}</td>
+                    <td class="px-3 py-2 text-primary" style="border: 1px solid var(--color-border);">{{ $form->asset->nama_perangkat ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">No. Serial</td>
+                    <td class="px-3 py-2 font-mono text-primary" style="border: 1px solid var(--color-border);">{{ $form->asset->no_serial ?? '-' }}</td>
+                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">No. Asset</td>
+                    <td class="px-3 py-2 font-mono text-primary" style="border: 1px solid var(--color-border);">{{ $form->asset->no_asset ?? '-' }}</td>
+                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">Site Location</td>
+                    <td class="px-3 py-2 text-primary" style="border: 1px solid var(--color-border);">{{ $form->site->site ?? $form->site_location ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="px-3 py-2 font-semibold text-xs" style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">Location Detail</td>
+                    <td colspan="5" class="px-3 py-2 text-primary" style="border: 1px solid var(--color-border);">{{ $form->location_detail ?? '-' }}</td>
+                </tr>
+            </table>
         </div>
 
         {{-- Kondisi --}}
@@ -273,73 +274,191 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
             </div>
         @endif
 
-        {{-- Checklist Items --}}
+        {{-- Checklist Items (two-col, like PDF) --}}
         @php
-            $categories = $formType === 'pemeriksaan'
-                ? ['hardware' => 'Pemeriksaan Hardware', 'aplikasi' => 'Pemeriksaan Aplikasi', 'operating_system' => 'Operating System']
-                : ['hardware' => 'Perawatan Hardware', 'aplikasi' => 'Perawatan Aplikasi', 'operating_system' => 'Operating System'];
+            $hardwareItems = $form->items->where('category', 'hardware')->sortBy('sort_order');
+            $aplikasiItems = $form->items->where('category', 'aplikasi')->sortBy('sort_order');
+            $osItems = $form->items->where('category', 'operating_system')->sortBy('sort_order');
         @endphp
 
-        @foreach($categories as $catKey => $catLabel)
-            @php $items = $form->items->where('category', $catKey)->sortBy('sort_order'); @endphp
-            @if($items->count() > 0)
-                <div class="glass-card p-4">
-                    <h3 class="text-sm font-semibold text-primary mb-3">{{ $catLabel }}</h3>
-                    <div class="space-y-2">
-                        @foreach($items as $item)
-                            @php
-                                $editIndex = collect($editItems)->search(fn($ei) => $ei['id'] === $item->id);
-                            @endphp
-                            @if($editing && $editIndex !== false)
-                                <div class="py-2 px-3 rounded-lg space-y-2" style="background: var(--color-bg-secondary);">
-                                    <span class="text-sm text-primary font-medium">{{ $item->name }}</span>
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        @if($formType === 'pemeriksaan' && $item->value !== null)
-                                            <input wire:model="editItems.{{ $editIndex }}.value" type="text"
-                                                placeholder="Nilai"
-                                                class="w-24 px-2 py-1 rounded text-xs transition-colors duration-200"
-                                                style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
-                                        @endif
-                                        <select wire:model="editItems.{{ $editIndex }}.status"
-                                            class="px-2 py-1 rounded text-xs transition-colors duration-200"
-                                            style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
-                                            <option value="">Pilih Status</option>
-                                            <option value="baik">Baik</option>
-                                            <option value="tidak_baik">Tidak Baik</option>
-                                            <option value="good">Good</option>
-                                            <option value="fair">Fair</option>
-                                            <option value="critical">Critical</option>
-                                            <option value="poor">Poor</option>
-                                            <option value="baru">Baru</option>
-                                            <option value="lama">Lama</option>
-                                        </select>
-                                        <input wire:model="editItems.{{ $editIndex }}.keterangan" type="text"
-                                            placeholder="Keterangan"
-                                            class="flex-1 min-w-[120px] px-2 py-1 rounded text-xs transition-colors duration-200"
-                                            style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
-                                    </div>
-                                </div>
-                            @else
-                                <div class="flex items-center justify-between py-2 px-3 rounded-lg" style="background: var(--color-bg-secondary);">
-                                    <span class="text-sm text-primary">{{ $item->name }}</span>
-                                    <div class="flex items-center gap-3">
-                                        @if($item->value)
-                                            <span class="text-xs text-muted">{{ $item->value }}</span>
-                                        @endif
-                                        @if($item->status)
-                                            <span class="text-xs font-medium {{ $this->getStatusColor($item->status) }}">{{ $this->getStatusLabel($item->status) }}</span>
-                                        @endif
-                                        @if($item->keterangan)
-                                            <span class="text-xs text-muted max-w-[200px] truncate" title="{{ $item->keterangan }}">{{ $item->keterangan }}</span>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endif
-                        @endforeach
+        @if($hardwareItems->count() || $aplikasiItems->count() || $osItems->count())
+            <div class="glass-card p-4">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    {{-- LEFT: HARDWARE --}}
+                    <div class="min-w-0">
+                        <h3 class="text-sm font-semibold text-primary mb-3">{{ $formType === 'pemeriksaan' ? 'Pemeriksaan' : 'Perawatan' }} Hardware</h3>
+                        <table class="w-full text-sm" style="border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: var(--color-bg-secondary);">
+                                    <th class="px-3 py-2 text-left text-xs font-semibold w-[36%]" style="border: 1px solid var(--color-border);">Name</th>
+                                    <th class="px-3 py-2 text-center text-xs font-semibold w-[20%]" style="border: 1px solid var(--color-border);">{{ $formType === 'pemeriksaan' ? 'Kondisi' : 'Status' }}</th>
+                                    <th class="px-3 py-2 text-left text-xs font-semibold w-[44%]" style="border: 1px solid var(--color-border);">Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($hardwareItems as $item)
+                                    @php
+                                        $editIndex = collect($editItems)->search(fn($ei) => $ei['id'] === $item->id);
+                                    @endphp
+                                    <tr>
+                                        <td class="px-3 py-2 text-sm text-primary" style="border: 1px solid var(--color-border);">{{ $item->name }}</td>
+                                        <td class="px-3 py-2 text-center" style="border: 1px solid var(--color-border);">
+                                            @if($editing && $editIndex !== false)
+                                                <select wire:model="editItems.{{ $editIndex }}.status"
+                                                    class="px-2 py-1 rounded text-xs transition-colors duration-200"
+                                                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                                                    <option value="">Pilih Status</option>
+                                                    <option value="baik">Baik</option>
+                                                    <option value="tidak_baik">Tidak Baik</option>
+                                                    <option value="good">Good</option>
+                                                    <option value="fair">Fair</option>
+                                                    <option value="critical">Critical</option>
+                                                    <option value="poor">Poor</option>
+                                                    <option value="baru">Baru</option>
+                                                    <option value="lama">Lama</option>
+                                                </select>
+                                            @else
+                                                @if($item->status)
+                                                    <span class="text-xs font-medium {{ $this->getStatusColor($item->status) }}">{{ $this->getStatusLabel($item->status) }}</span>
+                                                @else
+                                                    <span class="text-xs text-muted">-</span>
+                                                @endif
+                                            @endif
+                                        </td>
+                                        <td class="px-3 py-2 text-xs text-muted" style="border: 1px solid var(--color-border);">
+                                            @if($editing && $editIndex !== false)
+                                                <div class="flex flex-wrap items-center gap-1.5">
+                                                    @if($formType === 'pemeriksaan' && $item->value !== null)
+                                                        <input wire:model="editItems.{{ $editIndex }}.value" type="text"
+                                                            placeholder="Nilai"
+                                                            class="w-20 px-2 py-1 rounded text-xs transition-colors duration-200"
+                                                            style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
+                                                    @endif
+                                                    <input wire:model="editItems.{{ $editIndex }}.keterangan" type="text"
+                                                        placeholder="Keterangan"
+                                                        class="flex-1 min-w-[100px] px-2 py-1 rounded text-xs transition-colors duration-200"
+                                                        style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
+                                                </div>
+                                            @else
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- RIGHT: APLIKASI + OS --}}
+                    <div class="min-w-0">
+                        <h3 class="text-sm font-semibold text-primary mb-3">{{ $formType === 'pemeriksaan' ? 'Pemeriksaan' : 'Perawatan' }} Aplikasi</h3>
+                        <table class="w-full text-sm" style="border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: var(--color-bg-secondary);">
+                                    <th class="px-3 py-2 text-left text-xs font-semibold w-[36%]" style="border: 1px solid var(--color-border);">Name</th>
+                                    <th class="px-3 py-2 text-center text-xs font-semibold w-[20%]" style="border: 1px solid var(--color-border);">Status</th>
+                                    <th class="px-3 py-2 text-left text-xs font-semibold w-[44%]" style="border: 1px solid var(--color-border);">Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($aplikasiItems as $item)
+                                    @php
+                                        $editIndex = collect($editItems)->search(fn($ei) => $ei['id'] === $item->id);
+                                    @endphp
+                                    <tr>
+                                        <td class="px-3 py-2 text-sm text-primary" style="border: 1px solid var(--color-border);">{{ $item->name }}</td>
+                                        <td class="px-3 py-2 text-center" style="border: 1px solid var(--color-border);">
+                                            @if($editing && $editIndex !== false)
+                                                <select wire:model="editItems.{{ $editIndex }}.status"
+                                                    class="px-2 py-1 rounded text-xs transition-colors duration-200"
+                                                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                                                    <option value="">Pilih Status</option>
+                                                    <option value="baik">Baik</option>
+                                                    <option value="tidak_baik">Tidak Baik</option>
+                                                    <option value="good">Good</option>
+                                                    <option value="fair">Fair</option>
+                                                    <option value="critical">Critical</option>
+                                                    <option value="poor">Poor</option>
+                                                    <option value="baru">Baru</option>
+                                                    <option value="lama">Lama</option>
+                                                </select>
+                                            @else
+                                                @if($item->status)
+                                                    <span class="text-xs font-medium {{ $this->getStatusColor($item->status) }}">{{ $this->getStatusLabel($item->status) }}</span>
+                                                @else
+                                                    <span class="text-xs text-muted">-</span>
+                                                @endif
+                                            @endif
+                                        </td>
+                                        <td class="px-3 py-2 text-xs text-muted" style="border: 1px solid var(--color-border);">
+                                            @if($editing && $editIndex !== false)
+                                                <input wire:model="editItems.{{ $editIndex }}.keterangan" type="text"
+                                                    placeholder="Keterangan"
+                                                    class="w-full px-2 py-1 rounded text-xs transition-colors duration-200"
+                                                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
+                                            @else
+                                                {{ $item->keterangan ?? '-' }}
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+
+                        <h3 class="text-sm font-semibold text-primary mb-3 mt-5">{{ $formType === 'pemeriksaan' ? 'Operating System' : 'Perawatan Operating Sistem' }}</h3>
+                        <table class="w-full text-sm" style="border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: var(--color-bg-secondary);">
+                                    <th class="px-3 py-2 text-left text-xs font-semibold w-[36%]" style="border: 1px solid var(--color-border);">Name</th>
+                                    <th class="px-3 py-2 text-center text-xs font-semibold w-[20%]" style="border: 1px solid var(--color-border);">{{ $formType === 'pemeriksaan' ? 'Kondisi' : 'Status' }}</th>
+                                    <th class="px-3 py-2 text-left text-xs font-semibold w-[44%]" style="border: 1px solid var(--color-border);">Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($osItems as $item)
+                                    @php
+                                        $editIndex = collect($editItems)->search(fn($ei) => $ei['id'] === $item->id);
+                                    @endphp
+                                    <tr>
+                                        <td class="px-3 py-2 text-sm text-primary" style="border: 1px solid var(--color-border);">{{ $item->name }}</td>
+                                        <td class="px-3 py-2 text-center" style="border: 1px solid var(--color-border);">
+                                            @if($editing && $editIndex !== false)
+                                                <select wire:model="editItems.{{ $editIndex }}.status"
+                                                    class="px-2 py-1 rounded text-xs transition-colors duration-200"
+                                                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                                                    <option value="">Pilih Status</option>
+                                                    <option value="baik">Baik</option>
+                                                    <option value="tidak_baik">Tidak Baik</option>
+                                                    <option value="good">Good</option>
+                                                    <option value="fair">Fair</option>
+                                                    <option value="critical">Critical</option>
+                                                    <option value="poor">Poor</option>
+                                                    <option value="baru">Baru</option>
+                                                    <option value="lama">Lama</option>
+                                                </select>
+                                            @else
+                                                @if($item->status)
+                                                    <span class="text-xs font-medium {{ $this->getStatusColor($item->status) }}">{{ $this->getStatusLabel($item->status) }}</span>
+                                                @else
+                                                    <span class="text-xs text-muted">-</span>
+                                                @endif
+                                            @endif
+                                        </td>
+                                        <td class="px-3 py-2 text-xs text-muted" style="border: 1px solid var(--color-border);">
+                                            @if($editing && $editIndex !== false)
+                                                <input wire:model="editItems.{{ $editIndex }}.keterangan" type="text"
+                                                    placeholder="Keterangan"
+                                                    class="w-full px-2 py-1 rounded text-xs transition-colors duration-200"
+                                                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
+                                            @else
+                                                {{ $item->keterangan ?? '-' }}
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            @endif
-        @endforeach
+            </div>
+        @endif
 
         {{-- Notes --}}
         <div class="glass-card p-4">

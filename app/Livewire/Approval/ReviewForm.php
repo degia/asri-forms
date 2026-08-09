@@ -76,10 +76,10 @@ class ReviewForm extends Component
         $user = Auth::user();
 
         if ($type === 'pemeriksaan') {
-            $this->pemeriksaanForm = FormPemeriksaan::with(['teknisi', 'pengguna', 'asset', 'site', 'items', 'approvals'])
+            $this->pemeriksaanForm = FormPemeriksaan::with(['teknisi', 'pengguna.position', 'pengguna.divisi', 'asset', 'site', 'items', 'approvals'])
                 ->findOrFail($this->formId);
         } elseif ($type === 'perawatan') {
-            $this->perawatanForm = FormPerawatan::with(['teknisi', 'pengguna', 'asset', 'site', 'items', 'approvals'])
+            $this->perawatanForm = FormPerawatan::with(['teknisi', 'pengguna.position', 'pengguna.divisi', 'asset', 'site', 'items', 'approvals'])
                 ->findOrFail($this->formId);
         } else {
             abort(404);
@@ -219,10 +219,10 @@ class ReviewForm extends Component
     private function reloadForm(): void
     {
         if ($this->formType === 'pemeriksaan') {
-            $this->pemeriksaanForm = FormPemeriksaan::with(['teknisi', 'pengguna', 'asset', 'items', 'approvals'])
+            $this->pemeriksaanForm = FormPemeriksaan::with(['teknisi', 'pengguna.position', 'pengguna.divisi', 'asset', 'items', 'approvals'])
                 ->findOrFail($this->formId);
         } else {
-            $this->perawatanForm = FormPerawatan::with(['teknisi', 'pengguna', 'asset', 'items', 'approvals'])
+            $this->perawatanForm = FormPerawatan::with(['teknisi', 'pengguna.position', 'pengguna.divisi', 'asset', 'items', 'approvals'])
                 ->findOrFail($this->formId);
         }
     }

@@ -4,14 +4,13 @@
     <meta charset="utf-8">
     <title>Form Perawatan {{ $form->nomor_form }}</title>
     <style>
-        @page { size: A4 portrait; margin: 30mm 15mm 15mm 15mm; }
+        @page { size: A4 portrait; margin: 30mm 5mm 15mm 5mm; }
         body { margin: 0; font-family: 'Helvetica', 'Arial', sans-serif; font-size: 12px; color: #1a1a1a; line-height: 1.4; }
         div, p, h1, h2, h3, table, tr, td, th, ul, ol, li, img, strong, span { margin: 0; padding: 0; box-sizing: border-box; }
         .pdf-content { margin: 0; }
-        /* .pdf-section { margin-bottom: 6px; } */
 
         .pdf-header { position: fixed; top: -25mm; left: 0; right: 0; background: #ffffff; }
-        .pdf-footer { position: fixed; bottom: -10mm; left: 0; right: 0; text-align: center; font-size: 9px; color: #999; border-top: 1px solid #eee; padding-top: 4px; background: #ffffff; }
+        .pdf-footer { position: fixed; bottom: -10mm; left: 0; right: 0; background: #ffffff; }
         table { border-collapse: collapse; }
         td, th { padding: 3px 6px; }
 
@@ -27,21 +26,20 @@
         .form-no { font-size: 12px; font-weight: bold; }
         .form-date { font-size: 12px; text-align: right; }
 
-        .section-title { font-size: 12px; font-weight: bold; margin: 8px 0 4px; padding: 3px 6px; background: #e8e8e8; border-left: 3px solid #333; }
-
         .info-table { width: 100%; border: 1px solid #999; margin-bottom: 8px; }
         .info-table td { border: 1px solid #ccc; padding: 3px 6px; font-size: 11px; }
-        .info-table .lbl { background: #f0f0f0; font-weight: 600; font-size: 10px; }
-        .info-table .val { font-size: 11px; }
+        .info-table .lbl { background: #f0f0f0; font-weight: 600; width: 16%; font-size: 10px; }
+        .info-table .val { width: 34%; }
+
+        .section-title { font-size: 12px; font-weight: bold; margin: 8px 0 4px; padding: 3px 6px; background: #e8e8e8; border-left: 3px solid #333; }
 
         .device-table { width: 100%; border: 1px solid #999; margin-bottom: 8px; }
         .device-table td { border: 1px solid #ccc; padding: 3px 6px; font-size: 11px; text-align: center; }
         .device-table .lbl { background: #f0f0f0; font-weight: 600; font-size: 10px; }
+        .device-table .lbl-1 { background: #f0f0f0; font-weight: 600; font-size: 10px; text-align: left; }
+        .device-table .val { text-align: left; font-size: 10px; }
 
-        .two-col { width: 100%; margin-bottom: 6px; table-layout: fixed; }
-        .two-col tr { vertical-align: top !important; }
-        .two-col > td { vertical-align: top !important; padding: 0 4px 0 0; border: none; width: 50%; }
-        .two-col > td:last-child { padding: 0 0 0 4px; }
+        .two-col { width: 100%; margin-bottom: 6px; }
 
         .checklist-table { width: 100%; border: 1px solid #999; margin-bottom: 4px; table-layout: fixed; }
         .checklist-table th { background: #f5f5f5; border: 1px solid #ccc; padding: 3px 4px; font-size: 10px; text-align: left; font-weight: 600; }
@@ -55,10 +53,9 @@
         .battery-detail .lbl { font-weight: 600; width: 25%; text-align: right; padding-right: 6px; }
         .battery-detail .val { width: 25%; }
 
-        .kondisi-checklist { width: 100%; border: 1px solid #999; margin-bottom: 4px; }
-        .kondisi-checklist td { border: 1px solid #ccc; padding: 3px 6px; font-size: 11px; }
-        .kondisi-checklist .lbl { background: #f0f0f0; font-weight: 600; width: 20%; font-size: 10px; }
-        .kondisi-checklist .val { font-size: 11px; }
+        .tindakan-table { width: 100%; border: 1px solid #999; margin-bottom: 4px; }
+        .tindakan-table td { border: 1px solid #ccc; padding: 3px 6px; font-size: 11px; }
+        .tindakan-table .lbl { background: #f0f0f0; font-weight: 600; font-size: 10px; }
 
         .kondisi-legend { font-size: 11px; margin: 6px 0; padding: 4px 6px; border: 1px solid #ddd; background: #fafafa; }
         .kondisi-legend span { margin-right: 12px; }
@@ -74,13 +71,13 @@
         .sig-date { font-size: 9px; color: #777; margin-top: 1px; }
         .sig-img { width: 90px; height: 35px; margin: 3px auto; border: none; background: transparent; object-fit: contain; }
         .sig-line { width: 90px; border-bottom: 1px solid #999; margin: 20px auto 3px; }
+
+        .pdf-footer { text-align: center; font-size: 9px; color: #999; border-top: 1px solid #eee; padding-top: 4px; }
     </style>
 </head>
 <body>
 <div class="pdf-header">
-
     {{-- HEADER --}}
-    <div class="pdf-section">
     <table class="header-table">
         <tr>
             <td class="header-logo">
@@ -93,24 +90,19 @@
             <td style="width: 55px; border: none;"></td>
         </tr>
     </table>
-    </div>
 
     {{-- NO. FORM --}}
-    <div class="pdf-section">
     <table class="form-row">
         <tr>
             <td class="form-no">No : {{ $form->nomor_form }}</td>
             <td class="form-date">Tanggal : {{ $form->submitted_at ? $form->submitted_at->format('d/m/Y') : '-' }}</td>
         </tr>
     </table>
-    </div>
-
 </div>
 
 <div class="pdf-content">
 
     {{-- INFORMASI PENGGUNA --}}
-    <div class="pdf-section">
     <div class="section-title">Informasi Pengguna</div>
     <table class="info-table">
         <tr>
@@ -135,42 +127,37 @@
     <div class="section-sub-title">Location Perawatan
         Site : {{ $form->site->site ?? $form->site_location ?? '-' }}, {{ $form->location_detail ?? '-' }}
     </div>
-    </div>
 
     {{-- INFORMASI PERANGKAT --}}
-    <div class="-pdfsection">
     <div class="section-title">Informasi Perangkat</div>
     <table class="device-table">
         <tr>
-            <td class="lbl" style="width:12%;">Kategori</td>
+            <td class="lbl" style="width:10%;">Kategori</td>
             <td class="lbl" style="width:10%;">Brand, Tipe</td>
-            <td class="lbl" style="width:13%;">Nama Perangkat</td>
+            <td class="lbl" style="width:10%;">Hostname</td>
             <td class="lbl" style="width:10%;">No. Serial</td>
             <td class="lbl" style="width:10%;">No. Asset</td>
         </tr>
         <tr>
             <td style="width:14%;">{{ $form->asset->kategori ?? '-' }}</td>
-            <td style="width:14%;">{{ $form->asset->brand . ', ' . $form->asset->tipe ?? '-' }}</td>
+            <td style="width:14%;">{{ $form->asset->brand ?? '-' }}, {{ $form->asset->tipe ?? '-' }}</td>
             <td style="width:14%;">{{ $form->asset->nama_perangkat ?? '-' }}</td>
             <td style="width:13%;">{{ $form->asset->no_serial ?? '-' }}</td>
-            <td style="width:14%;">{{ $form->asset->no_asset ?? '-' }}</td>
+            <td>{{ $form->asset->no_asset ?? '-' }}</td>
         </tr>
     </table>
-    </div>
 
-    {{-- PEMERIKSAAN PERANGKAT --}}
+    {{-- PERAWATAN HARDWARE + APLIKASI + OS (side by side) --}}
     @php
         $hardwareItems = $form->items->where('category', 'hardware')->sortBy('sort_order');
         $aplikasiItems = $form->items->where('category', 'aplikasi')->sortBy('sort_order');
         $osItems = $form->items->where('category', 'operating_system')->sortBy('sort_order');
     @endphp
 
-    {{-- HARDWARE + OS (left) | APLIKASI (right) --}}
-    <div class="pdf-section">
     <table class="two-col">
         <tr>
-            {{-- LEFT: HARDWARE + OS --}}
-            <td>
+            {{-- PERAWATAN HARDWARE --}}
+            <td style="vertical-align: top; width: 50%; padding: 0 2px 0 0; border: none;">
                 <div class="section-title" style="margin-top:0;">Perawatan Hardware</div>
                 <table class="checklist-table">
                     <thead>
@@ -232,29 +219,10 @@
                         @endforelse
                     </tbody>
                 </table>
-
-                <div class="section-title">Kondisi Setelah Perawatan</div>
-                @php
-                    $kondisiOptions = [
-                        'good' => ['label' => 'Good', 'color' => '#10b981'],
-                        'fair' => ['label' => 'Fair', 'color' => '#3b82f6'],
-                        'critical' => ['label' => 'Critical', 'color' => '#f59e0b'],
-                        'poor' => ['label' => 'Poor', 'color' => '#ef4444'],
-                    ];
-                    $selected = $kondisiOptions[$form->kondisi_akhir] ?? null;
-                @endphp
-                @if($selected)
-                    <div style="padding: 6px; border: 1px solid #ccc; font-size: 12px; font-weight: bold; color: {{ $selected['color'] }};">
-                        <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:{{ $selected['color'] }}; vertical-align:middle; margin-right:6px;"></span>
-                        {{ $selected['label'] }}
-                    </div>
-                @else
-                    <div style="padding: 6px; border: 1px solid #ccc; font-size: 12px; color: #999;">-</div>
-                @endif
             </td>
 
-            {{-- RIGHT: APLIKASI --}}
-            <td>
+            {{-- APLIKASI + OS --}}
+            <td style="vertical-align: top; width: 50%; padding: 0 0 0 2px; border: none;">
                 <div class="section-title" style="margin-top:0;">Perawatan Aplikasi</div>
                 <table class="checklist-table">
                     <thead>
@@ -280,34 +248,39 @@
                         @endforelse
                     </tbody>
                 </table>
-                {{-- KONDISI LEGEND --}}
-                <div class="kondisi-legend">
-                    <strong style="font-size:11px;">Kondisi :</strong>
-                    <span>V : DONE</span>
-                    <span>X : NOT YET</span>
-                </div>
-
-                {{-- CATATAN --}}
-    @if($form->kondisi_akhir_notes)
-        <div style="font-size:10px; margin-top:4px;">
-            <strong>Keterangan:</strong> {{ $form->kondisi_akhir_notes }}
-        </div>
-    @endif
-    <div class="catatan" style="margin-top:8px;">
-        <strong>Catatan Tambahan :</strong>
-        @if($form->barcode_fisik)
-            <p class="form-text"> Barcode Fisik : Ada</p>
-        @else
-            <p class="form-text"> Barcode Fisik : Tidak Ada</p>
-        @endif
-        {{ $form->notes ?? '-' }}
-    </div>
             </td>
         </tr>
     </table>
+
+    {{-- KONDISI SETELAH PERAWATAN + CATATAN (two-col) --}}
+    <div class="section-title" style="margin-top:0;">Kondisi Setelah Perawatan :</div>
+    <div class="catatan">
+        <strong>Catatan :
+            @php
+                $kondisiOptions = [
+                    'good' => ['label' => 'Good', 'color' => '#10b981'],
+                    'fair' => ['label' => 'Fair', 'color' => '#3b82f6'],
+                    'critical' => ['label' => 'Critical', 'color' => '#f59e0b'],
+                    'poor' => ['label' => 'Poor', 'color' => '#ef4444'],
+                ];
+                $selected = $kondisiOptions[$form->kondisi_akhir] ?? null;
+            @endphp
+            @if($selected)
+                <div style="padding: 2px; border: 1px solid #ccc; font-size: 12px; font-weight: bold; color: {{ $selected['color'] }};">
+                    <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:{{ $selected['color'] }}; vertical-align:middle; margin-right:2px;"></span>
+                        {{ $selected['label'] }}
+                </div>
+            @else
+                <div style="padding: 2px; border: 1px solid #ccc; font-size: 12px; color: #999;">-</div>
+            @endif
+            @if($form->kondisi_akhir_notes)
+                <div style="font-size:10px; margin-top:4px;">
+                    <strong>Keterangan:</strong> {{ $form->kondisi_akhir_notes }}
+                </div>
+            @endif
+        </strong>
+        Barcode Fisik : {{ $form->barcode_fisik ? 'Ada' : 'Tidak Ada' }}
     </div>
-
-
 
     {{-- KOTA & TANGGAL --}}
     <div style="font-size:11px; margin-top:8px;">Jakarta, {{ $form->submitted_at ? $form->submitted_at->format('d F Y') : '_______________' }}</div>
@@ -319,7 +292,6 @@
         $disetujui = $form->approvals->firstWhere('approval_level', 'disetujui_oleh');
     @endphp
 
-    <div class="pdf-section">
     <table class="signatures">
         <tr>
             {{-- PERAWATAN OLEH --}}
@@ -362,7 +334,6 @@
             </td>
         </tr>
     </table>
-    </div>
 
 </div>
 

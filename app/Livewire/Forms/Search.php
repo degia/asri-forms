@@ -234,20 +234,27 @@ class Search extends Component
 
     public function viewForm(int $id, string $type): void
     {
+        $with = ['teknisi', 'pengguna.position', 'pengguna.divisi', 'asset', 'items', 'approvals.user', 'attachments'];
+
         if ($type === 'pemeriksaan') {
-            $form = FormPemeriksaan::with(['teknisi', 'pengguna', 'asset', 'items', 'approvals.user', 'attachments'])
-                ->find($id);
+            $form = FormPemeriksaan::with($with)->find($id);
         } else {
-            $form = FormPerawatan::with(['teknisi', 'pengguna', 'asset', 'items', 'approvals.user', 'attachments'])
-                ->find($id);
+            $form = FormPerawatan::with($with)->find($id);
         }
 
         if (!$form) return;
 
-        $this->viewingForm = array_merge(
-            $form->toArray(),
-            ['type' => $type]
-        );
+        $data = $form->toArray();
+
+        if ($form->pengguna) {
+            $data['pengguna'] = array_merge($form->pengguna->toArray(), [
+                'site_name' => $form->pengguna->site_name,
+                'position' => $form->pengguna->position ? $form->pengguna->position->toArray() : null,
+                'divisi' => $form->pengguna->divisi ? $form->pengguna->divisi->toArray() : null,
+            ]);
+        }
+
+        $this->viewingForm = array_merge($data, ['type' => $type]);
     }
 
     public function closeView(): void

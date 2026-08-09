@@ -343,21 +343,26 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                         <tr>
                             <td
                                 class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold w-[16%]">
-                                Nama User</td>
+                                Nama - [ NIK ]</td>
                             <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 w-[34%]">
-                                {{ $_form['pengguna']['name'] ?? '-' }}</td>
+                                {{ $_form['pengguna']['name'] ?? '-' }} - [ {{ $_form['pengguna']['nik'] ?? '-' }} ]</td>
                             <td
                                 class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold w-[16%]">
-                                NIK User</td>
+                                Position</td>
                             <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 w-[34%]">
-                                {{ $_form['pengguna']['nik'] ?? '-' }}</td>
+                                {{ $_form['pengguna']['position']['name'] ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td
                                 class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">
-                                Site</td>
+                                Alamat Email</td>
                             <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
-                                {{ $_form['pengguna']['site'] ?? '-' }}</td>
+                                {{ $_form['pengguna']['email'] ?? '-' }}</td>
+                            <td
+                                class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">
+                                SO</td>
+                            <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
+                                {{ $_form['pengguna']['divisi']['name'] ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td
@@ -367,15 +372,20 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                                 {{ $_form['pengguna']['no_telepon'] ?? '-' }}</td>
                             <td
                                 class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">
-                                Alamat Email</td>
+                                Unit Site</td>
                             <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
-                                {{ $_form['pengguna']['email'] ?? '-' }}</td>
+                                {{ $_form['pengguna']['site_name'] ?? $_form['pengguna']['site'] ?? '-' }}</td>
                         </tr>
                     </table>
-                    @if (!$_isPemeriksaan)
-                        <div class="mt-1 text-xs text-gray-500">Location Perawatan: Site:
-                            {{ $_form['site_location'] ?? '-' }}, {{ $_form['location_detail'] ?? '-' }}</div>
-                    @endif
+                    <div class="mt-1 text-xs text-gray-500">
+                        @if ($_isPemeriksaan)
+                            Location Pemeriksaan: Site:
+                            {{ $_form['site_location'] ?? '-' }}, on {{ $_form['location_detail'] ?? '-' }}
+                        @else
+                            Location Perawatan: Site:
+                            {{ $_form['site_location'] ?? '-' }}, {{ $_form['location_detail'] ?? '-' }}
+                        @endif
+                    </div>
                 </div>
 
                 {{-- INFORMASI PERANGKAT --}}
@@ -383,45 +393,46 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                     <div
                         class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500">
                         Informasi Perangkat</div>
+                    <table class="w-full border border-gray-300 dark:border-gray-600" style="text-align: center;">
+                        <tr>
+                            <td
+                                class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">
+                                Kategori</td>
+                            <td
+                                class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">
+                                Brand, Tipe</td>
+                            <td
+                                class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">
+                                {{ $_isPemeriksaan ? 'Hostname' : 'Nama Perangkat' }}</td>
+                            <td
+                                class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">
+                                No. Serial</td>
+                            <td
+                                class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">
+                                No. Asset</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
+                                {{ $_form['asset']['kategori'] ?? '-' }}</td>
+                            <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
+                                {{ ($_form['asset']['brand'] ?? '') . ', ' . ($_form['asset']['tipe'] ?? '') }}</td>
+                            <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
+                                {{ $_form['asset']['nama_perangkat'] ?? '-' }}</td>
+                            <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
+                                {{ $_form['asset']['no_serial'] ?? '-' }}</td>
+                            <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
+                                {{ $_form['asset']['no_asset'] ?? '-' }}</td>
+                        </tr>
+                    </table>
                     @if ($_isPemeriksaan)
-                        <table class="w-full border border-gray-300 dark:border-gray-600" style="text-align: center;">
+                        <table class="w-full border border-gray-300 dark:border-gray-600 mt-1">
                             <tr>
                                 <td
-                                    class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold w-[12%]">
-                                    Kategori</td>
-                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 w-[14%]">
-                                    {{ $_form['asset']['kategori'] ?? '-' }}</td>
-                                <td
-                                    class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold w-[10%]">
-                                    Brand</td>
-                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 w-[14%]">
-                                    {{ $_form['asset']['brand'] ?? '-' }}</td>
-                                <td
-                                    class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold w-[10%]">
-                                    Tipe</td>
-                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 w-[14%]">
-                                    {{ $_form['asset']['tipe'] ?? '-' }}</td>
-                                <td
-                                    class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold w-[13%]">
-                                    Nama Perangkat</td>
-                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 w-[13%]">
-                                    {{ $_form['asset']['nama_perangkat'] ?? '-' }}</td>
+                                    class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold text-left">
+                                    Kondisi, Keterangan</td>
                             </tr>
                             <tr>
-                                <td
-                                    class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">
-                                    No. Serial</td>
-                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
-                                    {{ $_form['asset']['no_serial'] ?? '-' }}</td>
-                                <td
-                                    class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">
-                                    No. Asset</td>
-                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
-                                    {{ $_form['asset']['no_asset'] ?? '-' }}</td>
-                                <td
-                                    class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">
-                                    Kondisi</td>
-                                <td colspan="3" class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-left">
                                     @php
                                         $_k = $_form['kondisi'] ?? '';
                                         $_kk = $_form['kondisi_keterangan'] ?? '';
@@ -439,221 +450,77 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                                     @endif
                                 </td>
                             </tr>
-                            <tr>
-                                <td
-                                    class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">
-                                    Site Location</td>
-                                <td colspan="3" class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
-                                    {{ $_form['site_location'] ?? '-' }}</td>
-                                <td
-                                    class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">
-                                    Location Detail</td>
-                                <td colspan="3" class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
-                                    {{ $_form['location_detail'] ?? '-' }}</td>
-                            </tr>
-                        </table>
-                    @else
-                        <table class="w-full border border-gray-300 dark:border-gray-600" style="text-align: center;">
-                            <tr>
-                                <td
-                                    class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold w-[12%]">
-                                    Kategori</td>
-                                <td
-                                    class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold w-[10%]">
-                                    Brand, Tipe</td>
-                                <td
-                                    class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold w-[13%]">
-                                    Nama Perangkat</td>
-                                <td
-                                    class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold w-[10%]">
-                                    No. Serial</td>
-                                <td
-                                    class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold w-[10%]">
-                                    No. Asset</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
-                                    {{ $_form['asset']['kategori'] ?? '-' }}</td>
-                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
-                                    {{ ($_form['asset']['brand'] ?? '') . ', ' . ($_form['asset']['tipe'] ?? '') }}
-                                </td>
-                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
-                                    {{ $_form['asset']['nama_perangkat'] ?? '-' }}</td>
-                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
-                                    {{ $_form['asset']['no_serial'] ?? '-' }}</td>
-                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">
-                                    {{ $_form['asset']['no_asset'] ?? '-' }}</td>
-                            </tr>
                         </table>
                     @endif
                 </div>
 
-                {{-- CHECKLIST ITEMS --}}
+                {{-- CHECKLIST ITEMS (two-col, like PDF) --}}
                 @if (count($_hardware) || count($_aplikasi) || count($_os))
                     <div>
                         <table class="w-full">
                             <tr class="align-top">
-                                {{-- LEFT COL --}}
+                                {{-- LEFT: HARDWARE --}}
                                 <td class="w-1/2 pr-2 align-top">
-                                    @if (count($_hardware))
-                                        <div class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500"
-                                            style="margin-top:0;">{{ $_isPemeriksaan ? 'Pemeriksaan' : 'Perawatan' }}
-                                            Hardware</div>
-                                        <table class="w-full border border-gray-300 dark:border-gray-600">
-                                            <thead>
-                                                <tr class="bg-gray-100 dark:bg-gray-800">
-                                                    <th
-                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[36%]">
-                                                        Name</th>
-                                                    <th
-                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-center text-xs font-semibold w-[20%]">
-                                                        {{ $_isPemeriksaan ? 'Kondisi' : 'Status' }}</th>
-                                                    <th
-                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[44%]">
-                                                        Keterangan</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($_hardware as $_item)
-                                                    <tr class="even:bg-gray-50 dark:even:bg-gray-800/50">
-                                                        <td
-                                                            class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">
-                                                            {{ $_item['name'] }}</td>
-                                                        <td
-                                                            class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-center">
-                                                            @if (($_item['status'] ?? '') === 'baik')
-                                                                Baik
-                                                            @elseif(($_item['status'] ?? '') === 'tidak_baik')
-                                                                Tidak Baik
+                                    <div class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500"
+                                        style="margin-top:0;">{{ $_isPemeriksaan ? 'Pemeriksaan' : 'Perawatan' }}
+                                        Hardware</div>
+                                    <table class="w-full border border-gray-300 dark:border-gray-600">
+                                        <thead>
+                                            <tr class="bg-gray-100 dark:bg-gray-800">
+                                                <th
+                                                    class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[36%]">
+                                                    Name</th>
+                                                <th
+                                                    class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-center text-xs font-semibold w-[20%]">
+                                                    {{ $_isPemeriksaan ? 'Kondisi' : 'Status' }}</th>
+                                                <th
+                                                    class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[44%]">
+                                                    Keterangan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse ($_hardware as $_item)
+                                                <tr class="even:bg-gray-50 dark:even:bg-gray-800/50">
+                                                    <td
+                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">
+                                                        {{ $_item['name'] }}</td>
+                                                    <td
+                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-center">
+                                                        @if (($_item['status'] ?? '') === 'baik')
+                                                            Baik
+                                                        @elseif(($_item['status'] ?? '') === 'tidak_baik')
+                                                            Tidak Baik
+                                                        @else
+                                                            -
+                                                        @endif
+                                                    </td>
+                                                    <td
+                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">
+                                                        {{ $_item['keterangan'] ?? '' }}
+                                                        @if ((($_item['name'] ?? '') === 'Battery' || ($_item['name'] ?? '') === 'Battery Report') && (!empty($_item['full_charge_capacity']) || !empty($_item['design_capacity'])))
+                                                            @if (!empty($_item['full_charge_capacity']) && !empty($_item['design_capacity']) && $_item['design_capacity'] > 0)
+                                                                <strong>{{ round(($_item['full_charge_capacity'] / $_item['design_capacity']) * 100) }}
+                                                                    %</strong>
                                                             @else
-                                                                -
+                                                                <strong>-</strong>
                                                             @endif
-                                                        </td>
-                                                        <td
-                                                            class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">
-                                                            {{ $_item['keterangan'] ?? '' }}
-                                                            @if ((($_item['name'] ?? '') === 'Battery' || ($_item['name'] ?? '') === 'Battery Report') && (!empty($_item['full_charge_capacity']) || !empty($_item['design_capacity'])))
-                                                                @if (!empty($_item['full_charge_capacity']) && !empty($_item['design_capacity']) && $_item['design_capacity'] > 0)
-                                                                    <strong>{{ round(($_item['full_charge_capacity'] / $_item['design_capacity']) * 100) }}
-                                                                        %</strong>
-                                                                @else
-                                                                    <strong>-</strong>
-                                                                @endif
-                                                                [FCC {{ $_item['full_charge_capacity'] ?? '-' }} / DC
-                                                                {{ $_item['design_capacity'] ?? '-' }}]
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    @endif
-
-                                    @if ($_isPemeriksaan && count($_os))
-                                        <div
-                                            class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500">
-                                            Operating System</div>
-                                        <table class="w-full border border-gray-300 dark:border-gray-600">
-                                            <thead>
-                                                <tr class="bg-gray-100 dark:bg-gray-800">
-                                                    <th
-                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[36%]">
-                                                        Name</th>
-                                                    <th
-                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-center text-xs font-semibold w-[20%]">
-                                                        Kondisi</th>
-                                                    <th
-                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[44%]">
-                                                        Keterangan</th>
+                                                            [FCC {{ $_item['full_charge_capacity'] ?? '-' }} / DC
+                                                            {{ $_item['design_capacity'] ?? '-' }}]
+                                                        @endif
+                                                    </td>
                                                 </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($_os as $_item)
-                                                    <tr class="even:bg-gray-50 dark:even:bg-gray-800/50">
-                                                        <td
-                                                            class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">
-                                                            {{ $_item['name'] }}</td>
-                                                        <td
-                                                            class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-center">
-                                                            @if (($_item['status'] ?? '') === 'baik')
-                                                                Baik
-                                                            @elseif(($_item['status'] ?? '') === 'tidak_baik')
-                                                                Tidak Baik
-                                                            @else
-                                                                -
-                                                            @endif
-                                                        </td>
-                                                        <td
-                                                            class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">
-                                                            {{ $_item['keterangan'] ?? '' }}</td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    @endif
-
-                                    @if (!$_isPemeriksaan)
-                                        @if (count($_os))
-                                            <div
-                                                class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500">
-                                                Perawatan Operating Sistem</div>
-                                            <table class="w-full border border-gray-300 dark:border-gray-600">
-                                                <thead>
-                                                    <tr class="bg-gray-100 dark:bg-gray-800">
-                                                        <th
-                                                            class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[36%]">
-                                                            Name</th>
-                                                        <th
-                                                            class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-center text-xs font-semibold w-[20%]">
-                                                            Status</th>
-                                                        <th
-                                                            class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[44%]">
-                                                            Keterangan</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach ($_os as $_item)
-                                                        <tr class="even:bg-gray-50 dark:even:bg-gray-800/50">
-                                                            <td
-                                                                class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">
-                                                                {{ $_item['name'] }}</td>
-                                                            <td
-                                                                class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-center">
-                                                                @if (($_item['status'] ?? '') === 'baik')
-                                                                    Baik
-                                                                @elseif(($_item['status'] ?? '') === 'tidak_baik')
-                                                                    Tidak Baik
-                                                                @else
-                                                                    -
-                                                                @endif
-                                                            </td>
-                                                            <td
-                                                                class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">
-                                                                {{ $_item['keterangan'] ?? '' }}</td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        @endif
-
-                                        <div
-                                            class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500">
-                                            Kondisi Setelah Perawatan</div>
-                                        @if ($_selectedKondisi)
-                                            <div class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-sm font-bold"
-                                                style="color: {{ $_selectedKondisi['color'] }};">
-                                                <span class="inline-block w-3.5 h-3.5 rounded-full align-middle mr-1.5"
-                                                    style="background: {{ $_selectedKondisi['color'] }};"></span>{{ $_selectedKondisi['label'] }}
-                                            </div>
-                                        @else
-                                            <div
-                                                class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-sm text-gray-400">
-                                                -</div>
-                                        @endif
-                                    @endif
+                                            @empty
+                                                <tr>
+                                                    <td colspan="3"
+                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-gray-400 text-center">
+                                                        -</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
                                 </td>
 
-                                {{-- RIGHT COL --}}
+                                {{-- RIGHT: APLIKASI + OS --}}
                                 <td class="w-1/2 pl-2 align-top">
                                     <div class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500"
                                         style="margin-top:0;">{{ $_isPemeriksaan ? 'Pemeriksaan' : 'Perawatan' }}
@@ -673,7 +540,7 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @forelse($_aplikasi as $_item)
+                                            @forelse ($_aplikasi as $_item)
                                                 <tr class="even:bg-gray-50 dark:even:bg-gray-800/50">
                                                     <td
                                                         class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">
@@ -712,33 +579,67 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                                         </tbody>
                                     </table>
 
-                                    @if (!$_isPemeriksaan)
-                                        <div
-                                            class="mt-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 text-xs text-gray-500">
-                                            <strong>Kondisi :</strong> <span class="mr-3">V : DONE</span> <span>X :
-                                                NOT YET</span>
-                                        </div>
-                                        @if (!empty($_form['kondisi_akhir_notes']))
-                                            <div class="mt-1 text-xs text-gray-500"><strong>Keterangan:</strong>
-                                                {{ $_form['kondisi_akhir_notes'] }}</div>
-                                        @endif
-                                    @endif
+                                    <div
+                                        class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500">
+                                        {{ $_isPemeriksaan ? 'Operating System' : 'Perawatan Operating Sistem' }}</div>
+                                    <table class="w-full border border-gray-300 dark:border-gray-600">
+                                        <thead>
+                                            <tr class="bg-gray-100 dark:bg-gray-800">
+                                                <th
+                                                    class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[36%]">
+                                                    Name</th>
+                                                <th
+                                                    class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-center text-xs font-semibold w-[20%]">
+                                                    {{ $_isPemeriksaan ? 'Kondisi' : 'Status' }}</th>
+                                                <th
+                                                    class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[44%]">
+                                                    Keterangan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse ($_os as $_item)
+                                                <tr class="even:bg-gray-50 dark:even:bg-gray-800/50">
+                                                    <td
+                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">
+                                                        {{ $_item['name'] }}</td>
+                                                    <td
+                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-center">
+                                                        @if (($_item['status'] ?? '') === 'baik')
+                                                            Baik
+                                                        @elseif(($_item['status'] ?? '') === 'tidak_baik')
+                                                            Tidak Baik
+                                                        @else
+                                                            -
+                                                        @endif
+                                                    </td>
+                                                    <td
+                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">
+                                                        {{ $_item['keterangan'] ?? '' }}</td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="3"
+                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-gray-400 text-center">
+                                                        -</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
                                 </td>
                             </tr>
                         </table>
                     </div>
                 @endif
 
-                {{-- TINDAKAN + KONDISI LEGEND + CATATAN (Pemeriksaan only, side by side) --}}
-                @if ($_isPemeriksaan)
-                    <table class="w-full">
-                        <tr class="align-top">
+                {{-- TINDAKAN / KONDISI SETELAH PERAWATAN + NOTE (two-col, like PDF) --}}
+                <table class="w-full">
+                    <tr class="align-top">
+                        @if ($_isPemeriksaan)
                             {{-- TINDAKAN --}}
                             <td class="w-1/2 pr-2 align-top">
+                                <div class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500"
+                                    style="margin-top:0;">Tindakan</div>
                                 @if (!empty($_form['tindakan_categories']))
-                                    <div
-                                        class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500">
-                                        Tindakan</div>
                                     <table class="w-full border border-gray-300 dark:border-gray-600">
                                         @foreach ($_form['tindakan_categories'] as $_cat)
                                             @if (!empty($_cat['selected'] ?? []))
@@ -761,36 +662,65 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                                             </tr>
                                         @endif
                                     </table>
+                                @else
+                                    <div class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs text-gray-400">
+                                        Tidak ada tindakan</div>
                                 @endif
                             </td>
-                            {{-- KONDISI LEGEND + CATATAN --}}
-                            <td class="w-1/2 align-top">
-                                <div
-                                    class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500">
-                                    Kondisi</div>
-                                <div
-                                    class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 text-xs text-gray-500">
+                        @else
+                            {{-- KONDISI SETELAH PERAWATAN --}}
+                            <td class="w-1/2 pr-2 align-top">
+                                <div class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500"
+                                    style="margin-top:0;">Kondisi Setelah Perawatan</div>
+                                @if ($_selectedKondisi)
+                                    <div class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-sm font-bold"
+                                        style="color: {{ $_selectedKondisi['color'] }};">
+                                        <span class="inline-block w-3.5 h-3.5 rounded-full align-middle mr-1.5"
+                                            style="background: {{ $_selectedKondisi['color'] }};"></span>{{ $_selectedKondisi['label'] }}
+                                    </div>
+                                @else
+                                    <div
+                                        class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-sm text-gray-400">
+                                        -</div>
+                                @endif
+                                @if (!empty($_form['kondisi_akhir_notes']))
+                                    <div class="mt-1 text-xs text-gray-500"><strong>Keterangan:</strong>
+                                        {{ $_form['kondisi_akhir_notes'] }}</div>
+                                @endif
+                            </td>
+                        @endif
+
+                        {{-- NOTE --}}
+                        <td class="w-1/2 align-top">
+                            <div class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500"
+                                style="margin-top:0;">Note</div>
+                            <div
+                                class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 text-xs text-gray-500">
+                                @if ($_isPemeriksaan)
                                     <strong>V : BAIK</strong><br>
                                     <strong>X : TIDAK BAIK</strong><br>
                                     <span class="text-[10px]">(Mohon jelaskan kerusakan atau masalah yang ada)</span>
-                                </div>
+                                @else
+                                    <strong>Kondisi :</strong><br>
+                                    <strong>V : DONE</strong><br>
+                                    <strong>X : NOT YET</strong>
+                                @endif
+                            </div>
+                            @if ($_isPemeriksaan)
                                 <div class="mt-2 px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs">
                                     <strong class="block mb-0.5">CATATAN
                                         :</strong>{{ $_form['notes'] ?? '*) : diisi untuk perangkat lama' }}
                                 </div>
-                            </td>
-                        </tr>
-                    </table>
-                @endif
-
-                {{-- CATATAN (Perawatan only) --}}
-                @if (!$_isPemeriksaan)
-                    <div class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs">
-                        <strong class="block mb-0.5">Catatan Tambahan :</strong>
-                        <p>Barcode Fisik : {{ !empty($_form['barcode_fisik']) ? 'Ada' : 'Tidak Ada' }}</p>
-                        {{ $_form['notes'] ?? '-' }}
-                    </div>
-                @endif
+                            @else
+                                <div class="mt-2 px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs">
+                                    <strong class="block mb-0.5">Catatan Tambahan :</strong>
+                                    <p>Barcode Fisik : {{ !empty($_form['barcode_fisik']) ? 'Ada' : 'Tidak Ada' }}</p>
+                                    <p>{{ $_form['notes'] ?? '*) : diisi untuk perangkat lama' }}</p>
+                                </div>
+                            @endif
+                        </td>
+                    </tr>
+                </table>
 
                 {{-- SIGNATURES --}}
                 @if (!$_isPemeriksaan)
