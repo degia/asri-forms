@@ -71,13 +71,9 @@
                 </div>
                 <svg class="w-5 h-5 text-muted transition-transform duration-200" :class="openStep === 1 ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div x-show="openStep === 1" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 space-y-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 1 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 space-y-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4">
                         <h4 class="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Teknisi (Pemeriksa)</h4>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -205,13 +201,9 @@
                 </div>
                 <svg class="w-5 h-5 text-muted transition-transform duration-200" :class="openStep === 2 ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div x-show="openStep === 2" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 space-y-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 2 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 space-y-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4">
                         <h4 class="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Data Perangkat</h4>
 
@@ -336,13 +328,9 @@
                 </div>
                 <svg class="w-5 h-5 text-muted transition-transform duration-200" :class="openStep === 3 ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div x-show="openStep === 3" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 3 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4 space-y-3">
                         @foreach($hardwareItems as $index => $item)
                             <div class="glass-card p-3 space-y-2" style="background: var(--color-bg-tertiary); border: none;">
@@ -418,13 +406,9 @@
                 </div>
                 <svg class="w-5 h-5 text-muted transition-transform duration-200" :class="openStep === 4 ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div x-show="openStep === 4" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 4 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4 space-y-3">
                         @foreach($aplikasiItems as $index => $item)
                             <div class="glass-card p-3 space-y-2" style="background: var(--color-bg-tertiary); border: none;">
@@ -473,13 +457,9 @@
                 </div>
                 <svg class="w-5 h-5 text-muted transition-transform duration-200" :class="openStep === 5 ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div x-show="openStep === 5" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 5 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4 space-y-3">
                         @foreach($osItems as $index => $item)
                             <div class="glass-card p-3 space-y-2" style="background: var(--color-bg-tertiary); border: none;">
@@ -509,13 +489,9 @@
                 </div>
                 <svg class="w-5 h-5 text-muted transition-transform duration-200" :class="openStep === 6 ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div x-show="openStep === 6" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 space-y-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 6 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 space-y-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4">
                         <label class="text-xs font-semibold text-muted uppercase tracking-wider">Kondisi Akhir Perangkat</label>
                         <div class="grid grid-cols-4 gap-2 mt-2">
@@ -570,13 +546,9 @@
                 </div>
                 <svg class="w-5 h-5 text-muted transition-transform duration-200" :class="openStep === 7 ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div x-show="openStep === 7" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 7 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4 space-y-4">
                         <div>
                             <label class="flex items-center gap-3 cursor-pointer group">
@@ -609,13 +581,9 @@
                 </div>
                 <svg class="w-5 h-5 text-muted transition-transform duration-200" :class="openStep === 8 ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div x-show="openStep === 8" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-150"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-2">
-                <div class="px-4 pb-4 border-t" style="border-color: var(--color-border);">
+            <div class="grid transition-all duration-300 ease-out"
+                :style="openStep === 8 ? 'grid-template-rows: 1fr; opacity: 1;' : 'grid-template-rows: 0fr; opacity: 0;'">
+                <div class="px-4 pb-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4 space-y-4">
 
                         <div class="glass-card p-3" style="background: var(--color-bg-tertiary); border: none;">

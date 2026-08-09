@@ -101,10 +101,11 @@
     <div class="section-title">Infomasi Pengguna</div>
     <table class="info-table">
         <tr>
-            <td class="lbl">Nama User</td>
-            <td class="val">{{ $form->pengguna->name ?? '-' }}</td>
-            <td class="lbl">NIK User</td>
-            <td class="val">{{ $form->pengguna->nik ?? '-' }}</td>
+            <td class="lbl">Nama User, NIK</td>
+            <td class="val">{{ $form->pengguna->name ?? '-' }}, {{ $form->pengguna->nik ?? '-' }}</td>
+            <td class="lbl">Divisi</td>
+            <td class="val">{{ $form->pengguna->divisi ?? '-' }}</td>
+
         </tr>
         <tr>
             <td class="lbl">Site</td>
@@ -117,26 +118,30 @@
             <td class="val">{{ $form->pengguna->email ?? '-' }}</td>
         </tr>
     </table>
+    <div class="section-sub-title">Location Perawatan
+        Site : {{ $form->site->site ?? $form->site_location ?? '-' }}, {{ $form->location_detail ?? '-' }}
+    </div>
 
     {{-- INFORMASI PERANGKAT --}}
     <div class="section-title">Informasi Perangkat</div>
     <table class="device-table">
         <tr>
             <td class="lbl" style="width:12%;">Kategori</td>
-            <td style="width:14%;">{{ $form->asset->kategori ?? '-' }}</td>
             <td class="lbl" style="width:10%;">Brand</td>
-            <td style="width:14%;">{{ $form->asset->brand ?? '-' }}</td>
             <td class="lbl" style="width:10%;">Tipe</td>
-            <td style="width:14%;">{{ $form->asset->tipe ?? '-' }}</td>
             <td class="lbl" style="width:13%;">Nama Perangkat</td>
-            <td style="width:13%;">{{ $form->asset->nama_perangkat ?? '-' }}</td>
+            <td class="lbl">No. Serial</td>
+            <td class="lbl">No. Asset</td>
+            <td class="lbl">Kondisi</td>
+
         </tr>
         <tr>
-            <td class="lbl">No. Serial</td>
+            <td style="width:14%;">{{ $form->asset->kategori ?? '-' }}</td>
+            <td style="width:14%;">{{ $form->asset->brand ?? '-' }}</td>
+            <td style="width:14%;">{{ $form->asset->tipe ?? '-' }}</td>
+            <td style="width:13%;">{{ $form->asset->nama_perangkat ?? '-' }}</td>
             <td>{{ $form->asset->no_serial ?? '-' }}</td>
-            <td class="lbl">No. Asset</td>
             <td>{{ $form->asset->no_asset ?? '-' }}</td>
-            <td class="lbl">Kondisi</td>
             <td colspan="3">
                 @if($form->kondisi === 'baru')
                     <strong>BARU</strong>
@@ -150,12 +155,6 @@
                     -
                 @endif
             </td>
-        </tr>
-        <tr>
-            <td class="lbl">Site Location</td>
-            <td colspan="3">{{ $form->site->site ?? $form->site_location ?? '-' }}</td>
-            <td class="lbl">Location Detail</td>
-            <td colspan="3">{{ $form->location_detail ?? '-' }}</td>
         </tr>
     </table>
 
