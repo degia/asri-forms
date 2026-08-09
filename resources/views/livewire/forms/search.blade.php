@@ -729,57 +729,68 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                     </div>
                 @endif
 
-                {{-- TINDAKAN (Pemeriksaan only) --}}
-                @if ($_isPemeriksaan && !empty($_form['tindakan_categories']))
-                    <div>
-                        <div
-                            class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500">
-                            Tindakan</div>
-                        <table class="w-full border border-gray-300 dark:border-gray-600">
-                            @foreach ($_form['tindakan_categories'] as $_cat)
-                                @if (!empty($_cat['selected'] ?? []))
-                                    <tr>
-                                        <td
-                                            class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 font-semibold w-[35%] text-xs">
-                                            {{ $_cat['label'] ?? '' }}</td>
-                                        <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-xs">
-                                            {{ implode(', ', $_cat['selected']) }}</td>
-                                    </tr>
-                                @endif
-                            @endforeach
-                            @if (!empty($_form['tindakan_solution']))
-                                <tr>
-                                    <td
-                                        class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 font-semibold text-xs">
-                                        Solution</td>
-                                    <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-xs">
-                                        {{ $_form['tindakan_solution'] }}</td>
-                                </tr>
-                            @endif
-                        </table>
-                    </div>
-                @endif
-
-                {{-- KONDISI LEGEND (Pemeriksaan only) --}}
+                {{-- TINDAKAN + KONDISI LEGEND + CATATAN (Pemeriksaan only, side by side) --}}
                 @if ($_isPemeriksaan)
-                    <div
-                        class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 text-xs text-gray-500">
-                        <strong>Kondisi :</strong> <span class="mr-3">V : BAIK</span> <span>X : TIDAK BAIK</span>
-                        <span class="ml-2 text-[10px]">(Mohon jelaskan kerusakan atau masalah yang ada)</span>
-                    </div>
+                    <table class="w-full">
+                        <tr class="align-top">
+                            {{-- TINDAKAN --}}
+                            <td class="w-1/2 pr-2 align-top">
+                                @if (!empty($_form['tindakan_categories']))
+                                    <div
+                                        class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500">
+                                        Tindakan</div>
+                                    <table class="w-full border border-gray-300 dark:border-gray-600">
+                                        @foreach ($_form['tindakan_categories'] as $_cat)
+                                            @if (!empty($_cat['selected'] ?? []))
+                                                <tr>
+                                                    <td
+                                                        class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 font-semibold w-[35%] text-xs">
+                                                        {{ $_cat['label'] ?? '' }}</td>
+                                                    <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-xs">
+                                                        {{ implode(', ', $_cat['selected']) }}</td>
+                                                </tr>
+                                            @endif
+                                        @endforeach
+                                        @if (!empty($_form['tindakan_solution']))
+                                            <tr>
+                                                <td
+                                                    class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 font-semibold text-xs">
+                                                    Solution</td>
+                                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-xs">
+                                                    {{ $_form['tindakan_solution'] }}</td>
+                                            </tr>
+                                        @endif
+                                    </table>
+                                @endif
+                            </td>
+                            {{-- KONDISI LEGEND + CATATAN --}}
+                            <td class="w-1/2 align-top">
+                                <div
+                                    class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500">
+                                    Kondisi</div>
+                                <div
+                                    class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 text-xs text-gray-500">
+                                    <strong>V : BAIK</strong><br>
+                                    <strong>X : TIDAK BAIK</strong><br>
+                                    <span class="text-[10px]">(Mohon jelaskan kerusakan atau masalah yang ada)</span>
+                                </div>
+                                <div class="mt-2 px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs">
+                                    <strong class="block mb-0.5">CATATAN
+                                        :</strong>{{ $_form['notes'] ?? '*) : diisi untuk perangkat lama' }}
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 @endif
 
-                {{-- CATATAN --}}
-                <div class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs">
-                    @if ($_isPemeriksaan)
-                        <strong class="block mb-0.5">CATATAN
-                            :</strong>{{ $_form['notes'] ?? '*) : diisi untuk perangkat lama' }}
-                    @else
+                {{-- CATATAN (Perawatan only) --}}
+                @if (!$_isPemeriksaan)
+                    <div class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs">
                         <strong class="block mb-0.5">Catatan Tambahan :</strong>
                         <p>Barcode Fisik : {{ !empty($_form['barcode_fisik']) ? 'Ada' : 'Tidak Ada' }}</p>
                         {{ $_form['notes'] ?? '-' }}
-                    @endif
-                </div>
+                    </div>
+                @endif
 
                 {{-- SIGNATURES --}}
                 @if (!$_isPemeriksaan)

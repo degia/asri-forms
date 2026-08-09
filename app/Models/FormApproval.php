@@ -34,6 +34,11 @@ class FormApproval extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function getSignerNameAttribute(): ?string
+    {
+        return $this->custom_signer_name ?: $this->user?->name;
     }
 }

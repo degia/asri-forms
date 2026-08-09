@@ -4,11 +4,14 @@
     <meta charset="utf-8">
     <title>Form Perawatan {{ $form->nomor_form }}</title>
     <style>
-        @page { margin: 0; size: A4 portrait; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 12px; color: #1a1a1a; line-height: 1.4; }
-        .pdf-content { margin: 15mm 15mm 15mm 15mm; }
+        @page { size: A4 portrait; margin: 30mm 15mm 15mm 15mm; }
+        body { margin: 0; font-family: 'Helvetica', 'Arial', sans-serif; font-size: 12px; color: #1a1a1a; line-height: 1.4; }
+        div, p, h1, h2, h3, table, tr, td, th, ul, ol, li, img, strong, span { margin: 0; padding: 0; box-sizing: border-box; }
+        .pdf-content { margin: 0; }
         .pdf-section { margin-bottom: 6px; }
+
+        .pdf-header { position: fixed; top: -30mm; left: 0; right: 0; background: #ffffff; }
+        .pdf-footer { position: fixed; bottom: -15mm; left: 0; right: 0; text-align: center; font-size: 9px; color: #999; border-top: 1px solid #eee; padding-top: 4px; background: #ffffff; }
         table { border-collapse: collapse; }
         td, th { padding: 3px 6px; }
 
@@ -71,12 +74,10 @@
         .sig-date { font-size: 9px; color: #777; margin-top: 1px; }
         .sig-img { width: 90px; height: 35px; margin: 3px auto; border: none; background: transparent; object-fit: contain; }
         .sig-line { width: 90px; border-bottom: 1px solid #999; margin: 20px auto 3px; }
-
-        .footer { margin-top: 10px; text-align: center; font-size: 9px; color: #999; border-top: 1px solid #eee; padding-top: 4px; }
     </style>
 </head>
 <body>
-<div class="pdf-content">
+<div class="pdf-header">
 
     {{-- HEADER --}}
     <div class="pdf-section">
@@ -103,6 +104,10 @@
         </tr>
     </table>
     </div>
+
+</div>
+
+<div class="pdf-content">
 
     {{-- INFORMASI PENGGUNA --}}
     <div class="pdf-section">
@@ -324,7 +329,7 @@
                 @else
                     <div class="sig-line"></div>
                 @endif
-                <div class="sig-name">{{ $diperiksa->user->name ?? '_______________' }}</div>
+                <div class="sig-name">{{ $diperiksa->signer_name ?? '_______________' }}</div>
                 <div class="sig-date">Tanggal : {{ $diperiksa && $diperiksa->approved_at ? $diperiksa->approved_at->format('d/m/Y') : '___/___/______' }}</div>
             </td>
 
@@ -337,7 +342,7 @@
                 @else
                     <div class="sig-line"></div>
                 @endif
-                <div class="sig-name">{{ $diketahui->user->name ?? '_______________' }}</div>
+                <div class="sig-name">{{ $diketahui->signer_name ?? '_______________' }}</div>
                 <div class="sig-date">Tanggal : {{ $diketahui && $diketahui->approved_at ? $diketahui->approved_at->format('d/m/Y') : '___/___/______' }}</div>
             </td>
 
@@ -350,17 +355,17 @@
                 @else
                     <div class="sig-line"></div>
                 @endif
-                <div class="sig-name">{{ $disetujui->user->name ?? '_______________' }}</div>
+                <div class="sig-name">{{ $disetujui->signer_name ?? '_______________' }}</div>
                 <div class="sig-date">Tanggal : {{ $disetujui && $disetujui->approved_at ? $disetujui->approved_at->format('d/m/Y') : '___/___/______' }}</div>
             </td>
         </tr>
     </table>
     </div>
 
-    <div class="footer">
-        FM/ASRI/ITE/09-00 - Form Perawatan Perangkat &mdash; {{ $form->nomor_form }} &mdash; {{ $form->asset->nama_perangkat ?? '' }}
-    </div>
+</div>
 
+<div class="pdf-footer">
+    FM/ASRI/ITE/09-00 - Form Perawatan Perangkat &mdash; {{ $form->nomor_form }} &mdash; {{ $form->asset->nama_perangkat ?? '' }}
 </div>
 </body>
 </html>

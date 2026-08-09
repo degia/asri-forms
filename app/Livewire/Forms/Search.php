@@ -183,7 +183,7 @@ class Search extends Component
             'no_asset' => $f->asset->no_asset ?? '-',
             'kondisi' => $f->kondisi === 'baru' ? 'Baru' : 'Lama',
             'status' => $f->status,
-            'disetujui' => $f->approvals->where('approval_level', 'disetujui_oleh')->first()?->user->name ?? '-',
+            'disetujui' => $f->approvals->where('approval_level', 'disetujui_oleh')->first()?->signer_name ?? '-',
             'submitted_at' => $f->submitted_at,
             'submitted_at_formatted' => $f->submitted_at?->format('d M Y H:i') ?? '-',
         ]);
@@ -226,7 +226,7 @@ class Search extends Component
             'no_asset' => $f->asset->no_asset ?? '-',
             'kondisi' => match($f->kondisi_akhir) { 'good' => 'Good', 'fair' => 'Fair', 'critical' => 'Critical', 'poor' => 'Poor', default => '-' },
             'status' => $f->status,
-            'disetujui' => $f->approvals->where('approval_level', 'disetujui_oleh')->first()?->user->name ?? '-',
+            'disetujui' => $f->approvals->where('approval_level', 'disetujui_oleh')->first()?->signer_name ?? '-',
             'submitted_at' => $f->submitted_at,
             'submitted_at_formatted' => $f->submitted_at?->format('d M Y H:i') ?? '-',
         ]);

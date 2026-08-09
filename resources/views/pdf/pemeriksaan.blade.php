@@ -4,10 +4,13 @@
     <meta charset="utf-8">
     <title>Form Pemeriksaan {{ $form->nomor_form }}</title>
     <style>
-        @page { margin: 0; size: A4 portrait; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 12px; color: #1a1a1a; line-height: 1.4; }
-        .pdf-content { margin: 15mm 15mm 15mm 15mm; }
+        @page { size: A4 portrait; margin: 30mm 5mm 15mm 5mm; }
+        body { margin: 0; font-family: 'Helvetica', 'Arial', sans-serif; font-size: 12px; color: #1a1a1a; line-height: 1.4; }
+        div, p, h1, h2, h3, table, tr, td, th, ul, ol, li, img, strong, span { margin: 0; padding: 0; box-sizing: border-box; }
+        .pdf-content { margin: 0; }
+
+        .pdf-header { position: fixed; top: -30mm; left: 0; right: 0; background: #ffffff; }
+        .pdf-footer { position: fixed; bottom: -15mm; left: 0; right: 0; background: #ffffff; }
         table { border-collapse: collapse; }
         td, th { padding: 3px 6px; }
 
@@ -37,8 +40,6 @@
         .device-table .val { text-align: left; font-size: 10px; }
 
         .two-col { width: 100%; margin-bottom: 6px; }
-        .two-col > td { vertical-align: top; padding: 0 4px 0 0; border: none; width: 50%; }
-        .two-col > td:last-child { padding: 0 0 0 4px; }
 
         .checklist-table { width: 100%; border: 1px solid #999; margin-bottom: 4px; table-layout: fixed; }
         .checklist-table th { background: #f5f5f5; border: 1px solid #ccc; padding: 3px 4px; font-size: 10px; text-align: left; font-weight: 600; }
@@ -71,12 +72,11 @@
         .sig-img { width: 90px; height: 35px; margin: 3px auto; border: none; background: transparent; object-fit: contain; }
         .sig-line { width: 90px; border-bottom: 1px solid #999; margin: 20px auto 3px; }
 
-        .footer { margin-top: 10px; text-align: center; font-size: 9px; color: #999; border-top: 1px solid #eee; padding-top: 4px; }
+        .pdf-footer { text-align: center; font-size: 9px; color: #999; border-top: 1px solid #eee; padding-top: 4px; }
     </style>
 </head>
 <body>
-<div class="pdf-content">
-
+<div class="pdf-header">
     {{-- HEADER --}}
     <table class="header-table">
         <tr>
@@ -98,6 +98,9 @@
             <td class="form-date">Tanggal : {{ $form->submitted_at ? $form->submitted_at->format('d/m/Y') : '-' }}</td>
         </tr>
     </table>
+</div>
+
+<div class="pdf-content">
 
     {{-- INFORMASI PENGGUNA --}}
     <div class="section-title">Infomasi Pengguna</div>
@@ -176,7 +179,7 @@
     <table class="two-col">
         <tr>
             {{-- HARDWARE --}}
-            <td>
+            <td style="vertical-align: top; width: 50%; padding: 0 2px 0 0; border: none;">
                 <div class="section-title" style="margin-top:0;">Pemeriksaan Hardware</div>
                 <table class="checklist-table">
                     <thead>
@@ -215,7 +218,7 @@
             </td>
 
             {{-- APLIKASI + OS --}}
-            <td>
+            <td style="vertical-align: top; width: 50%; padding: 0 0 0 2px; border: none;">
                 <div class="section-title" style="margin-top:0;">Pemeriksaan Aplikasi</div>
                 <table class="checklist-table">
                     <thead>
@@ -271,51 +274,61 @@
         </tr>
     </table>
 
-    {{-- TINDAKAN --}}
-    <div class="section-title">Tindakan</div>
-    <table class="tindakan-table" style="margin-bottom: 8px;">
-        @if($form->tindakan_categories)
-            @foreach($form->tindakan_categories as $cat)
-                @if(!empty($cat['selected']))
-                    <tr>
-                        <td style="width:35%; font-weight:600; font-size:10px;">{{ $cat['label'] }}</td>
-                        <td style="font-size:10px;">{{ implode(', ', $cat['selected']) }}</td>
-                    </tr>
+    {{-- TINDAKAN + KONDISI LEGEND (two-col) --}}
+    <table class="two-col">
+        <tr>
+            {{-- TINDAKAN --}}
+            <td style="vertical-align: top; width: 50%; padding: 0 2px 0 0; border: none;">
+                <div class="section-title" style="margin-top:0;">Tindakan</div>
+                <table class="tindakan-table">
+                    @if($form->tindakan_categories)
+                        @foreach($form->tindakan_categories as $cat)
+                            @if(!empty($cat['selected']))
+                                <tr>
+                                    <td style="width:35%; font-weight:600; font-size:10px;">{{ $cat['label'] }}</td>
+                                    <td style="font-size:10px;">{{ implode(', ', $cat['selected']) }}</td>
+                                </tr>
+                            @endif
+                        @endforeach
+                        @if($form->tindakan_solution)
+                            <tr>
+                                <td style="font-weight:600; font-size:10px;">Solution</td>
+                                <td style="font-size:10px;">{{ $form->tindakan_solution }}</td>
+                            </tr>
+                        @endif
+                    @else
+                        <tr>
+                            <td colspan="2" style="font-size:10px; color:#999;">Tidak ada tindakan</td>
+                        </tr>
+                    @endif
+                </table>
+            </td>
+            {{-- KONDISI LEGEND + CATATAN --}}
+            <td style="vertical-align: top; width: 50%; padding: 0 0 0 2px; border: none;">
+                <div class="section-title" style="margin-top:0;">Note</div>
+                {{-- <div class="kondisi-legend" style="margin-top:0;">
+                    <strong style="font-size:11px;">V : BAIK</strong><br>
+                    <strong style="font-size:11px;">X : TIDAK BAIK</strong><br>
+                    <span style="font-size:9px;">(Mohon jelaskan kerusakan atau masalah yang ada)</span>
+                </div> --}}
+
+                {{-- CATATAN --}}
+                @if($form->notes)
+                    <div class="catatan">
+                        <strong>></strong>
+                        {{ $form->notes }}
+                    </div>
+                @else
+                    <div class="catatan">
+                        <strong>></strong>
+                        *) : diisi untuk perangkat lama
+                    </div>
                 @endif
-            @endforeach
-            @if($form->tindakan_solution)
-                <tr>
-                    <td style="font-weight:600; font-size:10px;">Solution</td>
-                    <td style="font-size:10px;">{{ $form->tindakan_solution }}</td>
-                </tr>
-            @endif
-        @else
-            <tr>
-                <td colspan="2" style="font-size:10px; color:#999;">Tidak ada tindakan</td>
-            </tr>
-        @endif
+            </td>
+        </tr>
     </table>
 
-    {{-- KONDISI LEGEND --}}
-    <div class="kondisi-legend">
-        <strong style="font-size:11px;">Kondisi :</strong>
-        <span>V : BAIK</span>
-        <span>X : TIDAK BAIK</span>
-        <span style="margin-left:8px; font-size:9px;">(Mohon jelaskan kerusakan atau masalah yang ada)</span>
-    </div>
 
-    {{-- CATATAN --}}
-    @if($form->notes)
-        <div class="catatan">
-            <strong>CATATAN :</strong>
-            {{ $form->notes }}
-        </div>
-    @else
-        <div class="catatan">
-            <strong>CATATAN :</strong>
-            *) : diisi untuk perangkat lama
-        </div>
-    @endif
 
     {{-- SIGNATURES --}}
     @php
@@ -334,7 +347,7 @@
                 @else
                     <div class="sig-line"></div>
                 @endif
-                <div class="sig-name">{{ $diperiksa->user->name ?? '_______________' }}</div>
+                <div class="sig-name">{{ $diperiksa->signer_name ?? '_______________' }}</div>
                 <div class="sig-date">Tanggal : {{ $diperiksa && $diperiksa->approved_at ? $diperiksa->approved_at->format('d/m/Y') : '___/___/______' }}</div>
             </td>
 
@@ -346,7 +359,7 @@
                 @else
                     <div class="sig-line"></div>
                 @endif
-                <div class="sig-name">{{ $diketahui->user->name ?? '_______________' }}</div>
+                <div class="sig-name">{{ $diketahui->signer_name ?? '_______________' }}</div>
                 <div class="sig-date">Tanggal : {{ $diketahui && $diketahui->approved_at ? $diketahui->approved_at->format('d/m/Y') : '___/___/______' }}</div>
             </td>
 
@@ -358,16 +371,16 @@
                 @else
                     <div class="sig-line"></div>
                 @endif
-                <div class="sig-name">{{ $disetujui->user->name ?? '_______________' }}</div>
+                <div class="sig-name">{{ $disetujui->signer_name ?? '_______________' }}</div>
                 <div class="sig-date">Tanggal : {{ $disetujui && $disetujui->approved_at ? $disetujui->approved_at->format('d/m/Y') : '___/___/______' }}</div>
             </td>
         </tr>
     </table>
 
-    <div class="footer">
-        FM-ASRI/ITE/08-00 - Form Pemeriksaan Perangkat &mdash; {{ $form->nomor_form }} &mdash; {{ $form->asset->nama_perangkat ?? '' }}
-    </div>
+</div>
 
+<div class="pdf-footer">
+    FM-ASRI/ITE/08-00 - Form Pemeriksaan Perangkat &mdash; {{ $form->nomor_form }} &mdash; {{ $form->asset->nama_perangkat ?? '' }}
 </div>
 </body>
 </html>
