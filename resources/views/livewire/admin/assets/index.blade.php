@@ -43,22 +43,24 @@
                     <a href="{{ route('admin.assets.export', ['format' => 'csv']) }}" class="block px-4 py-2 text-xs text-primary hover:bg-[var(--color-bg-tertiary)]">{{ __('Export as CSV') }}</a>
                 </div>
             </div>
-            <a href="{{ route('admin.assets.import') }}" wire:navigate
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200"
-                style="background: var(--color-glass-bg); border: 1px solid var(--color-border); color: var(--color-text-secondary);">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                </svg>
-                Import CSV
-            </a>
-            <a href="{{ route('admin.assets.create') }}" wire:navigate
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200"
-                style="background: var(--color-primary); color: var(--color-button-text);">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                {{ __('Tambah Asset') }}
-            </a>
+            @if(auth()->user()->hasRole('admin'))
+                <a href="{{ route('admin.assets.import') }}" wire:navigate
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200"
+                    style="background: var(--color-glass-bg); border: 1px solid var(--color-border); color: var(--color-text-secondary);">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
+                    Import CSV
+                </a>
+                <a href="{{ route('admin.assets.create') }}" wire:navigate
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200"
+                    style="background: var(--color-primary); color: var(--color-button-text);">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    {{ __('Tambah Asset') }}
+                </a>
+            @endif
         </div>
     </div>
 
@@ -157,11 +159,13 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b" style="border-color: var(--color-border);">
-                            <th class="px-4 py-3 w-10">
-                                <input type="checkbox" wire:click="toggleSelectAll"
-                                    class="rounded cursor-pointer" style="accent-color: var(--color-primary);"
-                                    @checked($allSelected)>
-                            </th>
+                            @if(auth()->user()->hasRole('admin'))
+                                <th class="px-4 py-3 w-10">
+                                    <input type="checkbox" wire:click="toggleSelectAll"
+                                        class="rounded cursor-pointer" style="accent-color: var(--color-primary);"
+                                        @checked($allSelected)>
+                                </th>
+                            @endif
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{{ __('No Asset') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{{ __('Nama Perangkat') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider hidden sm:table-cell">{{ __('Kategori') }}</th>
@@ -171,16 +175,21 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider hidden xl:table-cell">{{ __('Site (Location)') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider hidden lg:table-cell">{{ __('Pengguna') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{{ __('Status') }}</th>
-                            <th class="px-4 py-3 text-right text-xs font-medium text-muted uppercase tracking-wider">{{ __('Aksi') }}</th>
+                            @if(auth()->user()->hasRole('admin'))
+                                <th class="px-4 py-3 text-right text-xs font-medium text-muted uppercase tracking-wider">{{ __('Aksi') }}</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y" style="border-color: var(--color-border);">
                         @foreach($assets as $a)
-                            <tr class="transition-colors duration-150 cursor-pointer" style="hover: background: var(--color-glass-bg);" onclick="window.location='{{ route('admin.assets.edit', $a->id) }}'">
-                                <td class="px-4 py-3 w-10" onclick="event.stopPropagation()">
-                                    <input type="checkbox" value="{{ $a->id }}" wire:model.live="selected"
-                                        class="rounded cursor-pointer" style="accent-color: var(--color-primary);">
-                                </td>
+                            <tr class="transition-colors duration-150 cursor-pointer" style="hover: background: var(--color-glass-bg);"
+                                @if(auth()->user()->hasRole('admin')) onclick="window.location='{{ route('admin.assets.edit', $a->id) }}'" @endif>
+                                @if(auth()->user()->hasRole('admin'))
+                                    <td class="px-4 py-3 w-10" onclick="event.stopPropagation()">
+                                        <input type="checkbox" value="{{ $a->id }}" wire:model.live="selected"
+                                            class="rounded cursor-pointer" style="accent-color: var(--color-primary);">
+                                    </td>
+                                @endif
                                 <td class="px-4 py-3 font-mono text-secondary whitespace-nowrap">{{ $a->no_asset }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap">
                                     <div class="font-medium text-primary truncate max-w-[180px]">{{ $a->nama_perangkat }}</div>
@@ -221,21 +230,23 @@
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(234,179,8,0.15); color: #eab308;">Inactive</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
-                                    <div class="flex items-center justify-end gap-1">
-                                        <a href="{{ route('admin.assets.edit', $a->id) }}" wire:navigate
-                                            class="p-1.5 rounded-lg transition-colors duration-200"
-                                            style="color: var(--color-text-secondary);"
-                                            title="{{ __('Edit') }}">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                        </a>
-                                        <button wire:click="confirmDelete('{{ $a->id }}', '{{ addslashes($a->nama_perangkat) }}')"
-                                            class="p-1.5 rounded-lg transition-colors duration-200 text-red-400 hover:text-red-300"
-                                            title="{{ __('Hapus') }}">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                        </button>
-                                    </div>
-                                </td>
+                                @if(auth()->user()->hasRole('admin'))
+                                    <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
+                                        <div class="flex items-center justify-end gap-1">
+                                            <a href="{{ route('admin.assets.edit', $a->id) }}" wire:navigate
+                                                class="p-1.5 rounded-lg transition-colors duration-200"
+                                                style="color: var(--color-text-secondary);"
+                                                title="{{ __('Edit') }}">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                            </a>
+                                            <button wire:click="confirmDelete('{{ $a->id }}', '{{ addslashes($a->nama_perangkat) }}')"
+                                                class="p-1.5 rounded-lg transition-colors duration-200 text-red-400 hover:text-red-300"
+                                                title="{{ __('Hapus') }}">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                @endif
                             </tr>
                         @endforeach
                     </tbody>
@@ -243,7 +254,7 @@
             </div>
         </div>
 
-        @if(count($selected) > 0)
+        @if(auth()->user()->hasRole('admin') && count($selected) > 0)
             <div class="glass-card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
                 style="border-color: rgba(245, 158, 11, 0.4);">
                 <p class="text-sm text-primary">{{ count($selected) }} {{ __('asset terpilih') }}</p>

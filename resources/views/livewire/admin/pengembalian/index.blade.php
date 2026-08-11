@@ -16,14 +16,16 @@
         </div>
         <div class="flex items-center gap-2">
             <span class="text-sm text-muted">{{ $forms->total() }} {{ __('form') }}</span>
-            <a href="{{ route('admin.pengembalian.create') }}" wire:navigate
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200"
-                style="background: var(--color-primary); color: var(--color-button-text);">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                {{ __('Buat Pengembalian') }}
-            </a>
+            @if(auth()->user()->hasRole('admin'))
+                <a href="{{ route('admin.pengembalian.create') }}" wire:navigate
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200"
+                    style="background: var(--color-primary); color: var(--color-button-text);">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    {{ __('Buat Pengembalian') }}
+                </a>
+            @endif
         </div>
     </div>
 
@@ -71,10 +73,12 @@
                                         style="background: var(--color-glass-bg); border: 1px solid var(--color-border); color: var(--color-text-secondary);">
                                         {{ __('Detail') }}
                                     </button>
-                                    <button wire:click="confirmDelete({{ $form->id }}, '{{ $form->nomor_form }}')" type="button"
-                                        class="text-xs font-medium px-2.5 py-1.5 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors duration-200">
-                                        {{ __('Hapus') }}
-                                    </button>
+                                    @if(auth()->user()->hasRole('admin'))
+                                        <button wire:click="confirmDelete({{ $form->id }}, '{{ $form->nomor_form }}')" type="button"
+                                            class="text-xs font-medium px-2.5 py-1.5 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors duration-200">
+                                            {{ __('Hapus') }}
+                                        </button>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach

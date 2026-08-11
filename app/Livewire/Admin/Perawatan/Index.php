@@ -124,6 +124,8 @@ class Index extends Component
 
     public function bulkDelete(): void
     {
+        $this->authorizeAdmin();
+
         $deleted = 0;
         foreach (FormPerawatan::whereIn('id', $this->selected)->get() as $form) {
             $form->items()->delete();
@@ -161,6 +163,8 @@ class Index extends Component
 
     public function bulkEdit(): void
     {
+        $this->authorizeAdmin();
+
         if (empty($this->selected)) {
             $this->cancelBulkEdit();
             return;
@@ -199,6 +203,11 @@ class Index extends Component
             'kondisi_akhir' => 'Kondisi Akhir',
             default => ucfirst($field),
         };
+    }
+
+    private function authorizeAdmin(): void
+    {
+        abort_unless(auth()->user()->hasRole('admin'), 403);
     }
 
     private function filteredQuery()

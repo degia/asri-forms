@@ -105,6 +105,8 @@ class Index extends Component
 
     public function deleteAsset(): void
     {
+        $this->authorizeAdmin();
+
         Asset::find($this->deleteAssetId)->delete();
         $this->selected = array_values(array_diff($this->selected, [$this->deleteAssetId]));
 
@@ -138,6 +140,8 @@ class Index extends Component
 
     public function bulkDelete(): void
     {
+        $this->authorizeAdmin();
+
         $assets = Asset::whereIn('id', $this->selected)->get();
         $deleted = 0;
         foreach ($assets as $asset) {
@@ -173,6 +177,8 @@ class Index extends Component
 
     public function bulkEdit(): void
     {
+        $this->authorizeAdmin();
+
         if (empty($this->selected)) {
             $this->cancelBulkEdit();
             return;
@@ -212,6 +218,11 @@ class Index extends Component
             'site_location_asset' => 'Site Location',
             default => ucfirst($field),
         };
+    }
+
+    private function authorizeAdmin(): void
+    {
+        abort_unless(auth()->user()->hasRole('admin'), 403);
     }
 
     private function filteredQuery()

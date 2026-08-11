@@ -21,7 +21,7 @@ Route::post('logout', function () {
 })->middleware('auth')->name('logout');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', fn () => auth()->user()->hasRole('admin')
+    Route::get('dashboard', fn () => auth()->user()->hasAnyRole(['admin', 'manager_it'])
         ? redirect()->route('admin.dashboard')
         : redirect()->route('forms.search'))
         ->name('dashboard');
@@ -64,7 +64,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('perawatan.export-pdf');
 
     // ── Admin Panel ──────────────────────────────────────────
-    Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware('role:admin|manager_it')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/', fn () => redirect()->route('admin.dashboard'))
             ->name('index');
 
@@ -73,22 +73,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Sites
         Volt::route('sites', 'admin.pages.sites.index')
+            ->middleware('role:admin')
             ->name('sites.index');
 
         Volt::route('sites/create', 'admin.pages.sites.create')
+            ->middleware('role:admin')
             ->name('sites.create');
 
         Volt::route('sites/{idSite}/edit', 'admin.pages.sites.edit')
+            ->middleware('role:admin')
             ->name('sites.edit');
 
         Volt::route('sites/import', 'admin.pages.sites.import')
+            ->middleware('role:admin')
             ->name('sites.import');
 
         Route::get('sites/export/{format}', [SiteExportController::class, 'export'])
+            ->middleware('role:admin')
             ->whereIn('format', ['pdf', 'xlsx', 'xls', 'csv', 'html'])
             ->name('sites.export');
 
         Route::get('sites/import/template', [SiteExportController::class, 'template'])
+            ->middleware('role:admin')
             ->name('sites.import.template');
 
         // Assets
@@ -96,12 +102,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('assets.index');
 
         Volt::route('assets/create', 'admin.pages.assets.create')
+            ->middleware('role:admin')
             ->name('assets.create');
 
         Volt::route('assets/{id}/edit', 'admin.pages.assets.edit')
+            ->middleware('role:admin')
             ->name('assets.edit');
 
         Volt::route('assets/import', 'admin.pages.assets.import')
+            ->middleware('role:admin')
             ->name('assets.import');
 
         Route::get('assets/export/{format}', [AssetExportController::class, 'export'])
@@ -109,26 +118,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('assets.export');
 
         Route::get('assets/import/template', [AssetExportController::class, 'template'])
+            ->middleware('role:admin')
             ->name('assets.import.template');
 
         // Users
         Volt::route('users', 'admin.pages.users.index')
+            ->middleware('role:admin')
             ->name('users.index');
 
         Volt::route('users/create', 'admin.pages.users.create')
+            ->middleware('role:admin')
             ->name('users.create');
 
         Volt::route('users/{userEmail}/edit', 'admin.pages.users.edit')
+            ->middleware('role:admin')
             ->name('users.edit');
 
         Volt::route('users/import', 'admin.pages.users.import')
+            ->middleware('role:admin')
             ->name('users.import');
 
         Route::get('users/export/{format}', [UserExportController::class, 'export'])
+            ->middleware('role:admin')
             ->whereIn('format', ['pdf', 'xlsx', 'xls', 'csv', 'html'])
             ->name('users.export');
 
         Route::get('users/import/template', [UserExportController::class, 'template'])
+            ->middleware('role:admin')
             ->name('users.import.template');
 
         // Employees
@@ -136,12 +152,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('employees.index');
 
         Volt::route('employees/create', 'admin.pages.employees.create')
+            ->middleware('role:admin')
             ->name('employees.create');
 
         Volt::route('employees/{nik}/edit', 'admin.pages.employees.edit')
+            ->middleware('role:admin')
             ->name('employees.edit');
 
         Volt::route('employees/import', 'admin.pages.employees.import')
+            ->middleware('role:admin')
             ->name('employees.import');
 
         Route::get('employees/export/{format}', [EmployeeExportController::class, 'export'])
@@ -149,22 +168,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('employees.export');
 
         Route::get('employees/import/template', [EmployeeExportController::class, 'template'])
+            ->middleware('role:admin')
             ->name('employees.import.template');
 
         // Structure Organization
         Volt::route('structure-organization', 'admin.pages.structure-organization.index')
+            ->middleware('role:admin')
             ->name('structure-organization.index');
 
         Volt::route('structure-organization/{type}/import', 'admin.pages.structure-organization.import')
+            ->middleware('role:admin')
             ->whereIn('type', ['directorate', 'divisi', 'departement', 'sub_departement', 'position'])
             ->name('structure-organization.import');
 
         Route::get('structure-organization/{type}/export/{format}', [StructureOrganizationExportController::class, 'export'])
+            ->middleware('role:admin')
             ->whereIn('type', ['directorate', 'divisi', 'departement', 'sub_departement', 'position'])
             ->whereIn('format', ['pdf', 'xlsx', 'xls', 'csv', 'html'])
             ->name('structure-organization.export');
 
         Route::get('structure-organization/{type}/import/template', [StructureOrganizationExportController::class, 'template'])
+            ->middleware('role:admin')
             ->whereIn('type', ['directorate', 'divisi', 'departement', 'sub_departement', 'position'])
             ->name('structure-organization.import.template');
 
@@ -189,10 +213,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('pengembalian.index');
 
         Volt::route('pengembalian/create', 'admin.pages.pengembalian.create')
+            ->middleware('role:admin')
             ->name('pengembalian.create');
 
         // Backup
         Volt::route('backup', 'admin.pages.backup.index')
+            ->middleware('role:admin')
             ->name('backup.index');
 
         Route::get('backup/download/{filename}', function (string $filename) {
@@ -201,7 +227,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 abort(404);
             }
             return response()->download($path);
-        })->name('backup.download');
+        })->middleware('role:admin')->name('backup.download');
 
         // Activity Log
         Volt::route('activity-log', 'admin.pages.activity-log.index')
@@ -209,6 +235,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // System Log
         Volt::route('system-log', 'admin.pages.system-log.index')
+            ->middleware('role:admin')
             ->name('system-log.index');
     });
 

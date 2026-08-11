@@ -50,22 +50,24 @@
                     <a href="{{ route('admin.employees.export', ['format' => 'csv']) }}" class="block px-4 py-2 text-xs text-primary hover:bg-[var(--color-bg-tertiary)]">{{ __('Export as CSV') }}</a>
                 </div>
             </div>
-            <a href="{{ route('admin.employees.import') }}" wire:navigate
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200"
-                style="background: var(--color-glass-bg); border: 1px solid var(--color-border); color: var(--color-text-secondary);">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                </svg>
-                Import CSV
-            </a>
-            <a href="{{ route('admin.employees.create') }}" wire:navigate
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200"
-                style="background: var(--color-primary); color: var(--color-button-text);">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                {{ __('Tambah Employee') }}
-            </a>
+            @if(auth()->user()->hasRole('admin'))
+                <a href="{{ route('admin.employees.import') }}" wire:navigate
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200"
+                    style="background: var(--color-glass-bg); border: 1px solid var(--color-border); color: var(--color-text-secondary);">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
+                    Import CSV
+                </a>
+                <a href="{{ route('admin.employees.create') }}" wire:navigate
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200"
+                    style="background: var(--color-primary); color: var(--color-button-text);">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    {{ __('Tambah Employee') }}
+                </a>
+            @endif
         </div>
     </div>
 
@@ -130,11 +132,13 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b" style="border-color: var(--color-border);">
-                            <th class="px-4 py-3 w-10">
-                                <input type="checkbox" wire:click="toggleSelectAll"
-                                    class="rounded cursor-pointer" style="accent-color: var(--color-primary);"
-                                    @checked($allSelected)>
-                            </th>
+                            @if(auth()->user()->hasRole('admin'))
+                                <th class="px-4 py-3 w-10">
+                                    <input type="checkbox" wire:click="toggleSelectAll"
+                                        class="rounded cursor-pointer" style="accent-color: var(--color-primary);"
+                                        @checked($allSelected)>
+                                </th>
+                            @endif
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider cursor-pointer hover:text-secondary transition-colors"
                                 wire:click="toggleSort('name')">
                                 <span class="flex items-center gap-1">
@@ -156,16 +160,20 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider hidden lg:table-cell">{{ __('Akun Login') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{{ __('Status') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{{ __('Asset') }}</th>
-                            <th class="px-4 py-3 text-right text-xs font-medium text-muted uppercase tracking-wider">{{ __('Aksi') }}</th>
+                            @if(auth()->user()->hasRole('admin'))
+                                <th class="px-4 py-3 text-right text-xs font-medium text-muted uppercase tracking-wider">{{ __('Aksi') }}</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y" style="border-color: var(--color-border);">
                         @foreach($employees as $employee)
                             <tr class="transition-colors duration-150" style="hover: background: var(--color-glass-bg);">
-                                <td class="px-4 py-3 w-10">
-                                    <input type="checkbox" value="{{ $employee->nik }}" wire:model.live="selected"
-                                        class="rounded cursor-pointer" style="accent-color: var(--color-primary);">
-                                </td>
+                                @if(auth()->user()->hasRole('admin'))
+                                    <td class="px-4 py-3 w-10">
+                                        <input type="checkbox" value="{{ $employee->nik }}" wire:model.live="selected"
+                                            class="rounded cursor-pointer" style="accent-color: var(--color-primary);">
+                                    </td>
+                                @endif
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-3">
                                         <div class="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
@@ -219,21 +227,23 @@
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-right">
-                                    <div class="flex items-center justify-end gap-1">
-                                        <a href="{{ route('admin.employees.edit', $employee->nik) }}" wire:navigate
-                                            class="p-1.5 rounded-lg transition-colors duration-200"
-                                            style="color: var(--color-text-secondary);"
-                                            title="{{ __('Edit') }}">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                        </a>
-                                        <button wire:click="confirmDelete('{{ addslashes($employee->nik) }}', '{{ addslashes($employee->name) }}')"
-                                            class="p-1.5 rounded-lg transition-colors duration-200 text-red-400 hover:text-red-300"
-                                            title="{{ __('Hapus') }}">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                        </button>
-                                    </div>
-                                </td>
+                                @if(auth()->user()->hasRole('admin'))
+                                    <td class="px-4 py-3 text-right">
+                                        <div class="flex items-center justify-end gap-1">
+                                            <a href="{{ route('admin.employees.edit', $employee->nik) }}" wire:navigate
+                                                class="p-1.5 rounded-lg transition-colors duration-200"
+                                                style="color: var(--color-text-secondary);"
+                                                title="{{ __('Edit') }}">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                            </a>
+                                            <button wire:click="confirmDelete('{{ addslashes($employee->nik) }}', '{{ addslashes($employee->name) }}')"
+                                                class="p-1.5 rounded-lg transition-colors duration-200 text-red-400 hover:text-red-300"
+                                                title="{{ __('Hapus') }}">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                @endif
                             </tr>
                         @endforeach
                     </tbody>
@@ -241,7 +251,7 @@
             </div>
         </div>
 
-        @if(count($selected) > 0)
+        @if(auth()->user()->hasRole('admin') && count($selected) > 0)
             <div class="glass-card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
                 style="border-color: rgba(245, 158, 11, 0.4);">
                 <p class="text-sm text-primary">{{ count($selected) }} {{ __('employee terpilih') }}</p>

@@ -77,6 +77,8 @@ class Index extends Component
 
     public function delete(): void
     {
+        $this->authorizeAdmin();
+
         $form = FormPengembalian::findOrFail($this->deleteId);
         $nomor = $form->nomor_form;
         $form->items()->delete();
@@ -104,6 +106,11 @@ class Index extends Component
             'tidak_lengkap' => 'Tidak Lengkap',
             default => '—',
         };
+    }
+
+    private function authorizeAdmin(): void
+    {
+        abort_unless(auth()->user()->hasRole('admin'), 403);
     }
 
     private function filteredQuery()

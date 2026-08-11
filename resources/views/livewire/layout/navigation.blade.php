@@ -59,7 +59,7 @@ new class extends Component
                     <x-nav-link :href="route('assets.index')" :active="request()->routeIs('assets.index')" wire:navigate>
                         {{ __('Assets') }}
                     </x-nav-link>
-                    @if(auth()->user()->hasRole('admin'))
+                    @if(auth()->user()->hasAnyRole(['admin', 'manager_it']))
                         <x-nav-link :href="url('/admin')" :active="request()->is('admin*')">
                             {{ __('Admin Panel') }}
                         </x-nav-link>
@@ -160,7 +160,7 @@ new class extends Component
             <x-responsive-nav-link :href="route('assets.index')" :active="request()->routeIs('assets.index')" wire:navigate>
                 {{ __('Assets') }}
             </x-responsive-nav-link>
-            @if(auth()->user()->hasRole('admin'))
+            @if(auth()->user()->hasAnyRole(['admin', 'manager_it']))
                 <x-responsive-nav-link :href="url('/admin')" :active="request()->is('admin*')">
                     {{ __('Admin Panel') }}
                 </x-responsive-nav-link>

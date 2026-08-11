@@ -58,6 +58,8 @@ class Index extends Component
 
     public function clearAll(): void
     {
+        abort_unless(auth()->user()->hasRole('admin'), 403);
+
         ActivityLog::truncate();
         session()->flash('success', 'Semua log aktivitas berhasil dihapus.');
         $this->resetPage();

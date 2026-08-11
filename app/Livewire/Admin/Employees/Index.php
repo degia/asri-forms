@@ -88,6 +88,8 @@ class Index extends Component
 
     public function deleteEmployee(): void
     {
+        $this->authorizeAdmin();
+
         $employee = Employee::findOrFail($this->deleteEmployeeId);
 
         if ($employee->assignedAssets()->count() > 0) {
@@ -152,6 +154,8 @@ class Index extends Component
 
     public function bulkDelete(): void
     {
+        $this->authorizeAdmin();
+
         $employees = Employee::whereIn('nik', $this->selected)->get();
         $deleted = 0;
         foreach ($employees as $employee) {
@@ -190,6 +194,8 @@ class Index extends Component
 
     public function bulkEdit(): void
     {
+        $this->authorizeAdmin();
+
         if (empty($this->selected)) {
             $this->cancelBulkEdit();
 
@@ -262,6 +268,11 @@ class Index extends Component
             'sub_departement_id' => 'Sub Departemen',
             default => ucfirst($field),
         };
+    }
+
+    private function authorizeAdmin(): void
+    {
+        abort_unless(auth()->user()->hasRole('admin'), 403);
     }
 
     private function filteredQuery()

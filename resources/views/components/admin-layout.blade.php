@@ -62,23 +62,25 @@
                                     </svg>
                                     {{ __('Dashboard') }}
                                 </a>
-                                <a href="{{ route('admin.sites.index') }}" wire:navigate
-                                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.sites.*') ? 'admin-nav-active' : '' }}"
-                                    style="{{ request()->routeIs('admin.sites.*') ? '' : 'color: var(--color-text-secondary);' }}">
-                                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                    {{ __('Sites') }}
-                                </a>
-                                <a href="{{ route('admin.users.index') }}" wire:navigate
-                                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.users.*') ? 'admin-nav-active' : '' }}"
-                                    style="{{ request()->routeIs('admin.users.*') ? '' : 'color: var(--color-text-secondary);' }}">
-                                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                                    </svg>
-                                    {{ __('Users') }}
-                                </a>
+                                @if(auth()->user()->hasRole('admin'))
+                                    <a href="{{ route('admin.sites.index') }}" wire:navigate
+                                        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.sites.*') ? 'admin-nav-active' : '' }}"
+                                        style="{{ request()->routeIs('admin.sites.*') ? '' : 'color: var(--color-text-secondary);' }}">
+                                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                        {{ __('Sites') }}
+                                    </a>
+                                    <a href="{{ route('admin.users.index') }}" wire:navigate
+                                        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.users.*') ? 'admin-nav-active' : '' }}"
+                                        style="{{ request()->routeIs('admin.users.*') ? '' : 'color: var(--color-text-secondary);' }}">
+                                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                        </svg>
+                                        {{ __('Users') }}
+                                    </a>
+                                @endif
                                 <a href="{{ route('admin.employees.index') }}" wire:navigate
                                     class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.employees.*') ? 'admin-nav-active' : '' }}"
                                     style="{{ request()->routeIs('admin.employees.*') ? '' : 'color: var(--color-text-secondary);' }}">
@@ -87,14 +89,16 @@
                                     </svg>
                                     {{ __('Employees') }}
                                 </a>
-                                <a href="{{ route('admin.structure-organization.index') }}" wire:navigate
-                                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.structure-organization.*') ? 'admin-nav-active' : '' }}"
-                                    style="{{ request()->routeIs('admin.structure-organization.*') ? '' : 'color: var(--color-text-secondary);' }}">
-                                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M3 12h12M3 18h7"/>
-                                    </svg>
-                                    {{ __('Structure Organization') }}
-                                </a>
+                                @if(auth()->user()->hasRole('admin'))
+                                    <a href="{{ route('admin.structure-organization.index') }}" wire:navigate
+                                        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.structure-organization.*') ? 'admin-nav-active' : '' }}"
+                                        style="{{ request()->routeIs('admin.structure-organization.*') ? '' : 'color: var(--color-text-secondary);' }}">
+                                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M3 12h12M3 18h7"/>
+                                        </svg>
+                                        {{ __('Structure Organization') }}
+                                    </a>
+                                @endif
                                 <a href="{{ route('admin.assets.index') }}" wire:navigate
                                     class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.assets.*') ? 'admin-nav-active' : '' }}"
                                     style="{{ request()->routeIs('admin.assets.*') ? '' : 'color: var(--color-text-secondary);' }}">
@@ -134,14 +138,16 @@
                                 <div class="pt-2 pb-1 px-3">
                                     <h3 class="text-[10px] font-bold uppercase tracking-wider" style="color: var(--color-text-muted);">{{ __('System') }}</h3>
                                 </div>
-                                <a href="{{ route('admin.backup.index') }}" wire:navigate
-                                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.backup.*') ? 'admin-nav-active' : '' }}"
-                                    style="{{ request()->routeIs('admin.backup.*') ? '' : 'color: var(--color-text-secondary);' }}">
-                                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
-                                    </svg>
-                                    {{ __('Backup') }}
-                                </a>
+                                @if(auth()->user()->hasRole('admin'))
+                                    <a href="{{ route('admin.backup.index') }}" wire:navigate
+                                        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.backup.*') ? 'admin-nav-active' : '' }}"
+                                        style="{{ request()->routeIs('admin.backup.*') ? '' : 'color: var(--color-text-secondary);' }}">
+                                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                                        </svg>
+                                        {{ __('Backup') }}
+                                    </a>
+                                @endif
                                 <a href="{{ route('admin.activity-log.index') }}" wire:navigate
                                     class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.activity-log.*') ? 'admin-nav-active' : '' }}"
                                     style="{{ request()->routeIs('admin.activity-log.*') ? '' : 'color: var(--color-text-secondary);' }}">
@@ -150,14 +156,16 @@
                                     </svg>
                                     {{ __('Activity Log') }}
                                 </a>
-                                <a href="{{ route('admin.system-log.index') }}" wire:navigate
-                                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.system-log.*') ? 'admin-nav-active' : '' }}"
-                                    style="{{ request()->routeIs('admin.system-log.*') ? '' : 'color: var(--color-text-secondary);' }}">
-                                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    {{ __('System Log') }}
-                                </a>
+                                @if(auth()->user()->hasRole('admin'))
+                                    <a href="{{ route('admin.system-log.index') }}" wire:navigate
+                                        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.system-log.*') ? 'admin-nav-active' : '' }}"
+                                        style="{{ request()->routeIs('admin.system-log.*') ? '' : 'color: var(--color-text-secondary);' }}">
+                                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        {{ __('System Log') }}
+                                    </a>
+                                @endif
                             </nav>
                         </div>
                     </aside>

@@ -83,11 +83,13 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b" style="border-color: var(--color-border);">
-                            <th class="px-4 py-3 w-10">
-                                <input type="checkbox" wire:click="toggleSelectAll"
-                                    class="rounded cursor-pointer" style="accent-color: var(--color-primary);"
-                                    @checked($allSelected)>
-                            </th>
+                            @if(auth()->user()->hasRole('admin'))
+                                <th class="px-4 py-3 w-10">
+                                    <input type="checkbox" wire:click="toggleSelectAll"
+                                        class="rounded cursor-pointer" style="accent-color: var(--color-primary);"
+                                        @checked($allSelected)>
+                                </th>
+                            @endif
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{{ __('No. Form') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider hidden sm:table-cell">{{ __('Teknisi') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider hidden md:table-cell">{{ __('Pengguna') }}</th>
@@ -102,10 +104,12 @@
                     <tbody class="divide-y" style="border-color: var(--color-border);">
                         @foreach($forms as $form)
                             <tr class="transition-colors duration-150" style="hover: background: var(--color-glass-bg);">
-                                <td class="px-4 py-3 w-10">
-                                    <input type="checkbox" value="{{ $form->id }}" wire:model.live="selected"
-                                        class="rounded cursor-pointer" style="accent-color: var(--color-primary);">
-                                </td>
+                                @if(auth()->user()->hasRole('admin'))
+                                    <td class="px-4 py-3 w-10">
+                                        <input type="checkbox" value="{{ $form->id }}" wire:model.live="selected"
+                                            class="rounded cursor-pointer" style="accent-color: var(--color-primary);">
+                                    </td>
+                                @endif
                                 <td class="px-4 py-3 font-mono text-secondary text-xs">{{ $form->nomor_form }}</td>
                                 <td class="px-4 py-3 text-primary hidden sm:table-cell">{{ $form->teknisi->name ?? '-' }}</td>
                                 <td class="px-4 py-3 text-primary hidden md:table-cell">{{ $form->pengguna->name ?? '-' }}</td>
@@ -161,7 +165,7 @@
             </div>
         </div>
 
-        @if(count($selected) > 0)
+        @if(auth()->user()->hasRole('admin') && count($selected) > 0)
             <div class="glass-card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
                 style="border-color: rgba(245, 158, 11, 0.4);">
                 <p class="text-sm text-primary">{{ count($selected) }} {{ __('form terpilih') }}</p>
