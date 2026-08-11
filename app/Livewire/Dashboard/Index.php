@@ -27,6 +27,22 @@ class Index extends Component
 
     public array $trendPerawatanBulanan = [];
 
+    public array $trendPerawatanHarian = [];
+
+    public string $trendMode = 'harian';
+
+    public string $filterTrendAssetOu = '';
+
+    public string $filterTrendSiteLocation = '';
+
+    public string $filterTrendSiteUser = '';
+
+    public array $trendAssetOus = [];
+
+    public array $trendSiteLocations = [];
+
+    public array $trendSiteUsers = [];
+
     public array $operatingUnits = [];
 
     public array $perawatanVsBelum = [];
@@ -62,6 +78,7 @@ class Index extends Component
             ->pluck('id_corp')
             ->toArray();
         $this->loadFilterSites();
+        $this->loadTrendFilterOptions();
         $this->loadAll();
     }
 
@@ -97,6 +114,81 @@ class Index extends Component
         $this->loadUsersBySite();
     }
 
+    public function updatedTrendAssetOu(): void
+    {
+        $this->loadTrendPerawatan();
+    }
+
+    public function updatedTrendSiteLocation(): void
+    {
+        $this->loadTrendPerawatan();
+    }
+
+    public function updatedTrendSiteUser(): void
+    {
+        $this->loadTrendPerawatan();
+    }
+
+    private function loadTrendFilterOptions(): void
+    {
+        $this->trendAssetOus = Site::whereIn('id_site', Asset::whereHas('perawatan')
+            ->whereNotNull('operating_unit')
+            ->where('operating_unit', '!=', '')
+            ->pluck('operating_unit')
+            ->unique())
+            ->orderBy('site')
+            ->get(['id_site', 'site'])
+            ->map(fn ($s) => ['id' => $s->id_site, 'name' => $s->site])
+            ->toArray();
+
+        $this->trendSiteLocations = Site::whereIn('id_site', FormPerawatan::whereNotNull('submitted_at')
+            ->whereNotNull('site_location')
+            ->where('site_location', '!=', '')
+            ->distinct()
+            ->pluck('site_location'))
+            ->orderBy('site')
+            ->get(['id_site', 'site'])
+            ->map(fn ($s) => ['id' => $s->id_site, 'name' => $s->site])
+            ->toArray();
+
+        $this->trendSiteUsers = Site::whereIn('id_site', FormPerawatan::whereNotNull('submitted_at')
+            ->whereNotNull('pengguna_employee_id')
+            ->join('employees', 'employees.nik', '=', 'form_perawatan.pengguna_employee_id')
+            ->whereNotNull('employees.site')
+            ->where('employees.site', '!=', '')
+            ->distinct()
+            ->pluck('employees.site'))
+            ->orderBy('site')
+            ->get(['id_site', 'site'])
+            ->map(fn ($s) => ['id' => $s->id_site, 'name' => $s->site])
+            ->toArray();
+    }
+
+    private function trendQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = FormPerawatan::whereNotNull('submitted_at');
+
+        if ($this->filterTrendAssetOu) {
+            $query->whereHas('asset', fn ($q) => $q->where('assets.operating_unit', $this->filterTrendAssetOu));
+        }
+
+        if ($this->filterTrendSiteLocation) {
+            $query->where('form_perawatan.site_location', $this->filterTrendSiteLocation);
+        }
+
+        if ($this->filterTrendSiteUser) {
+            $query->whereHas('pengguna', fn ($q) => $q->where('employees.site', $this->filterTrendSiteUser));
+        }
+
+        return $query;
+    }
+
+    private function loadTrendPerawatan(): void
+    {
+        $this->loadTrendPerawatanBulanan();
+        $this->loadTrendPerawatanHarian();
+    }
+
     private function loadFilterSites(): void
     {
         $query = Site::query();
@@ -116,7 +208,7 @@ class Index extends Component
         $this->loadPerawatanBySite();
         $this->loadPemeriksaanBySite();
         $this->loadTopAssets();
-        $this->loadTrendPerawatanBulanan();
+        $this->loadTrendPerawatan();
         $this->loadPerawatanVsBelumByOperatingUnit();
         $this->loadUsersBySite();
         $this->dispatch('chartsUpdated');
@@ -246,7 +338,7 @@ class Index extends Component
 
     private function loadTrendPerawatanBulanan(): void
     {
-        $trend = FormPerawatan::whereNotNull('submitted_at')
+        $trend = $this->trendQuery()
             ->select(
                 DB::raw("DATE_FORMAT(submitted_at, '%Y-%m') as month"),
                 DB::raw('count(*) as total')
@@ -258,6 +350,31 @@ class Index extends Component
             ->toArray();
 
         $this->trendPerawatanBulanan = $trend;
+    }
+
+    private function loadTrendPerawatanHarian(): void
+    {
+        $start = now()->subDays(29)->startOfDay();
+        $end = now()->endOfDay();
+
+        $rows = $this->trendQuery()
+            ->select(
+                DB::raw("DATE_FORMAT(submitted_at, '%Y-%m-%d') as day"),
+                DB::raw('count(*) as total')
+            )
+            ->whereBetween('submitted_at', [$start, $end])
+            ->groupBy('day')
+            ->orderBy('day')
+            ->pluck('total', 'day')
+            ->toArray();
+
+        $trend = [];
+        for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
+            $key = $d->format('d M');
+            $trend[$key] = (int) ($rows[$d->format('Y-m-d')] ?? 0);
+        }
+
+        $this->trendPerawatanHarian = $trend;
     }
 
     private function loadPerawatanVsBelumByOperatingUnit(): void

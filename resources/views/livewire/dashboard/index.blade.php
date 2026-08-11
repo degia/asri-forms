@@ -284,55 +284,150 @@
         @endif
     </div>
 
-    {{-- Report 5: Tren Perawatan per Bulan --}}
+    {{-- Report 5: Tren Perawatan (Bulanan / Harian) --}}
     <div class="glass-card p-5">
-        <h3 class="text-sm font-bold text-primary mb-4">{{ __('Tren Perawatan per Bulan (12 Bulan)') }}</h3>
-        @if(count($trendPerawatanBulanan) > 0)
-            @php
-                $trLabels = json_encode(array_keys($trendPerawatanBulanan));
-                $trData = json_encode(array_values($trendPerawatanBulanan));
-            @endphp
-            <div x-data="{
-                chart: null,
-                init() {
-                    this.$nextTick(() => {
-                        const ctx = this.$refs.chartTrend;
-                        if (!ctx || typeof Chart === 'undefined') return;
-                        this.chart = new Chart(ctx, {
-                            type: 'line',
-                            data: {
-                                labels: {{ $trLabels }},
-                                datasets: [{
-                                    label: '{{ __('Jumlah Perawatan') }}',
-                                    data: {{ $trData }},
-                                    borderColor: 'rgba(168, 85, 247, 1)',
-                                    backgroundColor: 'rgba(168, 85, 247, 0.1)',
-                                    fill: true,
-                                    tension: 0.4,
-                                    pointBackgroundColor: 'rgba(168, 85, 247, 1)',
-                                    pointBorderColor: '#fff',
-                                    pointBorderWidth: 2,
-                                    pointRadius: 4,
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: { legend: { display: false } },
-                                scales: {
-                                    x: { ticks: { color: 'rgb(156,163,175)', font: { size: 10 } }, grid: { display: false } },
-                                    y: { ticks: { color: 'rgb(156,163,175)', stepSize: 1 }, grid: { color: 'rgb(229,231,235)' } }
-                                }
-                            }
-                        });
-                    });
-                },
-                destroy() { if (this.chart) this.chart.destroy(); }
-            }" style="height: 220px;">
-                <canvas x-ref="chartTrend"></canvas>
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
+            <h3 class="text-sm font-bold text-primary">{{ __('Tren Perawatan') }}</h3>
+            <div class="flex items-center gap-1 p-1 rounded-lg w-fit" style="background: var(--color-bg-tertiary);">
+                <button wire:click="$set('trendMode', 'bulanan')" type="button"
+                    class="px-3 py-1.5 rounded-md text-xs font-semibold transition-colors duration-200 {{ $trendMode === 'bulanan' ? 'text-white' : 'text-muted' }}"
+                    style="{{ $trendMode === 'bulanan' ? 'background: var(--color-primary);' : '' }}">
+                    {{ __('Tren Perawatan per Bulan (12 Bulan)') }}
+                </button>
+                <button wire:click="$set('trendMode', 'harian')" type="button"
+                    class="px-3 py-1.5 rounded-md text-xs font-semibold transition-colors duration-200 {{ $trendMode === 'harian' ? 'text-white' : 'text-muted' }}"
+                    style="{{ $trendMode === 'harian' ? 'background: var(--color-primary);' : '' }}">
+                    {{ __('Tren Perawatan per Hari (30 Hari)') }}
+                </button>
             </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row lg:items-center gap-2 flex-wrap mb-4">
+            <label class="text-xs text-muted">{{ __('Asset Operating Unit') }}:</label>
+            <select wire:model.live.debounce.300ms="filterTrendAssetOu"
+                class="px-3 py-1.5 rounded-lg text-xs transition-colors duration-200"
+                style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                <option value="">{{ __('Semua') }}</option>
+                @foreach($trendAssetOus as $ou)
+                    <option value="{{ $ou['id'] }}">{{ $ou['name'] }}</option>
+                @endforeach
+            </select>
+            <label class="text-xs text-muted">{{ __('Location Site Perawatan') }}:</label>
+            <select wire:model.live.debounce.300ms="filterTrendSiteLocation"
+                class="px-3 py-1.5 rounded-lg text-xs transition-colors duration-200"
+                style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                <option value="">{{ __('Semua') }}</option>
+                @foreach($trendSiteLocations as $s)
+                    <option value="{{ $s['id'] }}">{{ $s['name'] }}</option>
+                @endforeach
+            </select>
+            <label class="text-xs text-muted">{{ __('Site User') }}:</label>
+            <select wire:model.live.debounce.300ms="filterTrendSiteUser"
+                class="px-3 py-1.5 rounded-lg text-xs transition-colors duration-200"
+                style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                <option value="">{{ __('Semua') }}</option>
+                @foreach($trendSiteUsers as $s)
+                    <option value="{{ $s['id'] }}">{{ $s['name'] }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        @if($trendMode === 'bulanan')
+            @if(count($trendPerawatanBulanan) > 0)
+                @php
+                    $trLabels = json_encode(array_keys($trendPerawatanBulanan));
+                    $trData = json_encode(array_values($trendPerawatanBulanan));
+                @endphp
+                <div x-data="{
+                    chart: null,
+                    init() {
+                        this.$nextTick(() => {
+                            const ctx = this.$refs.chartTrend;
+                            if (!ctx || typeof Chart === 'undefined') return;
+                            this.chart = new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: {{ $trLabels }},
+                                    datasets: [{
+                                        label: '{{ __('Jumlah Perawatan') }}',
+                                        data: {{ $trData }},
+                                        borderColor: 'rgba(168, 85, 247, 1)',
+                                        backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                                        fill: true,
+                                        tension: 0.4,
+                                        pointBackgroundColor: 'rgba(168, 85, 247, 1)',
+                                        pointBorderColor: '#fff',
+                                        pointBorderWidth: 2,
+                                        pointRadius: 4,
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: { legend: { display: false } },
+                                    scales: {
+                                        x: { ticks: { color: 'rgb(156,163,175)', font: { size: 10 } }, grid: { display: false } },
+                                        y: { ticks: { color: 'rgb(156,163,175)', stepSize: 1 }, grid: { color: 'rgb(229,231,235)' } }
+                                    }
+                                }
+                            });
+                        });
+                    },
+                    destroy() { if (this.chart) this.chart.destroy(); }
+                }" style="height: 220px;">
+                    <canvas x-ref="chartTrend"></canvas>
+                </div>
+            @else
+                <p class="text-sm text-muted text-center py-4">{{ __('Tidak ada data tren perawatan') }}</p>
+            @endif
         @else
-            <p class="text-sm text-muted text-center py-4">{{ __('Tidak ada data tren perawatan') }}</p>
+            @if(count($trendPerawatanHarian) > 0)
+                @php
+                    $trhLabels = json_encode(array_keys($trendPerawatanHarian));
+                    $trhData = json_encode(array_values($trendPerawatanHarian));
+                @endphp
+                <div x-data="{
+                    chart: null,
+                    init() {
+                        this.$nextTick(() => {
+                            const ctx = this.$refs.chartTrendHarian;
+                            if (!ctx || typeof Chart === 'undefined') return;
+                            this.chart = new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: {{ $trhLabels }},
+                                    datasets: [{
+                                        label: '{{ __('Jumlah Perawatan') }}',
+                                        data: {{ $trhData }},
+                                        borderColor: 'rgba(168, 85, 247, 1)',
+                                        backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                                        fill: true,
+                                        tension: 0.4,
+                                        pointBackgroundColor: 'rgba(168, 85, 247, 1)',
+                                        pointBorderColor: '#fff',
+                                        pointBorderWidth: 2,
+                                        pointRadius: 2,
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: { legend: { display: false } },
+                                    scales: {
+                                        x: { ticks: { color: 'rgb(156,163,175)', font: { size: 10 }, maxRotation: 45, minRotation: 0 }, grid: { display: false } },
+                                        y: { ticks: { color: 'rgb(156,163,175)', stepSize: 1 }, grid: { color: 'rgb(229,231,235)' } }
+                                    }
+                                }
+                            });
+                        });
+                    },
+                    destroy() { if (this.chart) this.chart.destroy(); }
+                }" style="height: 220px;">
+                    <canvas x-ref="chartTrendHarian"></canvas>
+                </div>
+            @else
+                <p class="text-sm text-muted text-center py-4">{{ __('Tidak ada data tren perawatan') }}</p>
+            @endif
         @endif
         <div class="mt-3 text-right">
             <a href="{{ route('admin.perawatan.index') }}" wire:navigate class="text-xs font-medium transition-colors duration-200" style="color: var(--color-primary);">
