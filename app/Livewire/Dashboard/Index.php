@@ -114,17 +114,17 @@ class Index extends Component
         $this->loadUsersBySite();
     }
 
-    public function updatedTrendAssetOu(): void
+    public function updatedFilterTrendAssetOu(): void
     {
         $this->loadTrendPerawatan();
     }
 
-    public function updatedTrendSiteLocation(): void
+    public function updatedFilterTrendSiteLocation(): void
     {
         $this->loadTrendPerawatan();
     }
 
-    public function updatedTrendSiteUser(): void
+    public function updatedFilterTrendSiteUser(): void
     {
         $this->loadTrendPerawatan();
     }

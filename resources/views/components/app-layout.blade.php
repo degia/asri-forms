@@ -32,6 +32,42 @@
                 window.addEventListener('theme-changed', (e) => {
                     html.classList.toggle('dark', e.detail.theme === 'dark');
                 });
+
+                const rescueCharts = () => {
+                    const ChartApi = window.Chart;
+                    if (!ChartApi || !ChartApi.instances) return;
+                    Object.values(ChartApi.instances).forEach((chart) => {
+                        const el = chart && chart.canvas;
+                        if (!el || !el.isConnected || el.style.width || !chart.ctx) return;
+                        try { chart.resize(); } catch (e) {}
+                    });
+                };
+
+                if (window.Chart && !window.__chartDrawGuard) {
+                    window.__chartDrawGuard = true;
+                    const origDraw = window.Chart.prototype.draw;
+                    window.Chart.prototype.draw = function (...args) {
+                        if (this.ctx == null) return;
+                        return origDraw.apply(this, args);
+                    };
+                }
+
+                if ('MutationObserver' in window && document.body) {
+                    const observer = new MutationObserver((mutations) => {
+                        for (let i = 0; i < mutations.length; i++) {
+                            const target = mutations[i].target;
+                            if (target && target.tagName === 'CANVAS') {
+                                rescueCharts();
+                                return;
+                            }
+                        }
+                    });
+                    observer.observe(document.body, {
+                        subtree: true,
+                        attributes: true,
+                        attributeFilter: ['width', 'height', 'style'],
+                    });
+                }
             });
 
             if ('serviceWorker' in navigator) {

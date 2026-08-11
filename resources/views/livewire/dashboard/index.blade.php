@@ -31,6 +31,9 @@
                     this.$nextTick(() => {
                         const ctx = this.$refs.chartPerawatan;
                         if (!ctx || typeof Chart === 'undefined') return;
+                        if (this.chart) this.chart.destroy();
+                        const existing = Chart.getChart(ctx);
+                        if (existing) existing.destroy();
                         this.chart = new Chart(ctx, {
                             type: 'bar',
                             data: {
@@ -58,7 +61,7 @@
                     });
                 },
                 destroy() { if (this.chart) this.chart.destroy(); }
-            }" style="height: {{ max(200, count($perawatanBySite) * 40 + 60) }}px;">
+            }" style="height: {{ max(200, count($perawatanBySite) * 40 + 60) }}px;" wire:ignore wire:key="pw-{{ md5($pwLabels.$pwData) }}">
                 <canvas x-ref="chartPerawatan"></canvas>
             </div>
         @else
@@ -85,6 +88,9 @@
                     this.$nextTick(() => {
                         const ctx = this.$refs.chartPemeriksaan;
                         if (!ctx || typeof Chart === 'undefined') return;
+                        if (this.chart) this.chart.destroy();
+                        const existing = Chart.getChart(ctx);
+                        if (existing) existing.destroy();
                         this.chart = new Chart(ctx, {
                             type: 'bar',
                             data: {
@@ -112,7 +118,7 @@
                     });
                 },
                 destroy() { if (this.chart) this.chart.destroy(); }
-            }" style="height: {{ max(200, count($pemeriksaanBySite) * 40 + 60) }}px;">
+            }" style="height: {{ max(200, count($pemeriksaanBySite) * 40 + 60) }}px;" wire:ignore wire:key="pm-{{ md5($pmLabels.$pmData) }}">
                 <canvas x-ref="chartPemeriksaan"></canvas>
             </div>
         @else
@@ -161,6 +167,9 @@
                     this.$nextTick(() => {
                         const ctx = this.$refs.chartUsersBySite;
                         if (!ctx || typeof Chart === 'undefined') return;
+                        if (this.chart) this.chart.destroy();
+                        const existing = Chart.getChart(ctx);
+                        if (existing) existing.destroy();
                         this.chart = new Chart(ctx, {
                             type: 'bar',
                             data: {
@@ -188,7 +197,7 @@
                     });
                 },
                 destroy() { if (this.chart) this.chart.destroy(); }
-            }" style="height: {{ max(200, count($usersBySite) * 40 + 60) }}px;">
+            }" style="height: {{ max(200, count($usersBySite) * 40 + 60) }}px;" wire:ignore wire:key="ub-{{ md5($ubLabels.$ubData) }}">
                 <canvas x-ref="chartUsersBySite"></canvas>
             </div>
 
@@ -344,6 +353,9 @@
                         this.$nextTick(() => {
                             const ctx = this.$refs.chartTrend;
                             if (!ctx || typeof Chart === 'undefined') return;
+                            if (this.chart) this.chart.destroy();
+                            const existing = Chart.getChart(ctx);
+                            if (existing) existing.destroy();
                             this.chart = new Chart(ctx, {
                                 type: 'line',
                                 data: {
@@ -374,7 +386,7 @@
                         });
                     },
                     destroy() { if (this.chart) this.chart.destroy(); }
-                }" style="height: 220px;">
+                }" style="height: 220px;" wire:ignore wire:key="tr-{{ md5($trLabels.$trData) }}">
                     <canvas x-ref="chartTrend"></canvas>
                 </div>
             @else
@@ -392,6 +404,9 @@
                         this.$nextTick(() => {
                             const ctx = this.$refs.chartTrendHarian;
                             if (!ctx || typeof Chart === 'undefined') return;
+                            if (this.chart) this.chart.destroy();
+                            const existing = Chart.getChart(ctx);
+                            if (existing) existing.destroy();
                             this.chart = new Chart(ctx, {
                                 type: 'line',
                                 data: {
@@ -422,7 +437,7 @@
                         });
                     },
                     destroy() { if (this.chart) this.chart.destroy(); }
-                }" style="height: 220px;">
+                }" style="height: 220px;" wire:ignore wire:key="trh-{{ md5($trhLabels.$trhData) }}">
                     <canvas x-ref="chartTrendHarian"></canvas>
                 </div>
             @else
@@ -464,6 +479,9 @@
                     this.$nextTick(() => {
                         const ctx = this.$refs.chartPerawatanVsBelum;
                         if (!ctx || typeof Chart === 'undefined') return;
+                        if (this.chart) this.chart.destroy();
+                        const existing = Chart.getChart(ctx);
+                        if (existing) existing.destroy();
                         this.chart = new Chart(ctx, {
                             type: 'bar',
                             data: {
@@ -516,7 +534,7 @@
                     });
                 },
                 destroy() { if (this.chart) this.chart.destroy(); }
-            }" style="height: {{ $chartHeight }}px;">
+            }" style="height: {{ $chartHeight }}px;" wire:ignore wire:key="pvb-{{ md5($pvbLabels.$pvbDilakukan.$pvbBelum) }}">
                 <canvas x-ref="chartPerawatanVsBelum"></canvas>
             </div>
 
