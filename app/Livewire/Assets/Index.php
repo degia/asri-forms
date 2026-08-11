@@ -84,7 +84,10 @@ class Index extends Component
     public function render()
     {
         $query = Asset::query()
-            ->withCount(['pemeriksaan', 'perawatan']);
+            ->withCount(['pemeriksaan', 'perawatan'])
+            ->with(['operatingUnitSite', 'siteAsset', 'assignedEmployee'])
+            ->withMax('pemeriksaan as last_pemeriksaan_at_raw', 'submitted_at')
+            ->withMax('perawatan as last_perawatan_at_raw', 'submitted_at');
 
         $this->applyAssetScope($query);
 

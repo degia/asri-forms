@@ -90,6 +90,30 @@
                                 {{ $asset->pemeriksaan_count + $asset->perawatan_count }}</p>
                         </div>
                     </div>
+
+                    <div class="mt-3 pt-3 border-t space-y-1.5 text-xs"
+                        style="border-color: var(--color-border);">
+                        <div class="flex justify-between gap-2">
+                            <span class="text-muted shrink-0">Pengguna</span>
+                            <span class="text-primary font-medium text-right truncate">{{ $asset->assignedEmployee->name ?? '-' }}</span>
+                        </div>
+                        <div class="flex justify-between gap-2">
+                            <span class="text-muted shrink-0">Operating Unit</span>
+                            <span class="text-primary font-medium text-right truncate">{{ $asset->operatingUnitSite->site ?? '-' }}</span>
+                        </div>
+                        <div class="flex justify-between gap-2">
+                            <span class="text-muted shrink-0">Sites</span>
+                            <span class="text-primary font-medium text-right truncate">{{ $asset->siteAsset->site ?? '-' }}</span>
+                        </div>
+                        <div class="flex justify-between gap-2">
+                            <span class="text-muted shrink-0">Pemeriksaan</span>
+                            <span class="text-primary font-medium text-right">{{ $asset->last_pemeriksaan_at?->format('d M Y') ?? '-' }}</span>
+                        </div>
+                        <div class="flex justify-between gap-2">
+                            <span class="text-muted shrink-0">Perawatan</span>
+                            <span class="text-primary font-medium text-right">{{ $asset->last_perawatan_at?->format('d M Y') ?? '-' }}</span>
+                        </div>
+                    </div>
                     @if ($asset->barcode_svg)
                         <div class="mt-3">
                             <div class="bg-white rounded-lg" style="padding: 5px;">

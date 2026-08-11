@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Picqer\Barcode\BarcodeGeneratorSVG;
 
 class Asset extends Model
@@ -77,5 +78,19 @@ class Asset extends Model
     public function getIsActiveAttribute(): bool
     {
         return $this->assigned_employee_id !== null;
+    }
+
+    public function getLastPemeriksaanAtAttribute(): ?Carbon
+    {
+        return $this->last_pemeriksaan_at_raw
+            ? Carbon::parse($this->last_pemeriksaan_at_raw)
+            : null;
+    }
+
+    public function getLastPerawatanAtAttribute(): ?Carbon
+    {
+        return $this->last_perawatan_at_raw
+            ? Carbon::parse($this->last_perawatan_at_raw)
+            : null;
     }
 }
