@@ -104,21 +104,19 @@ class ReviewForm extends Component
 
     private function determineApprovalLevel($user, $form): void
     {
-        $pendingStatuses = [FormStatus::Diketahui->value, FormStatus::Submitted->value, FormStatus::Revisi->value];
-
         if ($this->formType === 'pemeriksaan') {
-            if ($user->nik && $form->pengguna_employee_id === $user->nik && in_array($form->status, $pendingStatuses)) {
+            if ($user->nik && $form->pengguna_employee_id === $user->nik && $this->approvalStepReady($form, ApprovalLevel::DiketahuiOleh)) {
                 $this->approvalLevel = ApprovalLevel::DiketahuiOleh->value;
                 $this->canApprove = true;
-            } elseif ($user->hasAnyRole(['supervisor_it', 'manager_it', 'admin']) && $form->status === FormStatus::Disetujui->value) {
+            } elseif ($user->hasAnyRole(['supervisor_it', 'manager_it', 'admin']) && $this->approvalStepReady($form, ApprovalLevel::DisetujuiOleh)) {
                 $this->approvalLevel = ApprovalLevel::DisetujuiOleh->value;
                 $this->canApprove = true;
             }
         } else {
-            if ($user->nik && $form->pengguna_employee_id === $user->nik && in_array($form->status, $pendingStatuses)) {
+            if ($user->nik && $form->pengguna_employee_id === $user->nik && $this->approvalStepReady($form, ApprovalLevel::DiketahuiOleh)) {
                 $this->approvalLevel = ApprovalLevel::DiketahuiOleh->value;
                 $this->canApprove = true;
-            } elseif ($user->hasAnyRole(['supervisor_it', 'manager_it', 'admin']) && $form->status === FormStatus::Disetujui->value) {
+            } elseif ($user->hasAnyRole(['supervisor_it', 'manager_it', 'admin']) && $this->approvalStepReady($form, ApprovalLevel::DisetujuiOleh)) {
                 $this->approvalLevel = ApprovalLevel::DisetujuiOleh->value;
                 $this->canApprove = true;
             }
@@ -134,6 +132,20 @@ class ReviewForm extends Component
         $this->currentApproval = $form->approvals()
             ->where('approval_level', $this->approvalLevel)
             ->first();
+    }
+
+    private function approvalStepReady(FormPemeriksaan|FormPerawatan $form, ApprovalLevel $level): bool
+    {
+        $isApproved = fn (string $l) => $form->approvals()
+            ->where('approval_level', $l)
+            ->where('status', 'approved')
+            ->exists();
+
+        return match ($level) {
+            ApprovalLevel::DiperiksaOleh => $form->status === FormStatus::Submitted->value && ! $isApproved(ApprovalLevel::DiperiksaOleh->value),
+            ApprovalLevel::DiketahuiOleh => $form->status === FormStatus::Diketahui->value && $isApproved(ApprovalLevel::DiperiksaOleh->value),
+            ApprovalLevel::DisetujuiOleh => $form->status === FormStatus::Disetujui->value && $isApproved(ApprovalLevel::DiketahuiOleh->value),
+        };
     }
 
     // ─── Edit Mode ────────────────────────────────────────
@@ -255,11 +267,18 @@ class ReviewForm extends Component
             $this->saveEdits();
         }
 
-        $form = $this->getForm();
-
         DB::beginTransaction();
 
         try {
+            $form = $this->getForm()->fresh(['approvals']);
+
+            if (! $this->approvalStepReady($form, ApprovalLevel::from($this->approvalLevel))) {
+                DB::rollBack();
+                $this->dispatch('error', message: 'Urutan persetujuan tidak valid. Tanda tangan belum dapat dilakukan pada tahap ini.');
+
+                return;
+            }
+
             $approval = $form->approvals()
                 ->where('approval_level', $this->approvalLevel)
                 ->first();
