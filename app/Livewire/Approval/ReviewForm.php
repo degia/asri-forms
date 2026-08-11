@@ -6,7 +6,6 @@ use App\Helpers\ActivityLogger;
 use App\Enums\ApprovalLevel;
 use App\Enums\FormStatus;
 use App\Models\FormApproval;
-use App\Models\Employee;
 use App\Models\FormPemeriksaan;
 use App\Models\FormPemeriksaanItem;
 use App\Models\FormPerawatan;
@@ -45,15 +44,6 @@ class ReviewForm extends Component
     public string $rejectReason = '';
 
     public bool $showRejectModal = false;
-
-    // Signer mode for Diketahui
-    public string $signerMode = 'me';
-
-    public string $customSignerName = '';
-
-    public array $signerResults = [];
-
-    public bool $showSignerDropdown = false;
 
     // Edit mode
     public bool $editing = false;
@@ -256,12 +246,6 @@ class ReviewForm extends Component
             return;
         }
 
-        if ($this->approvalLevel === ApprovalLevel::DiketahuiOleh->value && $this->signerMode === 'custom' && empty($this->customSignerName)) {
-            $this->dispatch('error', message: 'Nama penandatangan harus diisi.');
-
-            return;
-        }
-
         // Auto-save edits before approving if in edit mode
         if ($this->editing) {
             $this->saveEdits();
@@ -283,18 +267,8 @@ class ReviewForm extends Component
                 ->where('approval_level', $this->approvalLevel)
                 ->first();
 
-            $userId = null;
+            $userId = Auth::id();
             $customName = null;
-
-            if ($this->approvalLevel === ApprovalLevel::DiketahuiOleh->value) {
-                if ($this->signerMode === 'me') {
-                    $userId = Auth::id();
-                } else {
-                    $customName = $this->customSignerName;
-                }
-            } else {
-                $userId = Auth::id();
-            }
 
             if (! $approval) {
                 $approval = FormApproval::create([
@@ -409,51 +383,6 @@ class ReviewForm extends Component
     public function toggleRejectModal(): void
     {
         $this->showRejectModal = ! $this->showRejectModal;
-    }
-
-    public function setSignerMode(string $mode): void
-    {
-        $this->signerMode = $mode;
-        if ($mode === 'me') {
-            $this->customSignerName = '';
-            $this->signerResults = [];
-            $this->showSignerDropdown = false;
-        }
-    }
-
-    public function searchSigner(): void
-    {
-        if (strlen($this->customSignerName) < 2) {
-            $this->signerResults = [];
-            $this->showSignerDropdown = false;
-
-            return;
-        }
-
-        $this->signerResults = Employee::where('status', Employee::STATUS_ACTIVE)
-            ->where(function ($q) {
-                $q->where('name', 'like', "%{$this->customSignerName}%")
-                    ->orWhere('nik', 'like', "%{$this->customSignerName}%")
-                    ->orWhere('email', 'like', "%{$this->customSignerName}%");
-            })
-            ->limit(10)
-            ->get()
-            ->toArray();
-
-        $this->showSignerDropdown = count($this->signerResults) > 0;
-    }
-
-    public function selectSigner(array $user): void
-    {
-        $this->customSignerName = $user['name'];
-        $this->showSignerDropdown = false;
-    }
-
-    public function clearSigner(): void
-    {
-        $this->customSignerName = '';
-        $this->signerResults = [];
-        $this->showSignerDropdown = false;
     }
 
     public function getStatusLabel(string $status): string
