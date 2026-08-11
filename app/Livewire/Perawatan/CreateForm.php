@@ -237,19 +237,39 @@ class CreateForm extends Component
 
         foreach ($form->items as $item) {
             $category = $item->category;
-            if ($category === 'hardware' && isset($this->hardwareItems[$item->sort_order])) {
-                $this->hardwareItems[$item->sort_order]['status'] = $item->status;
-                $this->hardwareItems[$item->sort_order]['keterangan'] = $item->keterangan ?? '';
-                $this->hardwareItems[$item->sort_order]['full_charge_capacity'] = $item->full_charge_capacity;
-                $this->hardwareItems[$item->sort_order]['design_capacity'] = $item->design_capacity;
-            } elseif ($category === 'aplikasi' && isset($this->aplikasiItems[$item->sort_order])) {
-                $this->aplikasiItems[$item->sort_order]['status'] = $item->status;
-                $this->aplikasiItems[$item->sort_order]['keterangan'] = $item->keterangan ?? '';
-            } elseif ($category === 'operating_system' && isset($this->osItems[$item->sort_order])) {
-                $this->osItems[$item->sort_order]['status'] = $item->status;
-                $this->osItems[$item->sort_order]['keterangan'] = $item->keterangan ?? '';
+            if ($category === 'hardware') {
+                $index = $this->findItemIndex($this->hardwareItems, $item->template_item_id);
+                if ($index !== null) {
+                    $this->hardwareItems[$index]['status'] = $item->status;
+                    $this->hardwareItems[$index]['keterangan'] = $item->keterangan ?? '';
+                    $this->hardwareItems[$index]['full_charge_capacity'] = $item->full_charge_capacity;
+                    $this->hardwareItems[$index]['design_capacity'] = $item->design_capacity;
+                }
+            } elseif ($category === 'aplikasi') {
+                $index = $this->findItemIndex($this->aplikasiItems, $item->template_item_id);
+                if ($index !== null) {
+                    $this->aplikasiItems[$index]['status'] = $item->status;
+                    $this->aplikasiItems[$index]['keterangan'] = $item->keterangan ?? '';
+                }
+            } elseif ($category === 'operating_system') {
+                $index = $this->findItemIndex($this->osItems, $item->template_item_id);
+                if ($index !== null) {
+                    $this->osItems[$index]['status'] = $item->status;
+                    $this->osItems[$index]['keterangan'] = $item->keterangan ?? '';
+                }
             }
         }
+    }
+
+    private function findItemIndex(array $items, mixed $templateItemId): ?int
+    {
+        foreach ($items as $index => $item) {
+            if (($item['template_item_id'] ?? null) === $templateItemId) {
+                return $index;
+            }
+        }
+
+        return null;
     }
 
     private function loadChecklistTemplates(): void
