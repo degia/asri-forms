@@ -47,6 +47,16 @@
             <div class="h-2 rounded-full transition-all duration-500" style="background: var(--color-text-primary);"
                 :style="'width: {{ round(($currentStep / count($stepTitles)) * 100) }}%'"></div>
         </div>
+        <div class="mt-3 sm:mt-4">
+            <label for="step-navigator" class="block text-xs font-medium text-muted mb-1">{{ __('Langkah') }}</label>
+            <select id="step-navigator" wire:model.live="currentStep"
+                class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200 cursor-pointer"
+                style="background: var(--color-input-bg, var(--color-bg-secondary)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                @foreach($stepTitles as $stepNum => $stepTitle)
+                    <option value="{{ $stepNum }}">{{ $stepNum }}. {{ $stepTitle }}</option>
+                @endforeach
+            </select>
+        </div>
     </div>
     @endif
 
