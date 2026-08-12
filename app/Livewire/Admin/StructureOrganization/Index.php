@@ -226,9 +226,9 @@ class Index extends Component
     private function tabQuery()
     {
         $query = match ($this->activeTab) {
-            'directorate' => Directorate::withCount('divisis'),
-            'divisi' => Divisi::with('directorate')->withCount('departements'),
-            'departement' => Departement::with('divisi.directorate')->withCount('subDepartements'),
+            'directorate' => Directorate::withCount('divisis')->with('divisis'),
+            'divisi' => Divisi::with('directorate')->withCount('departements')->with('departements'),
+            'departement' => Departement::with('divisi.directorate')->withCount('subDepartements')->with('subDepartements'),
             'sub_departement' => SubDepartement::with('departement.divisi.directorate'),
             'position' => Position::withCount('employees'),
             default => Directorate::query(),

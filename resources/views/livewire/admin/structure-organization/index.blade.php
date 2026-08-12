@@ -1,4 +1,40 @@
-<div class="space-y-6">
+<div class="space-y-6" x-data="{
+    tip: false,
+    tipTitle: '',
+    tipItems: [],
+    showTip(e, title, items) {
+        this.tipTitle = title;
+        this.tipItems = items;
+        this.tip = true;
+        this.$nextTick(() => this.moveTip(e));
+    },
+    moveTip(e) {
+        const el = this.$refs.tip;
+        if (!el) return;
+        const pad = 12;
+        let x = e.clientX + pad;
+        let y = e.clientY + pad;
+        const r = el.getBoundingClientRect();
+        if (x + r.width > window.innerWidth - 8) x = e.clientX - r.width - pad;
+        if (y + r.height > window.innerHeight - 8) y = e.clientY - r.height - pad;
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+    },
+    hideTip() { this.tip = false; }
+}">
+    {{-- Hover Tooltip --}}
+    <div x-cloak x-ref="tip" x-show="tip" x-transition
+        class="fixed z-50 w-64 max-h-64 overflow-y-auto rounded-lg shadow-lg px-3 py-2 text-xs"
+        style="background: var(--color-card-bg); border: 1px solid var(--color-card-border); color: var(--color-text-primary); pointer-events: none;">
+        <div class="font-semibold text-secondary mb-1" x-text="tipTitle"></div>
+        <ul class="space-y-0.5">
+            <template x-for="(item, i) in tipItems" :key="i">
+                <li class="py-0.5 border-b last:border-0" style="border-color: var(--color-border);" x-text="item"></li>
+            </template>
+        </ul>
+        <div x-show="!tipItems.length" class="text-muted">-</div>
+    </div>
+
     {{-- Toast --}}
     <div x-data="{ toast: false, message: '', type: 'success' }"
         @show-toast.window="toast = true; message = $event.detail.message; type = $event.detail.type || 'success'; setTimeout(() => toast = false, 4000)"
@@ -147,9 +183,25 @@
                                             'departement' => 'sub_departements_count',
                                             default => null,
                                         };
+                                        $childLabel = match ($activeTab) {
+                                            'directorate' => __('Divisi'),
+                                            'divisi' => __('Departemen'),
+                                            'departement' => __('Sub Departemen'),
+                                            default => '',
+                                        };
+                                        $childNames = match ($activeTab) {
+                                            'directorate' => $record->divisis,
+                                            'divisi' => $record->departements,
+                                            'departement' => $record->subDepartements,
+                                            default => collect(),
+                                        };
                                     @endphp
                                     <td class="px-4 py-3 hidden sm:table-cell">
-                                        <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium" style="background: var(--color-glass-bg); border: 1px solid var(--color-border); color: var(--color-text-secondary);">
+                                        <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium cursor-help"
+                                            style="background: var(--color-glass-bg); border: 1px solid var(--color-border); color: var(--color-text-secondary);"
+                                            @mouseenter='showTip($event, @json($childLabel), @json($childNames->pluck('name')->values()->all()))'
+                                            @mousemove="moveTip($event)"
+                                            @mouseleave="hideTip()">
                                             {{ $record->{$countColumn} ?? 0 }}
                                         </span>
                                     </td>
