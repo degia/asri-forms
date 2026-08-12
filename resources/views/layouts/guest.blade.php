@@ -23,6 +23,7 @@
                     <p class="mt-1 text-sm text-muted">IT Department &mdash; ASRI</p>
                 </div>
                 {{ $slot }}
+                <p class="mt-8 text-center text-xs text-muted">&copy; 2026 Nuvista</p>
             </div>
         </div>
     </body>
