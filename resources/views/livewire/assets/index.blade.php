@@ -55,10 +55,22 @@
                     <a href="{{ route('assets.show', $asset->id) }}" wire:navigate
                         class="block" style="text-decoration: none;">
                     <div class="flex items-start justify-between mb-3">
-                        <div class="flex-1 min-w-0">
-                            <h3 class="font-semibold text-primary truncate">{{ $asset->nama_perangkat }}</h3>
-                            <p class="text-sm text-secondary mt-0.5">{{ $asset->brand }} &middot; {{ $asset->tipe }}
-                            </p>
+                        <div class="flex items-center gap-3 min-w-0">
+                            @if ($asset->foto_url)
+                                <img src="{{ $asset->foto_url }}" alt="{{ $asset->nama_perangkat }}"
+                                    class="w-14 h-14 rounded-lg object-cover shrink-0 border"
+                                    style="border-color: var(--color-border);">
+                            @else
+                                <div class="w-14 h-14 rounded-lg shrink-0 flex items-center justify-center"
+                                    style="background: var(--color-bg-tertiary); color: var(--color-text-muted);">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </div>
+                            @endif
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-primary truncate">{{ $asset->nama_perangkat }}</h3>
+                                <p class="text-sm text-secondary mt-0.5">{{ $asset->brand }} &middot; {{ $asset->tipe }}
+                                </p>
+                            </div>
                         </div>
                         <span
                             class="shrink-0 ml-2 px-2 py-0.5 rounded-full text-xs font-medium
@@ -90,6 +102,10 @@
                                 {{ $asset->pemeriksaan_count + $asset->perawatan_count }}</p>
                         </div>
                     </div>
+
+                    @if ($asset->spesifikasi)
+                        <p class="text-xs text-secondary mt-2 line-clamp-2">{{ $asset->spesifikasi }}</p>
+                    @endif
 
                     <div class="mt-3 pt-3 border-t space-y-1.5 text-xs"
                         style="border-color: var(--color-border);">

@@ -181,6 +181,7 @@ class ImportCsv extends Component
                         'tipe' => trim($data['tipe'] ?? '') ?: '',
                         'nama_perangkat' => trim($data['nama_perangkat'] ?? '') ?: $noAsset,
                         'no_serial' => trim($data['no_serial'] ?? '') ?: null,
+                        'spesifikasi' => trim($data['spesifikasi'] ?? '') ?: null,
                         'operating_unit' => trim($data['operating_unit'] ?? '') ?: null,
                         'site_location_asset' => trim($data['site_location_asset'] ?? '') ?: null,
                         'assigned_employee_email' => $assignedEmail,
@@ -261,6 +262,7 @@ class ImportCsv extends Component
                     'tipe' => $data['tipe'],
                     'nama_perangkat' => $data['nama_perangkat'],
                     'no_serial' => $data['no_serial'],
+                    'spesifikasi' => $data['spesifikasi'] ?? null,
                     'qr_code' => $data['no_asset'],
                     'operating_unit' => $data['operating_unit'],
                     'site_location_asset' => $data['site_location_asset'],
@@ -271,7 +273,7 @@ class ImportCsv extends Component
                 $existing = Asset::where('no_asset', $data['no_asset'])->first();
 
                 if ($existing) {
-                    $original = $existing->only(['kategori', 'brand', 'tipe', 'nama_perangkat', 'no_serial', 'operating_unit', 'site_location_asset', 'assigned_employee_id', 'status']);
+                    $original = $existing->only(['kategori', 'brand', 'tipe', 'nama_perangkat', 'no_serial', 'spesifikasi', 'operating_unit', 'site_location_asset', 'assigned_employee_id', 'status']);
                     $existing->update($attributes);
                     $this->importedAssets[] = ['no_asset' => $data['no_asset'], 'existed' => true, 'original' => $original];
                 } else {

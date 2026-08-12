@@ -19,6 +19,8 @@ class Asset extends Model
         'tipe',
         'nama_perangkat',
         'no_serial',
+        'spesifikasi',
+        'foto',
         'no_asset',
         'qr_code',
         'status',
@@ -26,6 +28,15 @@ class Asset extends Model
         'site_location_asset',
         'assigned_employee_id',
     ];
+
+    public function getFotoUrlAttribute(): ?string
+    {
+        if (empty($this->foto)) {
+            return null;
+        }
+
+        return '/storage/' . ltrim($this->foto, '/');
+    }
 
     public function getBarcodeSvgAttribute(): ?string
     {

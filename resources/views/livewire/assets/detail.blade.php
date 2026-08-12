@@ -50,6 +50,21 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                 <p class="text-primary font-bold">{{ $asset->perawatan->count() }}</p>
             </div>
         </div>
+
+        @if($asset->foto_url)
+            <div class="mt-5">
+                <img src="{{ $asset->foto_url }}" alt="{{ $asset->nama_perangkat }}"
+                    class="max-w-xs rounded-lg object-cover border"
+                    style="border-color: var(--color-border);">
+            </div>
+        @endif
+
+        @if($asset->spesifikasi)
+            <div class="mt-5">
+                <h3 class="text-sm font-semibold text-secondary mb-2">{{ __('Detail Spesifikasi') }}</h3>
+                <div class="text-sm text-primary whitespace-pre-wrap">{{ $asset->spesifikasi }}</div>
+            </div>
+        @endif
         @if($asset->barcode_svg)
             <div class="mt-4">
                 <div class="bg-white rounded-lg" style="padding: 5px;">

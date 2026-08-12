@@ -7,14 +7,19 @@ use App\Models\Asset;
 use App\Models\Employee;
 use App\Models\Site;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class CreateForm extends Component
 {
+    use WithFileUploads;
+
     public string $kategori = '';
     public string $brand = '';
     public string $tipe = '';
     public string $namaPerangkat = '';
     public string $noSerial = '';
+    public string $spesifikasi = '';
+    public $foto = null;
     public string $noAsset = '';
     public string $operatingUnit = '';
     public string $siteLocationAsset = '';
@@ -28,6 +33,8 @@ class CreateForm extends Component
             'tipe' => 'required|string|max:255',
             'namaPerangkat' => 'required|string|max:255',
             'noSerial' => 'nullable|string|max:255',
+            'spesifikasi' => 'nullable|string',
+            'foto' => 'nullable|image|max:2048',
             'noAsset' => 'required|string|max:255|unique:assets,no_asset',
             'operatingUnit' => 'nullable|string|max:255',
             'siteLocationAsset' => 'nullable|string|max:255',
@@ -45,6 +52,8 @@ class CreateForm extends Component
             'noAsset.required' => 'No Asset wajib diisi.',
             'noAsset.unique' => 'No Asset sudah terdaftar.',
             'assignedEmployeeId.exists' => 'Pengguna tidak valid.',
+            'foto.image' => 'File harus berupa gambar.',
+            'foto.max' => 'Ukuran foto maksimal 2MB.',
         ];
     }
 
@@ -53,12 +62,19 @@ class CreateForm extends Component
         try {
             $this->validate();
 
+            $fotoPath = null;
+            if ($this->foto) {
+                $fotoPath = $this->foto->store('assets', 'public');
+            }
+
             Asset::create([
                 'kategori' => $this->kategori,
                 'brand' => $this->brand,
                 'tipe' => $this->tipe,
                 'nama_perangkat' => $this->namaPerangkat,
                 'no_serial' => $this->noSerial ?: null,
+                'spesifikasi' => $this->spesifikasi ?: null,
+                'foto' => $fotoPath,
                 'no_asset' => $this->noAsset,
                 'status' => $this->assignedEmployeeId ? 'active' : 'inactive',
                 'operating_unit' => $this->operatingUnit ?: null,
@@ -69,6 +85,7 @@ class CreateForm extends Component
             ActivityLogger::log('create', "Menambahkan asset baru: {$this->noAsset} - {$this->namaPerangkat}", 'App\Models\Asset', null, ['no_asset' => $this->noAsset]);
             $this->dispatch('asset-created');
             $this->reset();
+            $this->reset('foto');
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->dispatch('validation-error', errors: $e->errors());
         }

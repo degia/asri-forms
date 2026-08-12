@@ -24,7 +24,7 @@ class AssetExportController extends Controller
         $callback = function () {
             $file = fopen('php://output', 'w');
 
-            fputcsv($file, ['no_asset', 'kategori', 'brand', 'tipe', 'nama_perangkat', 'no_serial', 'operating_unit', 'site_location_asset', 'assigned_employee_email']);
+            fputcsv($file, ['no_asset', 'kategori', 'brand', 'tipe', 'nama_perangkat', 'no_serial', 'spesifikasi', 'operating_unit', 'site_location_asset', 'assigned_employee_email']);
 
             fputcsv($file, [
                 'ASR-LPT-2024-001',
@@ -33,6 +33,7 @@ class AssetExportController extends Controller
                 'ThinkPad T480',
                 'Laptop Kantor Finance',
                 'SN-LNV-001',
+                'Processor Intel Core i5-8250U, RAM 8GB, SSD 256GB, Layar 14" FHD',
                 'A01',
                 'A01',
                 'employee-email@asri.co.id',
@@ -45,6 +46,7 @@ class AssetExportController extends Controller
                 'L3210',
                 'Printer Multifungsi Finance',
                 'SN-EPS-002',
+                'Resolusi 5760 dpi, Cetak hitam putih dan warna, Wi-Fi Direct',
                 'A01',
                 'A01',
                 'employee-email@asri.co.id',
@@ -57,6 +59,7 @@ class AssetExportController extends Controller
                 'hAP AC2',
                 'Access Point Lantai 2',
                 'SN-MIK-003',
+                'Dual-band 2.4/5GHz, Port 5x Gigabit Ethernet',
                 'B02',
                 'B02',
                 'employee-email@asri.co.id',
@@ -75,7 +78,7 @@ class AssetExportController extends Controller
 
     protected function exportHeadings(): array
     {
-        return ['no_asset', 'kategori', 'brand', 'tipe', 'nama_perangkat', 'no_serial', 'operating_unit', 'site_location_asset', 'assigned_employee_email'];
+        return ['no_asset', 'kategori', 'brand', 'tipe', 'nama_perangkat', 'no_serial', 'spesifikasi', 'operating_unit', 'site_location_asset', 'assigned_employee_email'];
     }
 
     protected function exportRow($asset): array
@@ -87,6 +90,7 @@ class AssetExportController extends Controller
             $asset->tipe,
             $asset->nama_perangkat,
             $asset->no_serial ?? '',
+            $asset->spesifikasi ?? '',
             $asset->operating_unit ?? '',
             $asset->site_location_asset ?? '',
             $asset->assignedEmployee?->email ?? '',

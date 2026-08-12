@@ -192,10 +192,19 @@
                                 @endif
                                 <td class="px-4 py-3 font-mono text-secondary whitespace-nowrap">{{ $a->no_asset }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap">
-                                    <div class="font-medium text-primary truncate max-w-[180px]">{{ $a->nama_perangkat }}</div>
-                                    @if($a->brand)
-                                        <div class="text-xs text-muted mt-0.5 truncate max-w-[180px]">{{ $a->brand }} {{ $a->tipe }}</div>
-                                    @endif
+                                    <div class="flex items-center gap-2.5">
+                                        @if($a->foto_url)
+                                            <img src="{{ $a->foto_url }}" alt="{{ $a->nama_perangkat }}"
+                                                class="w-9 h-9 rounded-lg object-cover shrink-0 border"
+                                                style="border-color: var(--color-border);">
+                                        @endif
+                                        <div class="min-w-0">
+                                            <div class="font-medium text-primary truncate max-w-[180px]">{{ $a->nama_perangkat }}</div>
+                                            @if($a->brand)
+                                                <div class="text-xs text-muted mt-0.5 truncate max-w-[180px]">{{ $a->brand }} {{ $a->tipe }}</div>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </td>
                                 <td class="px-4 py-3 text-secondary hidden sm:table-cell whitespace-nowrap">{{ $a->kategori }}</td>
                                 <td class="px-4 py-3 text-secondary hidden md:table-cell whitespace-nowrap">{{ $a->brand }} {{ $a->tipe }}</td>

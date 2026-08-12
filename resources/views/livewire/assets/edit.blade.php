@@ -127,6 +127,44 @@
             @error('siteLocationAsset') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
         </div>
 
+        {{-- Spesifikasi --}}
+        <div>
+            <label class="block text-sm font-medium text-secondary mb-1">{{ __('Detail Spesifikasi') }}</label>
+            <textarea wire:model="spesifikasi" rows="4"
+                class="w-full px-4 py-2 rounded-lg text-sm transition-colors duration-200"
+                style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);"
+                placeholder="{{ __('Contoh') }}: Processor Intel Core i5-1135G7, RAM 8GB DDR4, SSD 512GB, Layar 14\" FHD, Berat 1.4kg"></textarea>
+            @error('spesifikasi') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+        </div>
+
+        {{-- Foto Produk --}}
+        <div>
+            <label class="block text-sm font-medium text-secondary mb-1">{{ __('Foto Produk') }}</label>
+            <input type="file" accept="image/*" wire:model="foto"
+                class="w-full text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:cursor-pointer"
+                style="color: var(--color-text-secondary); background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border);" />
+            @error('foto') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+            <div wire:loading wire:target="foto" class="text-xs text-muted mt-1">{{ __('Mengunggah') }}...</div>
+
+            <div class="mt-2 flex items-end gap-3">
+                @if ($foto)
+                    <img src="{{ $foto->temporaryUrl() }}" alt="Preview"
+                        class="h-32 w-32 rounded-lg object-cover border"
+                        style="border-color: var(--color-border);" />
+                @elseif ($this->assetModel?->foto_url)
+                    <div>
+                        <img src="{{ $this->assetModel->foto_url }}" alt="{{ $namaPerangkat }}"
+                            class="h-32 w-32 rounded-lg object-cover border"
+                            style="border-color: var(--color-border);" />
+                        <button type="button" wire:click="removeFoto" wire:confirm="{{ __('Hapus foto ini?') }}"
+                            class="mt-1 text-xs text-red-400 hover:underline">
+                            {{ __('Hapus Foto') }}
+                        </button>
+                    </div>
+                @endif
+            </div>
+        </div>
+
         {{-- Actions --}}
         <div class="flex items-center gap-3 pt-2">
             <button wire:click="update" wire:loading.attr="disabled"
