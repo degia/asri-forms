@@ -13,8 +13,15 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased" style="background-color: var(--color-bg-primary); color: var(--color-text-primary);">
-        <div class="min-h-screen flex items-center justify-center" style="background-color: var(--color-bg-secondary);">
-            <div class="w-full max-w-md px-6">
+        <div class="min-h-screen flex items-center justify-center px-4" style="background-color: var(--color-bg-secondary);">
+            <div class="w-full max-w-md">
+                <div class="flex flex-col items-center mb-6">
+                    <img src="{{ asset('images/asri.png') }}" alt="ASRI"
+                        class="w-20 h-20 object-contain rounded-lg"
+                        style="background: var(--color-card-bg); border: 1px solid var(--color-card-border); padding: 0.5rem;">
+                    <h1 class="mt-4 text-2xl font-bold text-primary">{{ config('app.name', 'ASRI Form Perangkat') }}</h1>
+                    <p class="mt-1 text-sm text-muted">IT Department &mdash; ASRI</p>
+                </div>
                 {{ $slot }}
             </div>
         </div>
