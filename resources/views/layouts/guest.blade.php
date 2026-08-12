@@ -27,6 +27,5 @@
             <p class="fixed bottom-4 left-0 right-0 text-center text-xs text-muted">&copy; 2026 Nuvista</p>
         </div>
         </div>
-        <p class="mt-8 text-left text-xs text-muted">&copy; 2026 Nuvista</p>
     </body>
 </html>
