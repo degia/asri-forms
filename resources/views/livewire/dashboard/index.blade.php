@@ -590,4 +590,146 @@
             <p class="text-sm text-muted text-center py-4">{{ __('Tidak ada data asset') }}</p>
         @endif
     </div>
+
+    {{-- Report 7: Employee Punya vs Tidak Punya Asset by Site --}}
+    <div class="glass-card p-5">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
+            <h3 class="text-sm font-bold text-primary">{{ __('Employee Punya vs Tidak Punya Asset by Site') }}</h3>
+            <div class="flex items-center gap-2">
+                <label class="text-xs text-muted">{{ __('Site') }}:</label>
+                <select wire:model.live.debounce.300ms="filterEmpAssetSite"
+                    class="px-3 py-1.5 rounded-lg text-xs transition-colors duration-200"
+                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                    <option value="">{{ __('Semua') }}</option>
+                    @foreach($empAssetSites as $site)
+                        <option value="{{ $site['id'] }}">{{ $site['name'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        @if(count($employeesAssetBySite) > 0)
+            @php
+                $eabLabels = json_encode(array_column($employeesAssetBySite, 'site'));
+                $eabPunya = json_encode(array_column($employeesAssetBySite, 'punya'));
+                $eabTidak = json_encode(array_column($employeesAssetBySite, 'tidak'));
+                $eabChartHeight = max(260, count($employeesAssetBySite) * 50 + 80);
+            @endphp
+            <div x-data="{
+                chart: null,
+                init() {
+                    this.$nextTick(() => {
+                        const ctx = this.$refs.chartEmployeesAssetBySite;
+                        if (!ctx || typeof Chart === 'undefined') return;
+                        if (this.chart) this.chart.destroy();
+                        const existing = Chart.getChart(ctx);
+                        if (existing) existing.destroy();
+                        this.chart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: {{ $eabLabels }},
+                                datasets: [
+                                    {
+                                        label: '{{ __('Punya Asset') }}',
+                                        data: {{ $eabPunya }},
+                                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                                        borderColor: 'rgba(16, 185, 129, 1)',
+                                        borderWidth: 1,
+                                        borderRadius: 4,
+                                    },
+                                    {
+                                        label: '{{ __('Tidak Punya Asset') }}',
+                                        data: {{ $eabTidak }},
+                                        backgroundColor: 'rgba(239, 68, 68, 0.5)',
+                                        borderColor: 'rgba(239, 68, 68, 1)',
+                                        borderWidth: 1,
+                                        borderRadius: 4,
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                indexAxis: 'y',
+                                plugins: {
+                                    legend: {
+                                        display: true,
+                                        position: 'top',
+                                        labels: { color: 'rgb(156,163,175)', font: { size: 11 }, usePointStyle: true, pointStyle: 'rectRounded' }
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        stacked: true,
+                                        ticks: { color: 'rgb(156,163,175)', stepSize: 1 },
+                                        grid: { color: 'rgb(229,231,235)' },
+                                        title: { display: true, text: '{{ __('Jumlah Employee') }}', color: 'rgb(156,163,175)', font: { size: 11 } }
+                                    },
+                                    y: {
+                                        stacked: true,
+                                        ticks: { color: 'rgb(156,163,175)', font: { size: 11 } },
+                                        grid: { display: false }
+                                    }
+                                }
+                            }
+                        });
+                    });
+                },
+                destroy() { if (this.chart) this.chart.destroy(); }
+            }" style="height: {{ $eabChartHeight }}px;" wire:ignore wire:key="eab-{{ md5($eabLabels.$eabPunya.$eabTidak) }}">
+                <canvas x-ref="chartEmployeesAssetBySite"></canvas>
+            </div>
+
+            {{-- Summary Table --}}
+            <div class="mt-4 overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b" style="border-color: var(--color-border);">
+                            <th class="text-left py-2 text-xs text-muted font-medium">{{ __('Site') }}</th>
+                            <th class="text-right py-2 text-xs text-muted font-medium">{{ __('Total Employee') }}</th>
+                            <th class="text-right py-2 text-xs text-muted font-medium">{{ __('Punya Asset') }}</th>
+                            <th class="text-right py-2 text-xs text-muted font-medium">{{ __('Tidak Punya Asset') }}</th>
+                            <th class="text-right py-2 text-xs text-muted font-medium">% {{ __('Punya') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y" style="border-color: var(--color-border);">
+                        @foreach($employeesAssetBySite as $row)
+                            <tr class="transition-colors" onmouseover="this.style.backgroundColor='var(--color-bg-tertiary)'" onmouseout="this.style.backgroundColor=''">
+                                <td class="py-2.5 font-medium text-primary">{{ $row['site'] }}</td>
+                                <td class="py-2.5 text-right text-secondary">
+                                    <a href="{{ route('admin.employees.index', ['filterSite' => $row['site_id']]) }}" wire:navigate class="hover:underline font-semibold" style="color: var(--color-text-secondary);">
+                                        {{ $row['total'] }}
+                                    </a>
+                                </td>
+                                <td class="py-2.5 text-right">
+                                    <a href="{{ route('admin.employees.index', ['filterSite' => $row['site_id'], 'filterAssetStatus' => 'punya']) }}" wire:navigate class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold transition-opacity hover:opacity-70" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                                        {{ $row['punya'] }}
+                                    </a>
+                                </td>
+                                <td class="py-2.5 text-right">
+                                    <a href="{{ route('admin.employees.index', ['filterSite' => $row['site_id'], 'filterAssetStatus' => 'tidak']) }}" wire:navigate class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold transition-opacity hover:opacity-70" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                                        {{ $row['tidak'] }}
+                                    </a>
+                                </td>
+                                <td class="py-2.5 text-right">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <div class="w-16 h-1.5 rounded-full overflow-hidden" style="background: var(--color-bg-tertiary);">
+                                            <div class="h-full rounded-full" style="width: {{ $row['pct'] }}%; background: {{ $row['pct'] >= 80 ? '#10b981' : ($row['pct'] >= 50 ? '#eab308' : '#ef4444') }};"></div>
+                                        </div>
+                                        <span class="text-xs text-secondary w-10 text-right">{{ $row['pct'] }}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <p class="text-sm text-muted text-center py-4">{{ __('Tidak ada data employee') }}</p>
+        @endif
+        <div class="mt-3 text-right">
+            <a href="{{ route('admin.employees.index') }}" wire:navigate class="text-xs font-medium transition-colors duration-200" style="color: var(--color-primary);">
+                {{ __('Lihat Semua Employees') }} →
+            </a>
+        </div>
+    </div>
 </div>

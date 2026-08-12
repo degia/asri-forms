@@ -19,6 +19,7 @@ class Index extends Component
     public string $filterSite = '';
     public string $filterPosition = '';
     public string $filterStatus = '';
+    public string $filterAssetStatus = '';
     public string $sortBy = 'name';
     public string $sortDirection = 'asc';
     public bool $showDeleteModal = false;
@@ -38,6 +39,7 @@ class Index extends Component
         'filterSite' => ['except' => ''],
         'filterPosition' => ['except' => ''],
         'filterStatus' => ['except' => ''],
+        'filterAssetStatus' => ['except' => ''],
         'sortBy' => ['except' => 'name'],
         'sortDirection' => ['except' => 'asc'],
     ];
@@ -286,7 +288,9 @@ class Index extends Component
             }))
             ->when($this->filterSite, fn ($q) => $q->where('site', $this->filterSite))
             ->when($this->filterPosition, fn ($q) => $q->where('position_id', $this->filterPosition))
-            ->when($this->filterStatus, fn ($q) => $q->where('status', $this->filterStatus));
+            ->when($this->filterStatus, fn ($q) => $q->where('status', $this->filterStatus))
+            ->when($this->filterAssetStatus === 'punya', fn ($q) => $q->whereHas('assignedAssets'))
+            ->when($this->filterAssetStatus === 'tidak', fn ($q) => $q->whereDoesntHave('assignedAssets'));
     }
 
     public function getSiteOptions(): array

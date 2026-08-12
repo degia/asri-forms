@@ -75,7 +75,7 @@
     <div class="glass-card p-4">
         <div class="flex items-center justify-between mb-3">
             <p class="text-xs font-medium text-muted uppercase tracking-wider">{{ __('Filter Data') }}</p>
-            @if($filterSearch || $filterSite || $filterPosition || $filterStatus)
+            @if($filterSearch || $filterSite || $filterPosition || $filterStatus || $filterAssetStatus)
                 <a href="{{ route('admin.employees.index') }}" wire:navigate
                     class="inline-flex items-center px-3 py-1 rounded-lg text-xs transition-colors duration-200"
                     style="background: var(--color-glass-bg); border: 1px solid var(--color-border); color: var(--color-text-secondary);">
@@ -109,6 +109,16 @@
                     <option value="">{{ __('Semua Status') }}</option>
                     <option value="Active">Active</option>
                     <option value="Resigned">Resigned</option>
+                </select>
+            </div>
+            <div class="flex-1 min-w-[150px]">
+                <label class="block text-xs font-medium text-muted mb-1">{{ __('Asset') }}</label>
+                <select wire:model.live="filterAssetStatus"
+                    class="w-full px-3 py-2 rounded-lg text-sm transition-colors duration-200"
+                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                    <option value="">{{ __('Semua') }}</option>
+                    <option value="punya">{{ __('Punya Asset') }}</option>
+                    <option value="tidak">{{ __('Tidak Punya Asset') }}</option>
                 </select>
             </div>
             <div class="flex-1 min-w-[150px]">

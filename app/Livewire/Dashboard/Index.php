@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard;
 
 use App\Models\Asset;
+use App\Models\Employee;
 use App\Models\FormPemeriksaan;
 use App\Models\FormPerawatan;
 use App\Models\Site;
@@ -59,6 +60,12 @@ class Index extends Component
 
     public array $usersBySite = [];
 
+    public array $employeesAssetBySite = [];
+
+    public string $filterEmpAssetSite = '';
+
+    public array $empAssetSites = [];
+
     public function mount(): void
     {
         $this->endDate = now()->format('Y-m-d');
@@ -78,6 +85,7 @@ class Index extends Component
             ->pluck('id_corp')
             ->toArray();
         $this->loadFilterSites();
+        $this->loadEmpAssetSites();
         $this->loadTrendFilterOptions();
         $this->loadAll();
     }
@@ -112,6 +120,11 @@ class Index extends Component
     public function updatedFilterSite(): void
     {
         $this->loadUsersBySite();
+    }
+
+    public function updatedFilterEmpAssetSite(): void
+    {
+        $this->loadEmployeesAssetBySite();
     }
 
     public function updatedFilterTrendAssetOu(): void
@@ -211,6 +224,7 @@ class Index extends Component
         $this->loadTrendPerawatan();
         $this->loadPerawatanVsBelumByOperatingUnit();
         $this->loadUsersBySite();
+        $this->loadEmployeesAssetBySite();
         $this->dispatch('chartsUpdated');
     }
 
@@ -464,6 +478,68 @@ class Index extends Component
 
         usort($result, fn ($a, $b) => $b['total'] <=> $a['total']);
         $this->usersBySite = $result;
+    }
+
+    private function loadEmpAssetSites(): void
+    {
+        $this->empAssetSites = Site::whereIn('id_site', Employee::whereNotNull('site')
+            ->where('site', '!=', '')
+            ->distinct()
+            ->pluck('site'))
+            ->orderBy('site')
+            ->get(['id_site', 'site'])
+            ->map(fn ($s) => ['id' => $s->id_site, 'name' => "{$s->id_site} - {$s->site}"])
+            ->toArray();
+    }
+
+    private function loadEmployeesAssetBySite(): void
+    {
+        $assignedNik = Asset::whereNotNull('assigned_employee_id')
+            ->where('assigned_employee_id', '!=', '')
+            ->distinct()
+            ->pluck('assigned_employee_id')
+            ->toArray();
+
+        $query = Employee::whereNotNull('site')
+            ->where('site', '!=', '');
+
+        if ($this->filterEmpAssetSite) {
+            $query->where('site', $this->filterEmpAssetSite);
+        }
+
+        $employees = $query->get(['nik', 'site']);
+
+        $counts = [];
+        foreach ($employees as $emp) {
+            if (! isset($counts[$emp->site])) {
+                $counts[$emp->site] = ['punya' => 0, 'tidak' => 0];
+            }
+            if (in_array($emp->nik, $assignedNik)) {
+                $counts[$emp->site]['punya']++;
+            } else {
+                $counts[$emp->site]['tidak']++;
+            }
+        }
+
+        $siteNames = Site::whereIn('id_site', array_keys($counts))
+            ->pluck('site', 'id_site')
+            ->toArray();
+
+        $result = [];
+        foreach ($counts as $siteId => $data) {
+            $total = $data['punya'] + $data['tidak'];
+            $result[] = [
+                'site_id' => $siteId,
+                'site' => $siteNames[$siteId] ?? $siteId,
+                'punya' => $data['punya'],
+                'tidak' => $data['tidak'],
+                'total' => $total,
+                'pct' => $total > 0 ? round(($data['punya'] / $total) * 100, 1) : 0,
+            ];
+        }
+
+        usort($result, fn ($a, $b) => $b['total'] <=> $a['total']);
+        $this->employeesAssetBySite = $result;
     }
 
     public function render()
