@@ -307,6 +307,12 @@ class ReviewForm extends Component
 
             DB::commit();
 
+            if ($newStatus === FormStatus::Selesai->value) {
+                $this->redirectRoute('forms.search');
+
+                return;
+            }
+
             $this->saved = true;
         } catch (\Exception $e) {
             DB::rollBack();
