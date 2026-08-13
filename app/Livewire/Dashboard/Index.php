@@ -7,7 +7,6 @@ use App\Models\Employee;
 use App\Models\FormPemeriksaan;
 use App\Models\FormPerawatan;
 use App\Models\Site;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -50,16 +49,6 @@ class Index extends Component
 
     public string $filterAssetStatus = '';
 
-    public string $filterCorpUnit = '';
-
-    public string $filterSite = '';
-
-    public array $corpUnits = [];
-
-    public array $filterSites = [];
-
-    public array $usersBySite = [];
-
     public array $employeesAssetBySite = [];
 
     public string $filterEmpAssetSite = '';
@@ -77,14 +66,6 @@ class Index extends Component
             ->get()
             ->map(fn ($s) => ['id' => $s->id_site, 'name' => $s->site])
             ->toArray();
-        $this->corpUnits = Site::select('id_corp')
-            ->distinct()
-            ->whereNotNull('id_corp')
-            ->where('id_corp', '!=', '')
-            ->orderBy('id_corp')
-            ->pluck('id_corp')
-            ->toArray();
-        $this->loadFilterSites();
         $this->loadEmpAssetSites();
         $this->loadTrendFilterOptions();
         $this->loadAll();
@@ -108,18 +89,6 @@ class Index extends Component
     public function updatedFilterAssetStatus(): void
     {
         $this->loadPerawatanVsBelumByOperatingUnit();
-    }
-
-    public function updatedFilterCorpUnit(): void
-    {
-        $this->filterSite = '';
-        $this->loadFilterSites();
-        $this->loadUsersBySite();
-    }
-
-    public function updatedFilterSite(): void
-    {
-        $this->loadUsersBySite();
     }
 
     public function updatedFilterEmpAssetSite(): void
@@ -202,20 +171,6 @@ class Index extends Component
         $this->loadTrendPerawatanHarian();
     }
 
-    private function loadFilterSites(): void
-    {
-        $query = Site::query();
-
-        if ($this->filterCorpUnit) {
-            $query->where('id_corp', $this->filterCorpUnit);
-        }
-
-        $this->filterSites = $query->orderBy('id_site')
-            ->get(['id_site', 'site'])
-            ->map(fn ($s) => ['id' => $s->id_site, 'name' => "{$s->id_site} - {$s->site}"])
-            ->toArray();
-    }
-
     private function loadAll(): void
     {
         $this->loadPerawatanBySite();
@@ -223,7 +178,6 @@ class Index extends Component
         $this->loadTopAssets();
         $this->loadTrendPerawatan();
         $this->loadPerawatanVsBelumByOperatingUnit();
-        $this->loadUsersBySite();
         $this->loadEmployeesAssetBySite();
         $this->dispatch('chartsUpdated');
     }
@@ -438,46 +392,6 @@ class Index extends Component
 
         usort($result, fn ($a, $b) => $b['total'] <=> $a['total']);
         $this->perawatanVsBelum = $result;
-    }
-
-    private function loadUsersBySite(): void
-    {
-        $query = User::query()
-            ->join('employees', 'employees.nik', '=', 'users.nik')
-            ->select('employees.site', DB::raw('count(*) as total'))
-            ->whereNotNull('employees.site')
-            ->where('employees.site', '!=', '');
-
-        if ($this->filterCorpUnit) {
-            $query->whereIn('employees.site', Site::where('id_corp', $this->filterCorpUnit)->pluck('id_site'));
-        }
-
-        if ($this->filterSite) {
-            $query->where('employees.site', $this->filterSite);
-        }
-
-        $rows = $query->groupBy('employees.site')->get();
-
-        $siteNames = Site::whereIn('id_site', $rows->pluck('site')->toArray())
-            ->pluck('site', 'id_site')
-            ->toArray();
-
-        $corpUnits = Site::whereIn('id_site', $rows->pluck('site')->toArray())
-            ->pluck('id_corp', 'id_site')
-            ->toArray();
-
-        $result = [];
-        foreach ($rows as $row) {
-            $result[] = [
-                'site_id' => $row->site,
-                'site' => $siteNames[$row->site] ?? $row->site,
-                'corp_unit' => $corpUnits[$row->site] ?? '-',
-                'total' => (int) $row->total,
-            ];
-        }
-
-        usort($result, fn ($a, $b) => $b['total'] <=> $a['total']);
-        $this->usersBySite = $result;
     }
 
     private function loadEmpAssetSites(): void
