@@ -127,6 +127,11 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b" style="border-color: var(--color-border);">
+                            <th class="px-4 py-3 w-10">
+                                <input type="checkbox" wire:click="toggleSelectAll"
+                                    class="rounded cursor-pointer" style="accent-color: var(--color-primary);"
+                                    @checked(count($records->pluck('id')->intersect($selected)) === $records->count() && $records->count() > 0)>
+                            </th>
                             @if($activeTab === 'position')
                                 <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider w-20">{{ __('Urutan') }}</th>
                             @endif
@@ -153,6 +158,10 @@
                     <tbody class="divide-y" style="border-color: var(--color-border);">
                         @foreach($records as $record)
                             <tr class="transition-colors duration-150">
+                                <td class="px-4 py-3 w-10">
+                                    <input type="checkbox" value="{{ $record->getKey() }}" wire:model.live="selected"
+                                        class="rounded cursor-pointer" style="accent-color: var(--color-primary);">
+                                </td>
                                 @if($activeTab === 'position')
                                     <td class="px-4 py-3 font-mono text-xs text-secondary w-20">{{ $record->sort_order }}</td>
                                 @endif
@@ -234,6 +243,20 @@
                 </table>
             </div>
         </div>
+
+        @if(count($selected) > 0)
+            <div class="mt-3 glass-card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                style="border-color: rgba(245, 158, 11, 0.4);">
+                <p class="text-sm text-primary">{{ count($selected) }} {{ $this->tabLabel }} {{ __('terpilih') }}</p>
+                <div class="flex items-center gap-2">
+                    <button wire:click="confirmBulkDelete" type="button"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-red-500 text-white hover:bg-red-600 transition-all duration-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        {{ __('Hapus Terpilih') }}
+                    </button>
+                </div>
+            </div>
+        @endif
 
         <div class="mt-6">
             {{ $records->links() }}
@@ -334,6 +357,21 @@
                 <div class="flex gap-2">
                     <button wire:click="cancelDelete" type="button" class="glass-button-secondary text-sm flex-1">{{ __('Batal') }}</button>
                     <button wire:click="delete" type="button" class="flex-1 px-4 py-2 rounded-lg font-medium text-sm bg-red-500 text-white hover:bg-red-600 transition-all duration-200">{{ __('Hapus') }}</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Bulk Delete Confirmation Modal --}}
+    @if($showBulkDeleteModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);"
+            x-data x-on:keydown.escape.window="$wire.cancelBulkDelete()">
+            <div class="glass-card p-6 w-full max-w-md space-y-4" @click.away="$wire.cancelBulkDelete()">
+                <h3 class="text-lg font-bold text-primary">{{ __('Hapus Massal') }} {{ $this->tabLabel }}</h3>
+                <p class="text-sm text-muted">{{ __('Yakin ingin menghapus') }} <span class="font-semibold text-primary">{{ count($selected) }}</span> {{ strtolower($this->tabLabel) }}? <span class="text-muted">{{ __('Data yang masih digunakan akan dilewati.') }}</span></p>
+                <div class="flex gap-2">
+                    <button wire:click="cancelBulkDelete" type="button" class="glass-button-secondary text-sm flex-1">{{ __('Batal') }}</button>
+                    <button wire:click="bulkDelete" type="button" class="flex-1 px-4 py-2 rounded-lg font-medium text-sm bg-red-500 text-white hover:bg-red-600 transition-all duration-200">{{ __('Hapus') }}</button>
                 </div>
             </div>
         </div>

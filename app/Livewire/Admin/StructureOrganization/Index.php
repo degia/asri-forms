@@ -37,6 +37,10 @@ class Index extends Component
 
     public string $deleteName = '';
 
+    public array $selected = [];
+
+    public bool $showBulkDeleteModal = false;
+
     protected $queryString = ['activeTab'];
 
     protected array $tabs = ['directorate', 'divisi', 'departement', 'sub_departement', 'position'];
@@ -46,12 +50,14 @@ class Index extends Component
         if (in_array($tab, $this->tabs)) {
             $this->activeTab = $tab;
             $this->search = '';
+            $this->selected = [];
             $this->resetPage();
         }
     }
 
     public function updatedSearch(): void
     {
+        $this->selected = [];
         $this->resetPage();
     }
 
@@ -184,6 +190,59 @@ class Index extends Component
 
         $this->dispatch('show-toast', message: "{$this->deleteName} berhasil dihapus.", type: 'success');
         $this->cancelDelete();
+        $this->resetPage();
+    }
+
+    public function toggleSelectAll(): void
+    {
+        $pageIds = $this->tabQuery()->paginate(50)->pluck('id')->all();
+
+        if (count($pageIds) === count(array_intersect($pageIds, $this->selected))) {
+            $this->selected = array_values(array_diff($this->selected, $pageIds));
+        } else {
+            $this->selected = array_values(array_unique(array_merge($this->selected, $pageIds)));
+        }
+    }
+
+    public function confirmBulkDelete(): void
+    {
+        if (empty($this->selected)) {
+            return;
+        }
+
+        $this->showBulkDeleteModal = true;
+    }
+
+    public function cancelBulkDelete(): void
+    {
+        $this->showBulkDeleteModal = false;
+    }
+
+    public function bulkDelete(): void
+    {
+        $records = $this->modelForTab()::whereIn('id', $this->selected)->get();
+
+        $deleted = 0;
+        $skipped = 0;
+        foreach ($records as $record) {
+            if ($record->employees()->exists() || $this->hasChildren($record)) {
+                $skipped++;
+                continue;
+            }
+            $record->delete();
+            $deleted++;
+        }
+
+        $label = $this->tabLabel();
+        $message = "{$deleted} {$label} berhasil dihapus.";
+        if ($skipped > 0) {
+            $message .= " {$skipped} dilewati karena masih digunakan.";
+        }
+
+        ActivityLogger::log('delete', "Menghapus {$deleted} {$label} secara massal");
+        $this->selected = [];
+        $this->cancelBulkDelete();
+        $this->dispatch('show-toast', message: $message, type: 'success');
         $this->resetPage();
     }
 
