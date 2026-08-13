@@ -17,6 +17,8 @@ class Index extends Component
 
     public string $activeTab = 'directorate';
 
+    public string $viewMode = 'table';
+
     public string $search = '';
 
     public bool $showModal = false;
@@ -41,7 +43,15 @@ class Index extends Component
 
     public bool $showBulkDeleteModal = false;
 
-    protected $queryString = ['activeTab'];
+    public bool $showHierarchyModal = false;
+
+    public array $hierarchyTree = [];
+
+    public string $hierarchyTitle = '';
+
+    public array $fullHierarchy = [];
+
+    protected $queryString = ['activeTab', 'viewMode' => ['except' => 'table']];
 
     protected array $tabs = ['directorate', 'divisi', 'departement', 'sub_departement', 'position'];
 
@@ -246,6 +256,77 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function showHierarchy(int $id): void
+    {
+        $record = $this->recordForTab($id);
+
+        if (! $record) {
+            return;
+        }
+
+        $root = $this->findRoot($record);
+
+        if (! $root) {
+            return;
+        }
+
+        $this->hierarchyTree = [$this->buildHierarchyTree($root, $record->name)];
+        $this->hierarchyTitle = __('Hirarki') . ' ' . $this->tabLabel() . ' - ' . $record->name;
+        $this->showHierarchyModal = true;
+    }
+
+    public function closeHierarchy(): void
+    {
+        $this->showHierarchyModal = false;
+        $this->hierarchyTree = [];
+        $this->hierarchyTitle = '';
+    }
+
+    private function findRoot($record)
+    {
+        return match ($this->activeTab) {
+            'divisi' => $record->directorate,
+            'departement' => $record->divisi?->directorate,
+            'sub_departement' => $record->departement?->divisi?->directorate,
+            default => $record,
+        };
+    }
+
+    private function buildHierarchyTree($node, string $highlightName): array
+    {
+        $result = [
+            'id' => $node->id,
+            'name' => $node->name,
+            'type' => $this->hierarchyType($node),
+            'highlight' => $node->name === $highlightName,
+            'children' => [],
+        ];
+
+        $children = match (get_class($node)) {
+            Directorate::class => $node->divisis,
+            Divisi::class => $node->departements,
+            Departement::class => $node->subDepartements,
+            default => collect(),
+        };
+
+        foreach ($children as $child) {
+            $result['children'][] = $this->buildHierarchyTree($child, $highlightName);
+        }
+
+        return $result;
+    }
+
+    private function hierarchyType($node): string
+    {
+        return match (get_class($node)) {
+            Directorate::class => 'Directorat',
+            Divisi::class => 'Divisi',
+            Departement::class => 'Departemen',
+            SubDepartement::class => 'Sub Departemen',
+            default => '',
+        };
+    }
+
     public function getTabLabelProperty(): string
     {
         return $this->tabLabel();
@@ -300,9 +381,20 @@ class Index extends Component
 
     public function render()
     {
+        $this->fullHierarchy = $this->viewMode === 'tree' ? $this->buildFullHierarchy() : [];
+
         return view('livewire.admin.structure-organization.index', [
             'records' => $this->tabQuery()->paginate(50),
         ]);
+    }
+
+    private function buildFullHierarchy(): array
+    {
+        return Directorate::with(['divisis.departements.subDepartements'])
+            ->orderBy('name')
+            ->get()
+            ->map(fn ($dir) => $this->buildHierarchyTree($dir, ''))
+            ->all();
     }
 
     private function modelForTab(): string

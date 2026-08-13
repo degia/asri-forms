@@ -51,6 +51,18 @@
             <p class="text-sm text-muted mt-1">{{ __('Kelola directorat, divisi, departemen, sub departemen & level position') }}</p>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center gap-1 p-1 rounded-lg w-fit" style="background: var(--color-bg-tertiary);">
+                <button wire:click="$set('viewMode', 'table')" type="button"
+                    class="px-3 py-1.5 rounded-md text-xs font-semibold transition-colors duration-200 {{ $viewMode === 'table' ? 'text-white' : 'text-muted' }}"
+                    style="{{ $viewMode === 'table' ? 'background: var(--color-primary);' : '' }}">
+                    {{ __('Table') }}
+                </button>
+                <button wire:click="$set('viewMode', 'tree')" type="button"
+                    class="px-3 py-1.5 rounded-md text-xs font-semibold transition-colors duration-200 {{ $viewMode === 'tree' ? 'text-white' : 'text-muted' }}"
+                    style="{{ $viewMode === 'tree' ? 'background: var(--color-primary);' : '' }}">
+                    {{ __('Tree') }}
+                </button>
+            </div>
             <div class="relative" x-data="{ open: false }">
                 <button @click="open = !open"
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200"
@@ -91,8 +103,9 @@
         </div>
     </div>
 
-    {{-- Tabs --}}
-    <div class="flex flex-wrap gap-1 rounded-lg p-1 glass-card">
+    @if($viewMode === 'table')
+        {{-- Tabs --}}
+        <div class="flex flex-wrap gap-1 rounded-lg p-1 glass-card">
         @foreach(['directorate' => 'Directorat', 'divisi' => 'Divisi', 'departement' => 'Departemen', 'sub_departement' => 'Sub Departemen', 'position' => 'Position'] as $key => $label)
             <button wire:click="setTab('{{ $key }}')" type="button"
                 class="px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-200"
@@ -166,7 +179,15 @@
                                     <td class="px-4 py-3 font-mono text-xs text-secondary w-20">{{ $record->sort_order }}</td>
                                 @endif
                                 <td class="px-4 py-3">
-                                    <div class="font-medium text-primary">{{ $record->name }}</div>
+                                    @if($activeTab !== 'position')
+                                        <button wire:click="showHierarchy({{ $record->getKey() }})" type="button"
+                                            class="font-medium text-primary hover:underline transition-colors duration-200 cursor-pointer"
+                                            title="{{ __('Lihat hirarki') }}">
+                                            {{ $record->name }}
+                                        </button>
+                                    @else
+                                        <div class="font-medium text-primary">{{ $record->name }}</div>
+                                    @endif
                                 </td>
                                 @if(in_array($activeTab, ['divisi', 'departement', 'sub_departement']))
                                     <td class="px-4 py-3 text-secondary hidden md:table-cell">
@@ -267,6 +288,26 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 6h18M3 12h12M3 18h7"/>
             </svg>
             <p class="mt-3 text-muted">{{ __('Tidak ada data') }} {{ $this->tabLabel }}</p>
+        </div>
+    @endif
+    @else
+        {{-- Tree View --}}
+        <div class="glass-card p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <h3 class="text-sm font-bold text-primary">{{ __('Hirarki Structure Organization') }}</h3>
+                <p class="text-xs text-muted">{{ __('Klik node untuk expand / collapse cabang') }}</p>
+            </div>
+            @if(count($fullHierarchy) > 0)
+                <div class="rounded-lg p-4 overflow-x-auto" style="background: var(--color-bg-tertiary);">
+                    <ul class="space-y-1 min-w-max">
+                        @foreach($fullHierarchy as $node)
+                            @include('livewire.admin.structure-organization._tree-node', ['node' => $node])
+                        @endforeach
+                    </ul>
+                </div>
+            @else
+                <p class="text-sm text-muted text-center py-4">{{ __('Tidak ada data hirarki') }}</p>
+            @endif
         </div>
     @endif
 
@@ -372,6 +413,26 @@
                 <div class="flex gap-2">
                     <button wire:click="cancelBulkDelete" type="button" class="glass-button-secondary text-sm flex-1">{{ __('Batal') }}</button>
                     <button wire:click="bulkDelete" type="button" class="flex-1 px-4 py-2 rounded-lg font-medium text-sm bg-red-500 text-white hover:bg-red-600 transition-all duration-200">{{ __('Hapus') }}</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Hierarchy Modal --}}
+    @if($showHierarchyModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);"
+            x-data x-on:keydown.escape.window="$wire.closeHierarchy()">
+            <div class="glass-card p-6 w-full max-w-lg space-y-4" @click.away="$wire.closeHierarchy()">
+                <h3 class="text-lg font-bold text-primary">{{ $hierarchyTitle }}</h3>
+                <div class="max-h-96 overflow-y-auto rounded-lg p-4" style="background: var(--color-bg-tertiary);">
+                    <ul class="space-y-1">
+                        @foreach($hierarchyTree as $node)
+                            @include('livewire.admin.structure-organization._tree-node', ['node' => $node])
+                        @endforeach
+                    </ul>
+                </div>
+                <div class="flex justify-end">
+                    <button wire:click="closeHierarchy" type="button" class="glass-button-secondary text-sm">{{ __('Tutup') }}</button>
                 </div>
             </div>
         </div>
