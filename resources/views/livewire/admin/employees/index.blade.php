@@ -1,5 +1,5 @@
 <div class="space-y-6"
-    x-data x-on:employee-deleted.window="$wire.$refresh()" x-on:employee-updated.window="$wire.$refresh()">
+    x-data x-on:employee-deleted.window="$wire.$refresh()" x-on:employee-updated.window="$wire.$refresh()" x-on:structure-updated.window="$wire.$refresh()">
     {{-- Toast --}}
     <div x-data="{ toast: false, message: '', type: 'success' }"
         @show-toast.window="toast = true; message = $event.detail.message; type = $event.detail.type || 'success'; setTimeout(() => toast = false, 4000)"
@@ -198,11 +198,21 @@
                                 </td>
                                 <td class="px-4 py-3 font-mono text-secondary hidden sm:table-cell">{{ $employee->nik ?? '-' }}</td>
                                 <td class="px-4 py-3 text-secondary hidden lg:table-cell">{{ $employee->site_name ?? '-' }}</td>
-                                <td class="px-4 py-3 text-secondary hidden xl:table-cell">
+                                <td class="px-4 py-3 hidden xl:table-cell">
                                     @if($employee->organization_path)
-                                        <span class="block max-w-[200px] truncate" title="{{ $employee->organization_path }}">{{ $employee->organization_path }}</span>
+                                        <button wire:click="$dispatch('open-structure', { nik: '{{ addslashes($employee->nik) }}' })" type="button"
+                                            class="text-left text-xs truncate block max-w-[200px] transition-colors duration-200 hover:underline cursor-pointer"
+                                            style="color: var(--color-text-secondary);"
+                                            title="{{ $employee->organization_path }}">
+                                            {{ $employee->organization_path }}
+                                        </button>
                                     @else
-                                        <span class="text-muted">-</span>
+                                        <button wire:click="$dispatch('open-structure', { nik: '{{ addslashes($employee->nik) }}' })" type="button"
+                                            class="text-xs transition-colors duration-200 hover:underline cursor-pointer"
+                                            style="color: var(--color-muted);"
+                                            title="{{ __('Atur struktur organisasi') }}">
+                                            -
+                                        </button>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-secondary hidden md:table-cell">{{ $employee->position?->name ?? '-' }}</td>
@@ -422,4 +432,6 @@
             </div>
         </div>
     @endif
+
+    <livewire:admin.employees.structure-popup />
 </div>
