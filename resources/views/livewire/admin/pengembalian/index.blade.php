@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div class="space-y-6" x-data x-on:open-url.window="window.open($event.detail.url, '_blank')">
     {{-- Toast --}}
     <div x-data="{ toast: false, message: '', type: 'success' }"
         @show-toast.window="toast = true; message = $event.detail.message; type = $event.detail.type || 'success'; setTimeout(() => toast = false, 4000)"
@@ -49,6 +49,14 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b" style="border-color: var(--color-border);">
+                            @if(auth()->user()->hasRole('admin'))
+                                <th class="px-4 py-3 text-left">
+                                    <input type="checkbox" wire:model.live="selected" value="__select_all"
+                                        x-on:click="$wire.toggleSelectAll()"
+                                        :checked="$allSelected"
+                                        class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                </th>
+                            @endif
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{{ __('No. Form') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{{ __('Teknisi') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider hidden md:table-cell">{{ __('Pengguna') }}</th>
@@ -61,6 +69,12 @@
                     <tbody class="divide-y" style="border-color: var(--color-border);">
                         @foreach($forms as $form)
                             <tr class="transition-colors duration-150">
+                                @if(auth()->user()->hasRole('admin'))
+                                    <td class="px-4 py-3">
+                                        <input type="checkbox" wire:model.live="selected" value="{{ $form->id }}"
+                                            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                    </td>
+                                @endif
                                 <td class="px-4 py-3 font-mono text-secondary text-xs">{{ $form->nomor_form }}</td>
                                 <td class="px-4 py-3 text-primary">{{ $form->teknisi->name ?? '-' }}</td>
                                 <td class="px-4 py-3 text-primary hidden md:table-cell">{{ $form->pengguna->name ?? '-' }}</td>
@@ -86,6 +100,21 @@
                 </table>
             </div>
         </div>
+
+        @if(auth()->user()->hasRole('admin') && count($selected) > 0)
+            <div class="glass-card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                style="border-color: rgba(245, 158, 11, 0.4);">
+                <p class="text-sm text-primary">{{ count($selected) }} {{ __('form terpilih') }}</p>
+                <div class="flex items-center gap-2">
+                    <button wire:click="downloadBulkPdf" type="button"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+                        style="background: var(--color-glass-bg); border: 1px solid var(--color-border); color: var(--color-text-secondary);">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        {{ __('Download PDF') }}
+                    </button>
+                </div>
+            </div>
+        @endif
 
         <div class="mt-6">
             {{ $forms->links() }}

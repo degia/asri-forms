@@ -206,6 +206,16 @@ class Index extends Component
         };
     }
 
+    public function downloadBulkPdf(): void
+    {
+        if (empty($this->selected)) {
+            return;
+        }
+
+        $url = route('admin.pemeriksaan.bulk-pdf', ['ids' => $this->selected]);
+        $this->dispatch('open-url', url: $url);
+    }
+
     private function authorizeAdmin(): void
     {
         abort_unless(auth()->user()->hasRole('admin'), 403);

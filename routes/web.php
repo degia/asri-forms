@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ExportPdfController;
 use App\Http\Controllers\FormExportController;
+use App\Http\Controllers\BulkPdfDownloadController;
 use App\Http\Controllers\UserExportController;
 use App\Http\Controllers\SiteExportController;
 use App\Http\Controllers\AssetExportController;
@@ -200,6 +201,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('pemeriksaan.export')
             ->whereIn('format', ['pdf', 'xlsx', 'xls', 'html', 'csv']);
 
+        Route::get('pemeriksaan/bulk-pdf', [BulkPdfDownloadController::class, 'pemeriksaan'])
+            ->name('pemeriksaan.bulk-pdf');
+
         // Form Perawatan (PWT)
         Volt::route('perawatan', 'admin.pages.perawatan.index')
             ->name('perawatan.index');
@@ -208,6 +212,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('perawatan.export')
             ->whereIn('format', ['pdf', 'xlsx', 'xls', 'html', 'csv']);
 
+        Route::get('perawatan/bulk-pdf', [BulkPdfDownloadController::class, 'perawatan'])
+            ->name('perawatan.bulk-pdf');
+
         // Form Pengembalian Asset (PNG)
         Volt::route('pengembalian', 'admin.pages.pengembalian.index')
             ->name('pengembalian.index');
@@ -215,6 +222,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Volt::route('pengembalian/create', 'admin.pages.pengembalian.create')
             ->middleware('role:admin')
             ->name('pengembalian.create');
+
+        Route::get('pengembalian/bulk-pdf', [BulkPdfDownloadController::class, 'pengembalian'])
+            ->name('pengembalian.bulk-pdf');
 
         // Backup
         Volt::route('backup', 'admin.pages.backup.index')

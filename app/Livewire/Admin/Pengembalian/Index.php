@@ -21,6 +21,8 @@ class Index extends Component
 
     public bool $showDeleteModal = false;
 
+    public array $selected = [];
+
     protected $queryString = [
         'search' => ['except' => ''],
     ];
@@ -124,12 +126,36 @@ class Index extends Component
             }));
     }
 
+    public function toggleSelectAll(): void
+    {
+        $pageIds = $this->filteredQuery()->latest('submitted_at')->paginate(15)->pluck('id')->toArray();
+
+        if (count($this->selected) === count($pageIds)) {
+            $this->selected = [];
+        } else {
+            $this->selected = $pageIds;
+        }
+    }
+
+    public function downloadBulkPdf(): void
+    {
+        if (empty($this->selected)) {
+            return;
+        }
+
+        $url = route('admin.pengembalian.bulk-pdf', ['ids' => $this->selected]);
+        $this->dispatch('open-url', url: $url);
+    }
+
     public function render()
     {
         $forms = $this->filteredQuery()->latest('submitted_at')->paginate(15);
+        $pageIds = $forms->pluck('id')->toArray();
 
         return view('livewire.admin.pengembalian.index', [
             'forms' => $forms,
+            'pageIds' => $pageIds,
+            'allSelected' => count($pageIds) > 0 && count($this->selected) === count($pageIds),
         ]);
     }
 }

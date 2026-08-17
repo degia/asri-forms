@@ -518,6 +518,54 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                                             @endforelse
                                         </tbody>
                                     </table>
+
+                                    <div
+                                        class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500">
+                                        {{ $_isPemeriksaan ? 'Operating System' : 'Perawatan Operating Sistem' }}
+                                    </div>
+                                    <table class="w-full border border-gray-300 dark:border-gray-600">
+                                        <thead>
+                                            <tr class="bg-gray-100 dark:bg-gray-800">
+                                                <th
+                                                    class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[36%]">
+                                                    Name</th>
+                                                <th
+                                                    class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-center text-xs font-semibold w-[20%]">
+                                                    {{ $_isPemeriksaan ? 'Kondisi' : 'Status' }}</th>
+                                                <th
+                                                    class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[44%]">
+                                                    Keterangan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse ($_os as $_item)
+                                                <tr class="even:bg-gray-50 dark:even:bg-gray-800/50">
+                                                    <td
+                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">
+                                                        {{ $_item['name'] }}</td>
+                                                    <td
+                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-center">
+                                                        @if (($_item['status'] ?? '') === 'baik')
+                                                            Baik
+                                                        @elseif(($_item['status'] ?? '') === 'tidak_baik')
+                                                            Tidak Baik
+                                                        @else
+                                                            -
+                                                        @endif
+                                                    </td>
+                                                    <td
+                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">
+                                                        {{ $_item['keterangan'] ?? '' }}</td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="3"
+                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-gray-400 text-center">
+                                                        -</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
                                 </td>
 
                                 {{-- RIGHT: APLIKASI + OS --}}
@@ -579,52 +627,7 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                                         </tbody>
                                     </table>
 
-                                    <div
-                                        class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500">
-                                        {{ $_isPemeriksaan ? 'Operating System' : 'Perawatan Operating Sistem' }}</div>
-                                    <table class="w-full border border-gray-300 dark:border-gray-600">
-                                        <thead>
-                                            <tr class="bg-gray-100 dark:bg-gray-800">
-                                                <th
-                                                    class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[36%]">
-                                                    Name</th>
-                                                <th
-                                                    class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-center text-xs font-semibold w-[20%]">
-                                                    {{ $_isPemeriksaan ? 'Kondisi' : 'Status' }}</th>
-                                                <th
-                                                    class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[44%]">
-                                                    Keterangan</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @forelse ($_os as $_item)
-                                                <tr class="even:bg-gray-50 dark:even:bg-gray-800/50">
-                                                    <td
-                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">
-                                                        {{ $_item['name'] }}</td>
-                                                    <td
-                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-center">
-                                                        @if (($_item['status'] ?? '') === 'baik')
-                                                            Baik
-                                                        @elseif(($_item['status'] ?? '') === 'tidak_baik')
-                                                            Tidak Baik
-                                                        @else
-                                                            -
-                                                        @endif
-                                                    </td>
-                                                    <td
-                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">
-                                                        {{ $_item['keterangan'] ?? '' }}</td>
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="3"
-                                                        class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-gray-400 text-center">
-                                                        -</td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
+
                                 </td>
                             </tr>
                         </table>

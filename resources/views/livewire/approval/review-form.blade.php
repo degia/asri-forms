@@ -364,6 +364,60 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                                 @endforeach
                             </tbody>
                         </table>
+
+                        <h3 class="text-sm font-semibold text-primary mb-3 mt-5">{{ $formType === 'pemeriksaan' ? 'Operating System' : 'Perawatan Operating Sistem' }}</h3>
+                        <table class="w-full text-sm" style="border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: var(--color-bg-secondary);">
+                                    <th class="px-3 py-2 text-left text-xs font-semibold w-[36%]" style="border: 1px solid var(--color-border);">Name</th>
+                                    <th class="px-3 py-2 text-center text-xs font-semibold w-[20%]" style="border: 1px solid var(--color-border);">{{ $formType === 'pemeriksaan' ? 'Kondisi' : 'Status' }}</th>
+                                    <th class="px-3 py-2 text-left text-xs font-semibold w-[44%]" style="border: 1px solid var(--color-border);">Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($osItems as $item)
+                                    @php
+                                        $editIndex = collect($editItems)->search(fn($ei) => $ei['id'] === $item->id);
+                                    @endphp
+                                    <tr>
+                                        <td class="px-3 py-2 text-sm text-primary" style="border: 1px solid var(--color-border);">{{ $item->name }}</td>
+                                        <td class="px-3 py-2 text-center" style="border: 1px solid var(--color-border);">
+                                            @if($editing && $editIndex !== false)
+                                                <select wire:model="editItems.{{ $editIndex }}.status"
+                                                    class="px-2 py-1 rounded text-xs transition-colors duration-200"
+                                                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                                                    <option value="">Pilih Status</option>
+                                                    <option value="baik">Baik</option>
+                                                    <option value="tidak_baik">Tidak Baik</option>
+                                                    <option value="good">Good</option>
+                                                    <option value="fair">Fair</option>
+                                                    <option value="critical">Critical</option>
+                                                    <option value="poor">Poor</option>
+                                                    <option value="baru">Baru</option>
+                                                    <option value="lama">Lama</option>
+                                                </select>
+                                            @else
+                                                @if($item->status)
+                                                    <span class="text-xs font-medium {{ $this->getStatusColor($item->status) }}">{{ $this->getStatusLabel($item->status) }}</span>
+                                                @else
+                                                    <span class="text-xs text-muted">-</span>
+                                                @endif
+                                            @endif
+                                        </td>
+                                        <td class="px-3 py-2 text-xs text-muted" style="border: 1px solid var(--color-border);">
+                                            @if($editing && $editIndex !== false)
+                                                <input wire:model="editItems.{{ $editIndex }}.keterangan" type="text"
+                                                    placeholder="Keterangan"
+                                                    class="w-full px-2 py-1 rounded text-xs transition-colors duration-200"
+                                                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
+                                            @else
+                                                {{ $item->keterangan ?? '-' }}
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
 
                     {{-- RIGHT: APLIKASI + OS --}}
@@ -422,59 +476,7 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
                             </tbody>
                         </table>
 
-                        <h3 class="text-sm font-semibold text-primary mb-3 mt-5">{{ $formType === 'pemeriksaan' ? 'Operating System' : 'Perawatan Operating Sistem' }}</h3>
-                        <table class="w-full text-sm" style="border-collapse: collapse;">
-                            <thead>
-                                <tr style="background: var(--color-bg-secondary);">
-                                    <th class="px-3 py-2 text-left text-xs font-semibold w-[36%]" style="border: 1px solid var(--color-border);">Name</th>
-                                    <th class="px-3 py-2 text-center text-xs font-semibold w-[20%]" style="border: 1px solid var(--color-border);">{{ $formType === 'pemeriksaan' ? 'Kondisi' : 'Status' }}</th>
-                                    <th class="px-3 py-2 text-left text-xs font-semibold w-[44%]" style="border: 1px solid var(--color-border);">Keterangan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($osItems as $item)
-                                    @php
-                                        $editIndex = collect($editItems)->search(fn($ei) => $ei['id'] === $item->id);
-                                    @endphp
-                                    <tr>
-                                        <td class="px-3 py-2 text-sm text-primary" style="border: 1px solid var(--color-border);">{{ $item->name }}</td>
-                                        <td class="px-3 py-2 text-center" style="border: 1px solid var(--color-border);">
-                                            @if($editing && $editIndex !== false)
-                                                <select wire:model="editItems.{{ $editIndex }}.status"
-                                                    class="px-2 py-1 rounded text-xs transition-colors duration-200"
-                                                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
-                                                    <option value="">Pilih Status</option>
-                                                    <option value="baik">Baik</option>
-                                                    <option value="tidak_baik">Tidak Baik</option>
-                                                    <option value="good">Good</option>
-                                                    <option value="fair">Fair</option>
-                                                    <option value="critical">Critical</option>
-                                                    <option value="poor">Poor</option>
-                                                    <option value="baru">Baru</option>
-                                                    <option value="lama">Lama</option>
-                                                </select>
-                                            @else
-                                                @if($item->status)
-                                                    <span class="text-xs font-medium {{ $this->getStatusColor($item->status) }}">{{ $this->getStatusLabel($item->status) }}</span>
-                                                @else
-                                                    <span class="text-xs text-muted">-</span>
-                                                @endif
-                                            @endif
-                                        </td>
-                                        <td class="px-3 py-2 text-xs text-muted" style="border: 1px solid var(--color-border);">
-                                            @if($editing && $editIndex !== false)
-                                                <input wire:model="editItems.{{ $editIndex }}.keterangan" type="text"
-                                                    placeholder="Keterangan"
-                                                    class="w-full px-2 py-1 rounded text-xs transition-colors duration-200"
-                                                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);" />
-                                            @else
-                                                {{ $item->keterangan ?? '-' }}
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+
                     </div>
                 </div>
             </div>
