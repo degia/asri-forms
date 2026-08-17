@@ -28,10 +28,11 @@ class EditForm extends Component
     public string $email = '';
     public string $status = Employee::STATUS_ACTIVE;
     public ?string $linkedUserId = null;
+    public ?int $page = null;
 
     public array $assignedAssets = [];
 
-    public function mount(string $nik): void
+    public function mount(string $nik, ?int $page = null): void
     {
         $employee = Employee::with('user')->findOrFail($nik);
         $this->employee = $employee;
@@ -129,7 +130,7 @@ class EditForm extends Component
 
             ActivityLogger::log('update', "Mengubah employee: {$this->name}", 'App\Models\Employee', $this->employee->nik);
             session()->flash('success', 'Employee berhasil diperbarui.');
-            $this->redirect(route('admin.employees.index'));
+            $this->redirect(route('admin.employees.index', array_filter(['page' => $this->page])));
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->dispatch('show-toast', message: 'Data gagal disimpan. Periksa kembali isian form, termasuk NIK/Email yang sudah terdaftar.', type: 'error');
             $this->dispatch('validation-error', errors: $e->errors());

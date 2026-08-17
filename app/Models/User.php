@@ -104,6 +104,7 @@ class User extends Authenticatable
         }
 
         $employee->update([
+            'email' => $this->email,
             'akun_login' => $this->status === self::STATUS_RESIGNED ? 'No Access' : 'Connect',
         ]);
     }

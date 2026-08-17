@@ -240,7 +240,7 @@
                                 @if(auth()->user()->hasRole('admin'))
                                     <td class="px-4 py-3 text-right">
                                         <div class="flex items-center justify-end gap-1">
-                                            <a href="{{ route('admin.employees.edit', $employee->nik) }}" wire:navigate
+                                            <a href="{{ route('admin.employees.edit', ['nik' => $employee->nik, 'page' => $employees->currentPage()]) }}" wire:navigate
                                                 class="p-1.5 rounded-lg transition-colors duration-200"
                                                 style="color: var(--color-text-secondary);"
                                                 title="{{ __('Edit') }}">
