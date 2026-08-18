@@ -19,7 +19,7 @@ class FormPengembalianSeeder extends Seeder
             [
                 'nomor_form' => '001/PNG/' . now()->format('dmY'),
                 'teknisi' => $teknisi1,
-                'pengguna_employee_id' => 'SEED04',
+                'pengguna_employee_id' => 'USR001',
                 'asset_no' => 'ASR-DTK-2024-002',
                 'tanggal_pengembalian' => now()->subDays(6),
                 'kondisi' => 'baik',
@@ -30,7 +30,7 @@ class FormPengembalianSeeder extends Seeder
             [
                 'nomor_form' => '002/PNG/' . now()->format('dmY'),
                 'teknisi' => $teknisi1,
-                'pengguna_employee_id' => 'SEED06',
+                'pengguna_employee_id' => 'USR003',
                 'asset_no' => 'ASR-LPT-2024-002',
                 'tanggal_pengembalian' => now()->subDays(3),
                 'kondisi' => 'baik',

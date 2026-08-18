@@ -31,7 +31,7 @@ class FormPemeriksaanSeeder extends Seeder
             [
                 'nomor_form' => 'PBR-0001',
                 'teknisi' => $teknisi1,
-                'pengguna_employee_id' => 'SEED04',
+                'pengguna_employee_id' => 'USR001',
                 'asset' => $assetByNo('ASR-LPT-2024-001'),
                 'kondisi' => 'baru',
                 'kondisi_keterangan' => null,
@@ -53,7 +53,7 @@ class FormPemeriksaanSeeder extends Seeder
             [
                 'nomor_form' => 'PBR-0002',
                 'teknisi' => $teknisi2,
-                'pengguna_employee_id' => 'SEED06',
+                'pengguna_employee_id' => 'USR003',
                 'asset' => $assetByNo('ASR-LPT-2024-002'),
                 'kondisi' => 'lama',
                 'kondisi_keterangan' => null,
@@ -75,7 +75,7 @@ class FormPemeriksaanSeeder extends Seeder
             [
                 'nomor_form' => 'PBR-0003',
                 'teknisi' => $teknisi1,
-                'pengguna_employee_id' => 'SEED05',
+                'pengguna_employee_id' => 'USR002',
                 'asset' => $assetByNo('ASR-LPT-2024-003'),
                 'kondisi' => 'baru',
                 'kondisi_keterangan' => null,
@@ -97,7 +97,7 @@ class FormPemeriksaanSeeder extends Seeder
             [
                 'nomor_form' => 'PBR-0004',
                 'teknisi' => $teknisi2,
-                'pengguna_employee_id' => 'SEED04',
+                'pengguna_employee_id' => 'USR001',
                 'asset' => $assetByNo('ASR-DTK-2024-002'),
                 'kondisi' => 'lama',
                 'kondisi_keterangan' => 'PC digunakan sejak 2023, sebagian komponen mulai aus.',
@@ -122,7 +122,7 @@ class FormPemeriksaanSeeder extends Seeder
             [
                 'nomor_form' => 'PBR-0005',
                 'teknisi' => $teknisi1,
-                'pengguna_employee_id' => 'SEED04',
+                'pengguna_employee_id' => 'USR001',
                 'asset' => $assetByNo('ASR-LPT-2024-001'),
                 'kondisi' => 'baru',
                 'kondisi_keterangan' => null,
@@ -146,7 +146,7 @@ class FormPemeriksaanSeeder extends Seeder
             [
                 'nomor_form' => 'PBR-0006',
                 'teknisi' => $teknisi2,
-                'pengguna_employee_id' => 'SEED06',
+                'pengguna_employee_id' => 'USR003',
                 'asset' => $assetByNo('ASR-LPT-2024-002'),
                 'kondisi' => 'lama',
                 'kondisi_keterangan' => null,
@@ -170,7 +170,7 @@ class FormPemeriksaanSeeder extends Seeder
             [
                 'nomor_form' => 'PBR-0007',
                 'teknisi' => $teknisi1,
-                'pengguna_employee_id' => 'SEED05',
+                'pengguna_employee_id' => 'USR002',
                 'asset' => $assetByNo('ASR-LPT-2024-003'),
                 'kondisi' => 'baru',
                 'kondisi_keterangan' => null,
@@ -192,7 +192,7 @@ class FormPemeriksaanSeeder extends Seeder
             [
                 'nomor_form' => 'PBR-0008',
                 'teknisi' => $teknisi2,
-                'pengguna_employee_id' => 'SEED04',
+                'pengguna_employee_id' => 'USR001',
                 'asset' => $assetByNo('ASR-DTK-2024-002'),
                 'kondisi' => 'lama',
                 'kondisi_keterangan' => 'Kondisi fisik baik, namun perlu pembersihan debu.',
@@ -214,7 +214,7 @@ class FormPemeriksaanSeeder extends Seeder
             [
                 'nomor_form' => 'PBR-0009',
                 'teknisi' => $teknisi1,
-                'pengguna_employee_id' => 'SEED04',
+                'pengguna_employee_id' => 'USR001',
                 'asset' => $assetByNo('ASR-LPT-2024-001'),
                 'kondisi' => 'lama',
                 'kondisi_keterangan' => null,
