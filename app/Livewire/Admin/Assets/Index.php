@@ -114,8 +114,8 @@ class Index extends Component
             return;
         }
 
-        FormPemeriksaan::where('asset_id', $asset->id)->update(['asset_id' => null]);
-        FormPerawatan::where('asset_id', $asset->id)->update(['asset_id' => null]);
+        FormPemeriksaan::withTrashed()->where('asset_id', $asset->id)->update(['asset_id' => null]);
+        FormPerawatan::withTrashed()->where('asset_id', $asset->id)->update(['asset_id' => null]);
         \App\Models\FormPengembalianItem::where('asset_id', $asset->id)->delete();
 
         $asset->forceDelete();
@@ -156,8 +156,8 @@ class Index extends Component
         $assets = Asset::whereIn('id', $this->selected)->get();
         $deleted = 0;
         foreach ($assets as $asset) {
-            FormPemeriksaan::where('asset_id', $asset->id)->update(['asset_id' => null]);
-            FormPerawatan::where('asset_id', $asset->id)->update(['asset_id' => null]);
+            FormPemeriksaan::withTrashed()->where('asset_id', $asset->id)->update(['asset_id' => null]);
+            FormPerawatan::withTrashed()->where('asset_id', $asset->id)->update(['asset_id' => null]);
             \App\Models\FormPengembalianItem::where('asset_id', $asset->id)->delete();
 
             $asset->forceDelete();

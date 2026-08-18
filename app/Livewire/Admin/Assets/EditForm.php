@@ -101,7 +101,7 @@ class EditForm extends Component
                 'status' => $this->assignedEmployeeId ? 'active' : 'inactive',
                 'operating_unit' => $this->operatingUnit ?: null,
                 'site_location_asset' => $this->siteLocationAsset ?: null,
-                'assigned_employee_id' => $this->assignedEmployeeId,
+                'assigned_employee_id' => $this->assignedEmployeeId ?: null,
             ]);
 
             ActivityLogger::log('update', "Mengubah asset: {$this->noAsset} - {$this->namaPerangkat}", 'App\Models\Asset', $this->assetModel?->id, ['no_asset' => $this->noAsset]);

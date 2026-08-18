@@ -79,7 +79,7 @@ class CreateForm extends Component
                 'status' => $this->assignedEmployeeId ? 'active' : 'inactive',
                 'operating_unit' => $this->operatingUnit ?: null,
                 'site_location_asset' => $this->siteLocationAsset ?: null,
-                'assigned_employee_id' => $this->assignedEmployeeId,
+                'assigned_employee_id' => $this->assignedEmployeeId ?: null,
             ]);
 
             ActivityLogger::log('create', "Menambahkan asset baru: {$this->noAsset} - {$this->namaPerangkat}", 'App\Models\Asset', null, ['no_asset' => $this->noAsset]);
