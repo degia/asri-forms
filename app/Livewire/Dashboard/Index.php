@@ -414,6 +414,7 @@ class Index extends Component
     {
         $this->empAssetSites = Site::whereIn('id_site', Employee::whereNotNull('site')
             ->where('site', '!=', '')
+            ->where('status', Employee::STATUS_ACTIVE)
             ->distinct()
             ->pluck('site'))
             ->orderBy('site')
@@ -431,7 +432,8 @@ class Index extends Component
             ->toArray();
 
         $query = Employee::whereNotNull('site')
-            ->where('site', '!=', '');
+            ->where('site', '!=', '')
+            ->where('status', Employee::STATUS_ACTIVE);
 
         if ($this->filterEmpAssetSite) {
             $query->where('site', $this->filterEmpAssetSite);

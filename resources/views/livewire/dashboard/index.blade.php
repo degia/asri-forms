@@ -623,7 +623,7 @@
     {{-- Report 7: Employee Punya vs Tidak Punya Asset by Site --}}
     <div class="glass-card p-5">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
-            <h3 class="text-sm font-bold text-primary">{{ __('Employee Punya vs Tidak Punya Asset by Site') }}</h3>
+            <h3 class="text-sm font-bold text-primary">{{ __('Employee Punya vs Tidak Punya Asset by Site (Active Only)') }}</h3>
             <div class="flex items-center gap-2">
                 <label class="text-xs text-muted">{{ __('Site') }}:</label>
                 <select wire:model.live.debounce.300ms="filterEmpAssetSite"
