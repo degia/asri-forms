@@ -55,6 +55,14 @@ class Index extends Component
 
     public array $empAssetSites = [];
 
+    public array $orgHierarchy = [];
+
+    public array $empStatusData = [];
+
+    public string $filterEmpStatusSite = '';
+
+    public array $empStatusSites = [];
+
     public function mount(): void
     {
         $this->endDate = now()->format('Y-m-d');
@@ -67,6 +75,7 @@ class Index extends Component
             ->map(fn ($s) => ['id' => $s->id_site, 'name' => $s->site])
             ->toArray();
         $this->loadEmpAssetSites();
+        $this->loadEmpStatusSites();
         $this->loadTrendFilterOptions();
         $this->loadAll();
     }
@@ -94,6 +103,11 @@ class Index extends Component
     public function updatedFilterEmpAssetSite(): void
     {
         $this->loadEmployeesAssetBySite();
+    }
+
+    public function updatedFilterEmpStatusSite(): void
+    {
+        $this->loadEmpStatusData();
     }
 
     public function updatedFilterTrendAssetOu(): void
@@ -179,6 +193,8 @@ class Index extends Component
         $this->loadTrendPerawatan();
         $this->loadPerawatanVsBelumByOperatingUnit();
         $this->loadEmployeesAssetBySite();
+        $this->loadOrgHierarchy();
+        $this->loadEmpStatusData();
         $this->dispatch('chartsUpdated');
     }
 
@@ -454,6 +470,95 @@ class Index extends Component
 
         usort($result, fn ($a, $b) => $b['total'] <=> $a['total']);
         $this->employeesAssetBySite = $result;
+    }
+
+    private function loadOrgHierarchy(): void
+    {
+        $employees = Employee::whereNull('deleted_at')
+            ->get(['nik', 'directorate_id', 'divisi_id', 'departement_id', 'sub_departement_id']);
+
+        $directorates = \App\Models\Directorate::with(['divisis.departements.subDepartements'])->get();
+
+        $hierarchy = [];
+        $di = 0;
+        foreach ($directorates as $dir) {
+            $dirCount = $employees->where('directorate_id', $dir->id)->count();
+            $divisis = [];
+            $vi = 0;
+            foreach ($dir->divisis as $div) {
+                $divCount = $employees->where('divisi_id', $div->id)->count();
+                $departements = [];
+                $dei = 0;
+                foreach ($div->departements as $dep) {
+                    $depCount = $employees->where('departement_id', $dep->id)->count();
+                    $subDeps = [];
+                    $si = 0;
+                    foreach ($dep->subDepartements as $sub) {
+                        $subDeps[] = [
+                            'key' => "d{$di}v{$vi}e{$dei}s{$si}",
+                            'name' => $sub->name,
+                            'count' => $employees->where('sub_departement_id', $sub->id)->count(),
+                        ];
+                        $si++;
+                    }
+                    $departements[] = [
+                        'key' => "d{$di}v{$vi}e{$dei}",
+                        'name' => $dep->name,
+                        'count' => $depCount,
+                        'sub_departements' => $subDeps,
+                    ];
+                    $dei++;
+                }
+                $divisis[] = [
+                    'key' => "d{$di}v{$vi}",
+                    'name' => $div->name,
+                    'count' => $divCount,
+                    'departements' => $departements,
+                ];
+                $vi++;
+            }
+            $hierarchy[] = [
+                'key' => "d{$di}",
+                'name' => $dir->name,
+                'count' => $dirCount,
+                'divisis' => $divisis,
+            ];
+            $di++;
+        }
+
+        $this->orgHierarchy = $hierarchy;
+    }
+
+    private function loadEmpStatusSites(): void
+    {
+        $this->empStatusSites = Site::whereIn('id_site', Employee::whereNull('deleted_at')
+            ->whereNotNull('site')
+            ->where('site', '!=', '')
+            ->distinct()
+            ->pluck('site'))
+            ->orderBy('site')
+            ->get(['id_site', 'site'])
+            ->map(fn ($s) => ['id' => $s->id_site, 'name' => "{$s->id_site} - {$s->site}"])
+            ->toArray();
+    }
+
+    private function loadEmpStatusData(): void
+    {
+        $query = Employee::whereNull('deleted_at')
+            ->whereNotNull('site')
+            ->where('site', '!=', '');
+
+        if ($this->filterEmpStatusSite) {
+            $query->where('site', $this->filterEmpStatusSite);
+        }
+
+        $active = (clone $query)->where('status', Employee::STATUS_ACTIVE)->count();
+        $resigned = (clone $query)->where('status', Employee::STATUS_RESIGNED)->count();
+
+        $this->empStatusData = [
+            'active' => $active,
+            'resigned' => $resigned,
+        ];
     }
 
     public function render()

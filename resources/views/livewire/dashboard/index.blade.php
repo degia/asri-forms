@@ -486,6 +486,140 @@
         @endif
     </div>
 
+    {{-- Report 6b: Employee Active vs Resigned Bar Chart --}}
+    <div class="glass-card p-5">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
+            <h3 class="text-sm font-bold text-primary">{{ __('Employee Active vs Resigned') }}</h3>
+            <div class="flex items-center gap-2">
+                <label class="text-xs text-muted">{{ __('Site') }}:</label>
+                <select wire:model.live.debounce.300ms="filterEmpStatusSite"
+                    class="px-3 py-1.5 rounded-lg text-xs transition-colors duration-200"
+                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                    <option value="">{{ __('Semua') }}</option>
+                    @foreach($empStatusSites as $site)
+                        <option value="{{ $site['id'] }}">{{ $site['name'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        @php
+            $empActive = $empStatusData['active'] ?? 0;
+            $empResigned = $empStatusData['resigned'] ?? 0;
+            $empTotal = $empActive + $empResigned;
+        @endphp
+
+        @if($empTotal > 0)
+            @php
+                $empChartKey = md5($empActive . $empResigned . $filterEmpStatusSite);
+            @endphp
+            <div x-data="empBarChart()" wire:ignore wire:key="emp-status-{{ $empChartKey }}"
+                 data-active="{{ $empActive }}"
+                 data-resigned="{{ $empResigned }}">
+                <div class="flex flex-col md:flex-row items-center gap-6">
+                    <div class="flex-1 h-52">
+                        <canvas x-ref="empBar"></canvas>
+                    </div>
+                    <div class="flex-shrink-0 space-y-3 w-full md:w-48">
+                        <div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--color-bg-secondary);">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full" style="background: #22c55e;"></span>
+                                <span class="text-sm font-medium" style="color: var(--color-text);">{{ __('Active') }}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-sm font-bold" style="color: var(--color-text);">{{ $empActive }}</span>
+                                <span class="text-xs ml-1" style="color: var(--color-text-muted);">
+                                    ({{ $empTotal > 0 ? round(($empActive / $empTotal) * 100, 1) : 0 }}%)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--color-bg-secondary);">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full" style="background: #ef4444;"></span>
+                                <span class="text-sm font-medium" style="color: var(--color-text);">{{ __('Resigned') }}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-sm font-bold" style="color: var(--color-text);">{{ $empResigned }}</span>
+                                <span class="text-xs ml-1" style="color: var(--color-text-muted);">
+                                    ({{ $empTotal > 0 ? round(($empResigned / $empTotal) * 100, 1) : 0 }}%)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 rounded-lg font-bold" style="background: var(--color-bg-secondary);">
+                            <span class="text-sm" style="color: var(--color-text);">{{ __('Total') }}</span>
+                            <span class="text-sm" style="color: var(--color-text);">{{ $empTotal }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                function empBarChart() {
+                    return {
+                        chart: null,
+                        init() {
+                            this.$nextTick(() => {
+                                var ctx = this.$refs.empBar;
+                                if (!ctx || typeof Chart === 'undefined') return;
+                                if (this.chart) this.chart.destroy();
+                                var existing = Chart.getChart(ctx);
+                                if (existing) existing.destroy();
+                                var active = parseInt(this.$el.dataset.active) || 0;
+                                var resigned = parseInt(this.$el.dataset.resigned) || 0;
+                                var isDark = document.documentElement.classList.contains('dark');
+                                var gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+                                var textColor = isDark ? '#d1d5db' : '#6b7280';
+                                var labels = {!! json_encode([__('Active'), __('Resigned')]) !!};
+                                this.chart = new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: labels,
+                                        datasets: [{
+                                            data: [active, resigned],
+                                            backgroundColor: ['#22c55e', '#ef4444'],
+                                            borderRadius: 6,
+                                            maxBarThickness: 80,
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        animation: { duration: 400 },
+                                        plugins: {
+                                            legend: { display: false },
+                                            tooltip: {
+                                                backgroundColor: isDark ? '#1f2937' : '#ffffff',
+                                                titleColor: isDark ? '#f3f4f6' : '#111827',
+                                                bodyColor: isDark ? '#d1d5db' : '#4b5563',
+                                                borderColor: isDark ? '#374151' : '#e5e7eb',
+                                                borderWidth: 1,
+                                                padding: 10,
+                                                callbacks: {
+                                                    label: function(tipCtx) {
+                                                        var total = tipCtx.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                                                        var pct = total > 0 ? ((tipCtx.raw / total) * 100).toFixed(1) : 0;
+                                                        return tipCtx.raw + ' (' + pct + '%)';
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        scales: {
+                                            x: { grid: { display: false }, ticks: { color: textColor, font: { size: 12, weight: '500' } } },
+                                            y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 }, stepSize: 10 } }
+                                        }
+                                    }
+                                });
+                            });
+                        },
+                        destroy() { if (this.chart) this.chart.destroy(); }
+                    }
+                }
+            </script>
+        @else
+            <p class="text-sm text-muted text-center py-4">{{ __('Tidak ada data employee') }}</p>
+        @endif
+    </div>
+
     {{-- Report 7: Employee Punya vs Tidak Punya Asset by Site --}}
     <div class="glass-card p-5">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
@@ -626,5 +760,235 @@
                 {{ __('Lihat Semua Employees') }} →
             </a>
         </div>
+    </div>
+
+    {{-- Report 8: Organization Hierarchy Tree --}}
+    @php
+        $totalEmployees = count($orgHierarchy) > 0 ? collect($orgHierarchy)->sum('count') : 0;
+    @endphp
+    <div class="glass-card p-5 overflow-hidden">
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <h3 class="text-lg font-semibold" style="color: var(--color-text);">
+                {{ __('Hierarki Organisasi') }}
+                <span class="text-sm font-normal ml-2 px-2 py-0.5 rounded-full" style="background: var(--color-bg-secondary); color: var(--color-text-secondary);">
+                    {{ $totalEmployees }} {{ __('Employee') }}
+                </span>
+            </h3>
+            <div class="flex items-center gap-1.5" x-data="orgTree()">
+                <button @click="toggleAll(false)"
+                    class="text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors"
+                    style="background: var(--color-bg-secondary); color: var(--color-text-secondary); border: 1px solid var(--color-border);">
+                    {{ __('Sembunyikan Semua') }}
+                </button>
+                <button @click="toggleAll(true)"
+                    class="text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors"
+                    style="background: var(--color-bg-secondary); color: var(--color-text-secondary); border: 1px solid var(--color-border);">
+                    {{ __('Tampilkan Semua') }}
+                </button>
+                <div class="w-px h-5 mx-1" style="background: var(--color-border);"></div>
+                <button @click="zoomOut()"
+                    class="w-7 h-7 flex items-center justify-center rounded-lg font-bold text-sm transition-colors"
+                    style="background: var(--color-bg-secondary); color: var(--color-text); border: 1px solid var(--color-border);"
+                    title="Zoom Out">
+                    −
+                </button>
+                <span class="text-xs font-medium w-12 text-center" style="color: var(--color-text-secondary);" x-text="Math.round(scale * 100) + '%'"></span>
+                <button @click="zoomIn()"
+                    class="w-7 h-7 flex items-center justify-center rounded-lg font-bold text-sm transition-colors"
+                    style="background: var(--color-bg-secondary); color: var(--color-text); border: 1px solid var(--color-border);"
+                    title="Zoom In">
+                    +
+                </button>
+                <button @click="resetZoom()"
+                    class="text-xs px-2 py-1.5 rounded-lg font-medium transition-colors"
+                    style="background: var(--color-bg-secondary); color: var(--color-text-secondary); border: 1px solid var(--color-border);"
+                    title="Reset Zoom">
+                    {{ __('Reset') }}
+                </button>
+            </div>
+        </div>
+
+        @if(count($orgHierarchy) > 0)
+            <style>
+                .org-tree-wrap { overflow: auto; cursor: grab; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-bg-primary); }
+                .org-tree-wrap:active { cursor: grabbing; }
+                .org-tree { display: flex; flex-direction: column; align-items: center; padding: 24px 32px; transform-origin: top center; min-width: min-content; }
+                .org-tree ul { position: relative; display: flex; justify-content: center; padding-top: 20px; list-style: none; }
+                .org-tree li { position: relative; padding: 20px 6px 0; display: flex; flex-direction: column; align-items: center; }
+                .org-tree li::before, .org-tree li::after { content: ''; position: absolute; top: 0; width: 50%; height: 20px; border-top: 2px solid var(--color-border); }
+                .org-tree li::before { right: 50%; border-right: 2px solid var(--color-border); }
+                .org-tree li::after { left: 50%; border-left: 2px solid var(--color-border); }
+                .org-tree li:first-child::before { border: 0; }
+                .org-tree li:last-child::after { border: 0; }
+                .org-tree li:first-child::after { border-radius: 5px 0 0 0; }
+                .org-tree li:last-child::before { border-right: 2px solid var(--color-border); border-radius: 0 5px 0 0; }
+                .org-tree ul ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 2px solid var(--color-border); width: 0; height: 20px; }
+                .org-node { display: inline-flex; flex-direction: column; align-items: center; padding: 8px 14px; border-radius: 8px; font-size: 11px; font-weight: 500; text-decoration: none; white-space: nowrap; border: 2px solid; min-width: 80px; text-align: center; transition: transform 0.15s, box-shadow 0.15s; }
+                .org-node:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+                .org-node.has-children { cursor: pointer; }
+                .org-node .count { font-size: 13px; font-weight: 700; margin-top: 2px; }
+                .org-node .arrow { display: inline-block; font-size: 9px; margin-left: 4px; transition: transform 0.2s; }
+                .org-node .arrow.open { transform: rotate(90deg); }
+                .org-root { background: var(--color-primary); color: white; border-color: var(--color-primary); padding: 10px 20px; font-size: 13px; font-weight: 700; }
+                .org-dir { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+                .org-div { background: var(--color-accent); color: white; border-color: var(--color-accent); }
+                .org-dep { background: var(--color-bg-secondary); color: var(--color-text); border-color: var(--color-border); }
+                .org-sub { background: var(--color-bg-tertiary); color: var(--color-text-secondary); border-color: var(--color-border); font-size: 10px; padding: 5px 10px; min-width: 60px; }
+            </style>
+
+            <div x-data="orgTree()" @org-toggle.window="toggleAll($event.detail.expanded)">
+                <div class="org-tree-wrap" x-ref="treeWrap"
+                     @wheel.prevent="onWheel($event)"
+                     @mousedown="panStart($event)"
+                     @mousemove="panMove($event)"
+                     @mouseup="panEnd($event)"
+                     @mouseleave="panEnd($event)"
+                     style="max-height: 600px;">
+                    <div class="org-tree" :style="'transform: scale(' + scale + '); margin-bottom: ' + ((1 - scale) * 400) + 'px;'">
+                        <div class="org-node org-root mb-1 has-children" @click="toggle('root')">
+                            <span>
+                                {{ __('Total Employee') }}
+                                <span class="arrow" :class="isOpen('root') && 'open'">▶</span>
+                            </span>
+                            <span class="count">{{ $totalEmployees }}</span>
+                        </div>
+
+                        <div x-show="isOpen('root')" x-transition.duration.300ms>
+                        <ul>
+                            @foreach($orgHierarchy as $dir)
+                                <li>
+                                    <div class="org-node org-dir has-children" @click="toggle('{{ $dir['key'] }}')">
+                                        <span>
+                                            {{ $dir['name'] }}
+                                            @if(count($dir['divisis']) > 0)
+                                                <span class="arrow" :class="isOpen('{{ $dir['key'] }}') && 'open'">▶</span>
+                                            @endif
+                                        </span>
+                                        <span class="count">{{ $dir['count'] }}</span>
+                                    </div>
+
+                                    @if(count($dir['divisis']) > 0)
+                                        <div x-show="isOpen('{{ $dir['key'] }}')" x-transition.duration.300ms>
+                                        <ul>
+                                            @foreach($dir['divisis'] as $div)
+                                                <li>
+                                                    <div class="org-node org-div has-children" @click="toggle('{{ $div['key'] }}')">
+                                                        <span>
+                                                            {{ $div['name'] }}
+                                                            @if(count($div['departements']) > 0)
+                                                                <span class="arrow" :class="isOpen('{{ $div['key'] }}') && 'open'">▶</span>
+                                                            @endif
+                                                        </span>
+                                                        <span class="count">{{ $div['count'] }}</span>
+                                                    </div>
+
+                                                    @if(count($div['departements']) > 0)
+                                                        <div x-show="isOpen('{{ $div['key'] }}')" x-transition.duration.300ms>
+                                                        <ul>
+                                                            @foreach($div['departements'] as $dep)
+                                                                <li>
+                                                                    <div class="org-node org-dep has-children" @click="toggle('{{ $dep['key'] }}')">
+                                                                        <span>
+                                                                            {{ $dep['name'] }}
+                                                                            @if(count($dep['sub_departements']) > 0)
+                                                                                <span class="arrow" :class="isOpen('{{ $dep['key'] }}') && 'open'">▶</span>
+                                                                            @endif
+                                                                        </span>
+                                                                        <span class="count">{{ $dep['count'] }}</span>
+                                                                    </div>
+
+                                                                    @if(count($dep['sub_departements']) > 0)
+                                                                        <div x-show="isOpen('{{ $dep['key'] }}')" x-transition.duration.300ms>
+                                                                        <ul>
+                                                                            @foreach($dep['sub_departements'] as $sub)
+                                                                                <li>
+                                                                                    <div class="org-node org-sub">
+                                                                                        <span>{{ $sub['name'] }}</span>
+                                                                                        <span class="count">{{ $sub['count'] }}</span>
+                                                                                    </div>
+                                                                                </li>
+                                                                            @endforeach
+                                                                        </ul>
+                                                                        </div>
+                                                                    @endif
+                                                                </li>
+                                                            @endforeach
+                                                        </ul>
+                                                        </div>
+                                                    @endif
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                        </div>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                function orgTree() {
+                    return {
+                        open: {},
+                        allExpanded: true,
+                        scale: 0.55,
+                        minScale: 0.2,
+                        maxScale: 2,
+                        panning: false,
+                        startX: 0,
+                        startY: 0,
+                        scrollLeft: 0,
+                        scrollTop: 0,
+                        toggle(key) {
+                            this.open[key] = !this.open[key];
+                        },
+                        isOpen(key) {
+                            return this.open[key] ?? true;
+                        },
+                        toggleAll(expanded) {
+                            this.allExpanded = expanded;
+                            this.open = {};
+                        },
+                        zoomIn() {
+                            this.scale = Math.min(this.maxScale, +(this.scale + 0.1).toFixed(2));
+                        },
+                        zoomOut() {
+                            this.scale = Math.max(this.minScale, +(this.scale - 0.1).toFixed(2));
+                        },
+                        resetZoom() {
+                            this.scale = 0.55;
+                            var wrap = this.$refs.treeWrap;
+                            if (wrap) { wrap.scrollLeft = 0; wrap.scrollTop = 0; }
+                        },
+                        onWheel(e) {
+                            if (e.deltaY < 0) { this.zoomIn(); } else { this.zoomOut(); }
+                        },
+                        panStart(e) {
+                            this.panning = true;
+                            this.startX = e.pageX - this.$refs.treeWrap.offsetLeft;
+                            this.startY = e.pageY - this.$refs.treeWrap.offsetTop;
+                            this.scrollLeft = this.$refs.treeWrap.scrollLeft;
+                            this.scrollTop = this.$refs.treeWrap.scrollTop;
+                        },
+                        panMove(e) {
+                            if (!this.panning) return;
+                            e.preventDefault();
+                            var x = e.pageX - this.$refs.treeWrap.offsetLeft;
+                            var y = e.pageY - this.$refs.treeWrap.offsetTop;
+                            this.$refs.treeWrap.scrollLeft = this.scrollLeft - (x - this.startX);
+                            this.$refs.treeWrap.scrollTop = this.scrollTop - (y - this.startY);
+                        },
+                        panEnd() {
+                            this.panning = false;
+                        }
+                    }
+                }
+            </script>
+        @else
+            <p class="text-sm text-muted text-center py-4">{{ __('Tidak ada data organisasi') }}</p>
+        @endif
     </div>
 </div>
