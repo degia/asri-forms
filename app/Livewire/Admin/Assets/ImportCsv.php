@@ -350,6 +350,9 @@ class ImportCsv extends Component
                 if ($importedAsset['existed']) {
                     $asset->update($importedAsset['original']);
                 } else {
+                    \App\Models\FormPemeriksaan::withTrashed()->where('asset_id', $asset->id)->update(['asset_id' => null]);
+                    \App\Models\FormPerawatan::withTrashed()->where('asset_id', $asset->id)->update(['asset_id' => null]);
+                    \App\Models\FormPengembalianItem::where('asset_id', $asset->id)->delete();
                     $asset->forceDelete();
                 }
             }
