@@ -89,8 +89,8 @@ class Asset extends Model
     protected static function booted(): void
     {
         static::deleting(function (Asset $asset) {
-            FormPemeriksaan::where('asset_id', $asset->id)->each(fn($f) => $f->delete());
-            FormPerawatan::where('asset_id', $asset->id)->each(fn($f) => $f->delete());
+            FormPemeriksaan::where('asset_id', $asset->id)->where('status', '!=', 'selesai')->each(fn($f) => $f->delete());
+            FormPerawatan::where('asset_id', $asset->id)->where('status', '!=', 'selesai')->each(fn($f) => $f->delete());
             \App\Models\FormPengembalianItem::where('asset_id', $asset->id)->delete();
         });
     }
