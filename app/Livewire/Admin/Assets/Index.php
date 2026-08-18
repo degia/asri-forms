@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Assets;
 
 use App\Helpers\ActivityLogger;
 use App\Models\Asset;
+use App\Models\FormPemeriksaan;
 use App\Models\FormPerawatan;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -107,7 +108,17 @@ class Index extends Component
     {
         $this->authorizeAdmin();
 
-        Asset::find($this->deleteAssetId)->delete();
+        $asset = Asset::find($this->deleteAssetId);
+        if (!$asset) {
+            $this->cancelDelete();
+            return;
+        }
+
+        FormPemeriksaan::where('asset_id', $asset->id)->update(['asset_id' => null]);
+        FormPerawatan::where('asset_id', $asset->id)->update(['asset_id' => null]);
+        \App\Models\FormPengembalianItem::where('asset_id', $asset->id)->delete();
+
+        $asset->forceDelete();
         $this->selected = array_values(array_diff($this->selected, [$this->deleteAssetId]));
 
         ActivityLogger::log('delete', "Menghapus asset: {$this->deleteAssetName}", 'App\Models\Asset', $this->deleteAssetId);
@@ -145,7 +156,11 @@ class Index extends Component
         $assets = Asset::whereIn('id', $this->selected)->get();
         $deleted = 0;
         foreach ($assets as $asset) {
-            $asset->delete();
+            FormPemeriksaan::where('asset_id', $asset->id)->update(['asset_id' => null]);
+            FormPerawatan::where('asset_id', $asset->id)->update(['asset_id' => null]);
+            \App\Models\FormPengembalianItem::where('asset_id', $asset->id)->delete();
+
+            $asset->forceDelete();
             $deleted++;
         }
 
