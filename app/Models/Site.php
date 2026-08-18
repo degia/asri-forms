@@ -22,4 +22,12 @@ class Site extends Model
         'address',
         'url_maps',
     ];
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Site $site) {
+            Employee::where('site', $site->id_site)->each(fn($e) => $e->delete());
+            Asset::where('operating_unit', $site->id_site)->each(fn($a) => $a->delete());
+        });
+    }
 }

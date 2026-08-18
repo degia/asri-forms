@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -65,6 +66,15 @@ class User extends Authenticatable
             if ($user->nik !== null) {
                 Employee::where('nik', $user->nik)->update(['email' => null]);
             }
+
+            DB::table('model_has_roles')->where('model_id', $user->email)->delete();
+            DB::table('model_has_permissions')->where('model_id', $user->email)->delete();
+
+            FormPemeriksaan::where('user_id', $user->email)->each(fn($f) => $f->delete());
+            FormPerawatan::where('user_id', $user->email)->each(fn($f) => $f->delete());
+            FormPengembalian::where('teknisi_id', $user->email)->each(fn($f) => $f->delete());
+            FormApproval::where('user_id', $user->email)->delete();
+            ActivityLog::where('user_id', $user->email)->delete();
         });
     }
 

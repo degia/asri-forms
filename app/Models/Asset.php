@@ -86,6 +86,15 @@ class Asset extends Model
         return $this->belongsTo(Employee::class, 'assigned_employee_id');
     }
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Asset $asset) {
+            FormPemeriksaan::where('asset_id', $asset->id)->each(fn($f) => $f->delete());
+            FormPerawatan::where('asset_id', $asset->id)->each(fn($f) => $f->delete());
+            \App\Models\FormPengembalianItem::where('asset_id', $asset->id)->delete();
+        });
+    }
+
     public function getIsActiveAttribute(): bool
     {
         return $this->assigned_employee_id !== null;

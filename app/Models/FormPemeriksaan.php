@@ -36,6 +36,15 @@ class FormPemeriksaan extends Model
         'tindakan_categories' => 'array',
     ];
 
+    protected static function booted(): void
+    {
+        static::deleting(function (FormPemeriksaan $form) {
+            $form->items()->delete();
+            $form->approvals()->delete();
+            $form->attachments()->delete();
+        });
+    }
+
     public function teknisi(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');

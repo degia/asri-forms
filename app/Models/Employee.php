@@ -50,6 +50,11 @@ class Employee extends Model
         static::deleting(function (Employee $employee) {
             $employee->email = null;
             User::where('nik', $employee->nik)->update(['nik' => null]);
+
+            Asset::where('assigned_employee_id', $employee->nik)->each(fn($a) => $a->delete());
+            FormPemeriksaan::where('pengguna_employee_id', $employee->nik)->each(fn($f) => $f->delete());
+            FormPerawatan::where('pengguna_employee_id', $employee->nik)->each(fn($f) => $f->delete());
+            FormPengembalian::where('pengguna_employee_id', $employee->nik)->each(fn($f) => $f->delete());
         });
     }
 

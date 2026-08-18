@@ -31,6 +31,13 @@ class FormPengembalian extends Model
         'submitted_at' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        static::deleting(function (FormPengembalian $form) {
+            $form->items()->delete();
+        });
+    }
+
     public function teknisi(): BelongsTo
     {
         return $this->belongsTo(User::class, 'teknisi_id');

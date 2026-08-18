@@ -34,6 +34,15 @@ class FormPerawatan extends Model
         'submitted_at' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        static::deleting(function (FormPerawatan $form) {
+            $form->items()->delete();
+            $form->approvals()->delete();
+            $form->attachments()->delete();
+        });
+    }
+
     public function teknisi(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
