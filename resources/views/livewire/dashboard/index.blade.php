@@ -479,6 +479,36 @@
                             </tr>
                         @endforeach
                     </tbody>
+                    <tfoot>
+                        @php
+                            $totalAsset = collect($perawatanVsBelum)->sum('total');
+                            $totalDilakukan = collect($perawatanVsBelum)->sum('dilakukan');
+                            $totalBelum = collect($perawatanVsBelum)->sum('belum');
+                            $avgPct = $totalAsset > 0 ? round(($totalDilakukan / $totalAsset) * 100, 1) : 0;
+                        @endphp
+                        <tr class="font-bold border-t-2" style="border-color: var(--color-border);">
+                            <td class="py-2.5 text-primary">{{ __('Total') }}</td>
+                            <td class="py-2.5 text-right font-semibold text-secondary">{{ $totalAsset }}</td>
+                            <td class="py-2.5 text-right">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                                    {{ $totalDilakukan }}
+                                </span>
+                            </td>
+                            <td class="py-2.5 text-right">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                                    {{ $totalBelum }}
+                                </span>
+                            </td>
+                            <td class="py-2.5 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <div class="w-16 h-1.5 rounded-full overflow-hidden" style="background: var(--color-bg-tertiary);">
+                                        <div class="h-full rounded-full" style="width: {{ $avgPct }}%; background: {{ $avgPct >= 80 ? '#10b981' : ($avgPct >= 50 ? '#eab308' : '#ef4444') }};"></div>
+                                    </div>
+                                    <span class="text-xs text-secondary w-10 text-right">{{ $avgPct }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         @else
