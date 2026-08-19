@@ -155,7 +155,7 @@ class ImportCsv extends Component
         };
     }
 
-    private function resolveOrgName(string $value, string $model): ?int
+    private function resolveOrgName(string $value, string $model, ?string $parentColumn = null, ?int $parentId = null): ?int
     {
         $name = trim($value);
 
@@ -163,7 +163,12 @@ class ImportCsv extends Component
             return null;
         }
 
-        return $model::where('name', $name)->value('id');
+        $query = $model::where('name', $name);
+        if ($parentColumn && $parentId !== null) {
+            $query->where($parentColumn, $parentId);
+        }
+
+        return $query->value('id');
     }
 
     public function processData(): void
@@ -232,9 +237,9 @@ class ImportCsv extends Component
                 }
 
                 $directorateId = $this->resolveOrgName($data['directorate'] ?? '', Directorate::class);
-                $divisiId = $this->resolveOrgName($data['divisi'] ?? '', Divisi::class);
-                $departementId = $this->resolveOrgName($data['departement'] ?? '', Departement::class);
-                $subDepartementId = $this->resolveOrgName($data['sub_departement'] ?? '', SubDepartement::class);
+                $divisiId = $this->resolveOrgName($data['divisi'] ?? '', Divisi::class, 'directorate_id', $directorateId);
+                $departementId = $this->resolveOrgName($data['departement'] ?? '', Departement::class, 'divisi_id', $divisiId);
+                $subDepartementId = $this->resolveOrgName($data['sub_departement'] ?? '', SubDepartement::class, 'departement_id', $departementId);
                 $positionId = $this->resolveOrgName($data['position'] ?? '', Position::class);
 
                 if (($data['directorate'] ?? '') !== '' && $directorateId === null) {
