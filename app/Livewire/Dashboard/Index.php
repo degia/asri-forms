@@ -3,11 +3,13 @@
 namespace App\Livewire\Dashboard;
 
 use App\Models\Asset;
+use App\Models\Directorate;
 use App\Models\Employee;
 use App\Models\FormPemeriksaan;
 use App\Models\FormPerawatan;
 use App\Models\Site;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
@@ -63,17 +65,21 @@ class Index extends Component
 
     public array $empStatusSites = [];
 
+    private int $cacheTTL = 300;
+
     public function mount(): void
     {
         $this->endDate = now()->format('Y-m-d');
         $this->startDate = now()->subDays(29)->format('Y-m-d');
-        $this->operatingUnits = Site::whereIn('id_site', Asset::whereNotNull('operating_unit')
-            ->where('operating_unit', '!=', '')
-            ->pluck('operating_unit'))
-            ->orderBy('site')
-            ->get()
-            ->map(fn ($s) => ['id' => $s->id_site, 'name' => $s->site])
-            ->toArray();
+        $this->operatingUnits = Cache::remember('dashboard:operatingUnits', $this->cacheTTL, function () {
+            return Site::whereIn('id_site', Asset::whereNotNull('operating_unit')
+                ->where('operating_unit', '!=', '')
+                ->pluck('operating_unit'))
+                ->orderBy('site')
+                ->get()
+                ->map(fn ($s) => ['id' => $s->id_site, 'name' => $s->site])
+                ->toArray();
+        });
         $this->loadEmpAssetSites();
         $this->loadEmpStatusSites();
         $this->loadTrendFilterOptions();
@@ -82,12 +88,14 @@ class Index extends Component
 
     public function updatedStartDate(): void
     {
-        $this->loadAll();
+        $this->loadPerawatanBySite();
+        $this->loadPemeriksaanBySite();
     }
 
     public function updatedEndDate(): void
     {
-        $this->loadAll();
+        $this->loadPerawatanBySite();
+        $this->loadPemeriksaanBySite();
     }
 
     public function updatedFilterOperatingUnit(): void
@@ -127,37 +135,43 @@ class Index extends Component
 
     private function loadTrendFilterOptions(): void
     {
-        $this->trendAssetOus = Site::whereIn('id_site', Asset::whereHas('perawatan')
-            ->whereNotNull('operating_unit')
-            ->where('operating_unit', '!=', '')
-            ->pluck('operating_unit')
-            ->unique())
-            ->orderBy('site')
-            ->get(['id_site', 'site'])
-            ->map(fn ($s) => ['id' => $s->id_site, 'name' => $s->site])
-            ->toArray();
+        $this->trendAssetOus = Cache::remember('dashboard:trendAssetOus', $this->cacheTTL, function () {
+            return Site::whereIn('id_site', Asset::whereHas('perawatan')
+                ->whereNotNull('operating_unit')
+                ->where('operating_unit', '!=', '')
+                ->pluck('operating_unit')
+                ->unique())
+                ->orderBy('site')
+                ->get(['id_site', 'site'])
+                ->map(fn ($s) => ['id' => $s->id_site, 'name' => $s->site])
+                ->toArray();
+        });
 
-        $this->trendSiteLocations = Site::whereIn('id_site', FormPerawatan::whereNotNull('submitted_at')
-            ->whereNotNull('site_location')
-            ->where('site_location', '!=', '')
-            ->distinct()
-            ->pluck('site_location'))
-            ->orderBy('site')
-            ->get(['id_site', 'site'])
-            ->map(fn ($s) => ['id' => $s->id_site, 'name' => $s->site])
-            ->toArray();
+        $this->trendSiteLocations = Cache::remember('dashboard:trendSiteLocations', $this->cacheTTL, function () {
+            return Site::whereIn('id_site', FormPerawatan::whereNotNull('submitted_at')
+                ->whereNotNull('site_location')
+                ->where('site_location', '!=', '')
+                ->distinct()
+                ->pluck('site_location'))
+                ->orderBy('site')
+                ->get(['id_site', 'site'])
+                ->map(fn ($s) => ['id' => $s->id_site, 'name' => $s->site])
+                ->toArray();
+        });
 
-        $this->trendSiteUsers = Site::whereIn('id_site', FormPerawatan::whereNotNull('submitted_at')
-            ->whereNotNull('pengguna_employee_id')
-            ->join('employees', 'employees.nik', '=', 'form_perawatan.pengguna_employee_id')
-            ->whereNotNull('employees.site')
-            ->where('employees.site', '!=', '')
-            ->distinct()
-            ->pluck('employees.site'))
-            ->orderBy('site')
-            ->get(['id_site', 'site'])
-            ->map(fn ($s) => ['id' => $s->id_site, 'name' => $s->site])
-            ->toArray();
+        $this->trendSiteUsers = Cache::remember('dashboard:trendSiteUsers', $this->cacheTTL, function () {
+            return Site::whereIn('id_site', FormPerawatan::whereNotNull('submitted_at')
+                ->whereNotNull('pengguna_employee_id')
+                ->join('employees', 'employees.nik', '=', 'form_perawatan.pengguna_employee_id')
+                ->whereNotNull('employees.site')
+                ->where('employees.site', '!=', '')
+                ->distinct()
+                ->pluck('employees.site'))
+                ->orderBy('site')
+                ->get(['id_site', 'site'])
+                ->map(fn ($s) => ['id' => $s->id_site, 'name' => $s->site])
+                ->toArray();
+        });
     }
 
     private function trendQuery(): \Illuminate\Database\Eloquent\Builder
@@ -198,369 +212,390 @@ class Index extends Component
         $this->dispatch('chartsUpdated');
     }
 
-    private function resolveSiteLocation($form): string
+    private function cacheKey(string $prefix, ...$parts): string
     {
-        if ($form->site_location) {
-            return $form->site_location;
-        }
-        if ($form->asset && $form->asset->site_location_asset) {
-            return $form->asset->site_location_asset;
-        }
-        if ($form->asset && $form->asset->operating_unit) {
-            return $form->asset->operating_unit;
-        }
-
-        return 'unknown';
+        return $prefix . ':' . md5(implode(':', array_map(fn ($p) => (string) $p, $parts)));
     }
 
     private function loadPerawatanBySite(): void
     {
-        $start = $this->startDate ? Carbon::parse($this->startDate)->startOfDay() : now()->subDays(29)->startOfDay();
-        $end = $this->endDate ? Carbon::parse($this->endDate)->endOfDay() : now()->endOfDay();
+        $key = $this->cacheKey('dashboard:perawatanBySite', $this->startDate, $this->endDate);
 
-        $forms = FormPerawatan::whereNotNull('submitted_at')
-            ->whereBetween('submitted_at', [$start, $end])
-            ->with(['asset'])
-            ->get();
+        $this->perawatanBySite = Cache::remember($key, $this->cacheTTL, function () {
+            $start = $this->startDate ? Carbon::parse($this->startDate)->startOfDay() : now()->subDays(29)->startOfDay();
+            $end = $this->endDate ? Carbon::parse($this->endDate)->endOfDay() : now()->endOfDay();
 
-        $counts = [];
-        foreach ($forms as $form) {
-            $site = $this->resolveSiteLocation($form);
-            $counts[$site] = ($counts[$site] ?? 0) + 1;
-        }
+            $counts = DB::table('form_perawatan')
+                ->whereNotNull('submitted_at')
+                ->whereBetween('submitted_at', [$start, $end])
+                ->join('assets', 'assets.id', '=', 'form_perawatan.asset_id')
+                ->leftJoin('sites', 'sites.id_site', '=', 'assets.site_location_asset')
+                ->selectRaw('COALESCE(sites.site, assets.site_location_asset, assets.operating_unit, ?) as site_name, COUNT(*) as total', ['unknown'])
+                ->groupBy('site_name')
+                ->orderByDesc('total')
+                ->pluck('total', 'site_name')
+                ->toArray();
 
-        $siteNames = Site::whereIn('id_site', array_keys($counts))
-            ->pluck('site', 'id_site')
-            ->toArray();
+            $result = [];
+            foreach ($counts as $site => $total) {
+                $result[] = ['site' => $site, 'total' => (int) $total];
+            }
 
-        $result = [];
-        foreach ($counts as $siteId => $count) {
-            $result[] = [
-                'site' => $siteNames[$siteId] ?? $siteId,
-                'total' => (int) $count,
-            ];
-        }
-
-        usort($result, fn ($a, $b) => $b['total'] <=> $a['total']);
-        $this->perawatanBySite = $result;
+            return $result;
+        });
     }
 
     private function loadPemeriksaanBySite(): void
     {
-        $start = $this->startDate ? Carbon::parse($this->startDate)->startOfDay() : now()->subDays(29)->startOfDay();
-        $end = $this->endDate ? Carbon::parse($this->endDate)->endOfDay() : now()->endOfDay();
+        $key = $this->cacheKey('dashboard:pemeriksaanBySite', $this->startDate, $this->endDate);
 
-        $forms = FormPemeriksaan::whereNotNull('submitted_at')
-            ->whereBetween('submitted_at', [$start, $end])
-            ->with(['asset'])
-            ->get();
+        $this->pemeriksaanBySite = Cache::remember($key, $this->cacheTTL, function () {
+            $start = $this->startDate ? Carbon::parse($this->startDate)->startOfDay() : now()->subDays(29)->startOfDay();
+            $end = $this->endDate ? Carbon::parse($this->endDate)->endOfDay() : now()->endOfDay();
 
-        $counts = [];
-        foreach ($forms as $form) {
-            $site = $this->resolveSiteLocation($form);
-            $counts[$site] = ($counts[$site] ?? 0) + 1;
-        }
+            $counts = DB::table('form_pemeriksaan')
+                ->whereNotNull('submitted_at')
+                ->whereBetween('submitted_at', [$start, $end])
+                ->join('assets', 'assets.id', '=', 'form_pemeriksaan.asset_id')
+                ->leftJoin('sites', 'sites.id_site', '=', 'assets.site_location_asset')
+                ->selectRaw('COALESCE(sites.site, assets.site_location_asset, assets.operating_unit, ?) as site_name, COUNT(*) as total', ['unknown'])
+                ->groupBy('site_name')
+                ->orderByDesc('total')
+                ->pluck('total', 'site_name')
+                ->toArray();
 
-        $siteNames = Site::whereIn('id_site', array_keys($counts))
-            ->pluck('site', 'id_site')
-            ->toArray();
+            $result = [];
+            foreach ($counts as $site => $total) {
+                $result[] = ['site' => $site, 'total' => (int) $total];
+            }
 
-        $result = [];
-        foreach ($counts as $siteId => $count) {
-            $result[] = [
-                'site' => $siteNames[$siteId] ?? $siteId,
-                'total' => (int) $count,
-            ];
-        }
-
-        usort($result, fn ($a, $b) => $b['total'] <=> $a['total']);
-        $this->pemeriksaanBySite = $result;
+            return $result;
+        });
     }
 
     private function loadTopAssets(): void
     {
-        $query = Asset::query()
-            ->join('form_pemeriksaan', 'assets.id', '=', 'form_pemeriksaan.asset_id')
-            ->whereNull('form_pemeriksaan.deleted_at')
-            ->selectRaw('assets.id, assets.nama_perangkat, assets.no_asset, assets.operating_unit, assets.site_location_asset, count(form_pemeriksaan.id) as total_pemeriksaan')
-            ->groupBy('assets.id', 'assets.nama_perangkat', 'assets.no_asset', 'assets.operating_unit', 'assets.site_location_asset');
+        $key = $this->cacheKey('dashboard:topAssets', $this->filterOperatingUnit ?? '');
 
-        if ($this->filterOperatingUnit) {
-            $query->where('assets.operating_unit', $this->filterOperatingUnit);
-        }
+        $this->topAssets = Cache::remember($key, $this->cacheTTL, function () {
+            $query = DB::table('form_pemeriksaan')
+                ->join('assets', 'assets.id', '=', 'form_pemeriksaan.asset_id')
+                ->whereNull('form_pemeriksaan.deleted_at')
+                ->select('assets.id', 'assets.nama_perangkat', 'assets.no_asset', 'assets.operating_unit', 'assets.site_location_asset')
+                ->selectRaw('COUNT(form_pemeriksaan.id) as total_pemeriksaan')
+                ->groupBy('assets.id', 'assets.nama_perangkat', 'assets.no_asset', 'assets.operating_unit', 'assets.site_location_asset');
 
-        $topAssets = $query->orderByDesc('total_pemeriksaan')
-            ->limit(10)
-            ->get()
-            ->toArray();
+            if ($this->filterOperatingUnit) {
+                $query->where('assets.operating_unit', $this->filterOperatingUnit);
+            }
 
-        $allSiteIds = collect($topAssets)
-            ->pluck('site_location_asset')
-            ->merge(collect($topAssets)->pluck('operating_unit'))
-            ->filter()
-            ->unique()
-            ->toArray();
+            $topAssets = $query->orderByDesc('total_pemeriksaan')
+                ->limit(10)
+                ->get()
+                ->toArray();
 
-        $siteNames = Site::whereIn('id_site', $allSiteIds)
-            ->pluck('site', 'id_site')
-            ->toArray();
+            $allSiteIds = collect($topAssets)
+                ->pluck('site_location_asset')
+                ->merge(collect($topAssets)->pluck('operating_unit'))
+                ->filter()
+                ->unique()
+                ->toArray();
 
-        $result = [];
-        foreach ($topAssets as $a) {
-            $result[] = [
-                'id' => $a['id'],
-                'nama_perangkat' => $a['nama_perangkat'],
-                'no_asset' => $a['no_asset'],
-                'operating_unit' => $siteNames[$a['operating_unit']] ?? ($a['operating_unit'] ?? '-'),
-                'site_location' => $siteNames[$a['site_location_asset']] ?? ($a['site_location_asset'] ?? '-'),
-                'total' => (int) $a['total_pemeriksaan'],
-            ];
-        }
+            $siteNames = Site::whereIn('id_site', $allSiteIds)
+                ->pluck('site', 'id_site')
+                ->toArray();
 
-        $this->topAssets = $result;
+            $result = [];
+            foreach ($topAssets as $a) {
+                $result[] = [
+                    'id' => $a->id,
+                    'nama_perangkat' => $a->nama_perangkat,
+                    'no_asset' => $a->no_asset,
+                    'operating_unit' => $siteNames[$a->operating_unit] ?? ($a->operating_unit ?? '-'),
+                    'site_location' => $siteNames[$a->site_location_asset] ?? ($a->site_location_asset ?? '-'),
+                    'total' => (int) $a->total_pemeriksaan,
+                ];
+            }
+
+            return $result;
+        });
     }
 
     private function loadTrendPerawatanBulanan(): void
     {
-        $trend = $this->trendQuery()
-            ->select(
-                DB::raw("DATE_FORMAT(submitted_at, '%Y-%m') as month"),
-                DB::raw('count(*) as total')
-            )
-            ->where('submitted_at', '>=', now()->subMonths(12))
-            ->groupBy('month')
-            ->orderBy('month')
-            ->pluck('total', 'month')
-            ->toArray();
+        $key = $this->cacheKey('dashboard:trendBulanan', $this->filterTrendAssetOu, $this->filterTrendSiteLocation, $this->filterTrendSiteUser);
 
-        $this->trendPerawatanBulanan = $trend;
+        $this->trendPerawatanBulanan = Cache::remember($key, $this->cacheTTL, function () {
+            return $this->trendQuery()
+                ->select(
+                    DB::raw("DATE_FORMAT(submitted_at, '%Y-%m') as month"),
+                    DB::raw('count(*) as total')
+                )
+                ->where('submitted_at', '>=', now()->subMonths(12))
+                ->groupBy('month')
+                ->orderBy('month')
+                ->pluck('total', 'month')
+                ->toArray();
+        });
     }
 
     private function loadTrendPerawatanHarian(): void
     {
-        $start = now()->subDays(29)->startOfDay();
-        $end = now()->endOfDay();
+        $key = $this->cacheKey('dashboard:trendHarian', $this->filterTrendAssetOu, $this->filterTrendSiteLocation, $this->filterTrendSiteUser);
 
-        $rows = $this->trendQuery()
-            ->select(
-                DB::raw("DATE_FORMAT(submitted_at, '%Y-%m-%d') as day"),
-                DB::raw('count(*) as total')
-            )
-            ->whereBetween('submitted_at', [$start, $end])
-            ->groupBy('day')
-            ->orderBy('day')
-            ->pluck('total', 'day')
-            ->toArray();
+        $this->trendPerawatanHarian = Cache::remember($key, $this->cacheTTL, function () {
+            $start = now()->subDays(29)->startOfDay();
+            $end = now()->endOfDay();
 
-        $trend = [];
-        for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
-            $key = $d->format('d M');
-            $trend[$key] = (int) ($rows[$d->format('Y-m-d')] ?? 0);
-        }
+            $rows = $this->trendQuery()
+                ->select(
+                    DB::raw("DATE_FORMAT(submitted_at, '%Y-%m-%d') as day"),
+                    DB::raw('count(*) as total')
+                )
+                ->whereBetween('submitted_at', [$start, $end])
+                ->groupBy('day')
+                ->orderBy('day')
+                ->pluck('total', 'day')
+                ->toArray();
 
-        $this->trendPerawatanHarian = $trend;
+            $trend = [];
+            for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
+                $key = $d->format('d M');
+                $trend[$key] = (int) ($rows[$d->format('Y-m-d')] ?? 0);
+            }
+
+            return $trend;
+        });
     }
 
     private function loadPerawatanVsBelumByOperatingUnit(): void
     {
-        $assetIds = FormPerawatan::whereNotNull('submitted_at')
-            ->distinct()
-            ->pluck('asset_id')
-            ->filter()
-            ->toArray();
+        $key = $this->cacheKey('dashboard:pvb', $this->filterAssetStatus ?: 'all');
 
-        $query = Asset::whereNotNull('operating_unit')
-            ->where('operating_unit', '!=', '');
+        $this->perawatanVsBelum = Cache::remember($key, $this->cacheTTL, function () {
+            $dilakukanSub = FormPerawatan::whereNotNull('submitted_at')
+                ->join('assets', 'assets.id', '=', 'form_perawatan.asset_id')
+                ->whereNotNull('assets.operating_unit')
+                ->where('assets.operating_unit', '!=', '')
+                ->when($this->filterAssetStatus, fn ($q) => $q->where('assets.status', $this->filterAssetStatus))
+                ->select('assets.operating_unit', DB::raw('COUNT(DISTINCT assets.id) as dilakukan'))
+                ->groupBy('assets.operating_unit');
 
-        if ($this->filterAssetStatus !== '') {
-            $query->where('status', $this->filterAssetStatus);
-        }
+            $dilakukan = (clone $dilakukanSub)->pluck('dilakukan', 'operating_unit')->toArray();
 
-        $allAssets = $query->get();
+            $totals = Asset::whereNotNull('operating_unit')
+                ->where('operating_unit', '!=', '')
+                ->when($this->filterAssetStatus, fn ($q) => $q->where('status', $this->filterAssetStatus))
+                ->select('operating_unit', DB::raw('COUNT(*) as total'))
+                ->groupBy('operating_unit')
+                ->pluck('total', 'operating_unit')
+                ->toArray();
 
-        $counts = [];
-        foreach ($allAssets as $asset) {
-            $ou = $asset->operating_unit;
-            if (! isset($counts[$ou])) {
-                $counts[$ou] = ['dilakukan' => 0, 'belum' => 0];
+            $siteNames = Site::whereIn('id_site', array_keys($totals))
+                ->pluck('site', 'id_site')
+                ->toArray();
+
+            $result = [];
+            foreach ($totals as $ouId => $total) {
+                $d = $dilakukan[$ouId] ?? 0;
+                $result[] = [
+                    'operating_unit_id' => $ouId,
+                    'operating_unit' => $siteNames[$ouId] ?? $ouId,
+                    'dilakukan' => (int) $d,
+                    'belum' => (int) ($total - $d),
+                    'total' => (int) $total,
+                ];
             }
-            if (in_array($asset->id, $assetIds)) {
-                $counts[$ou]['dilakukan']++;
-            } else {
-                $counts[$ou]['belum']++;
-            }
-        }
 
-        $siteNames = Site::whereIn('id_site', array_keys($counts))
-            ->pluck('site', 'id_site')
-            ->toArray();
+            usort($result, fn ($a, $b) => $b['total'] <=> $a['total']);
 
-        $result = [];
-        foreach ($counts as $ouId => $data) {
-            $result[] = [
-                'operating_unit_id' => $ouId,
-                'operating_unit' => $siteNames[$ouId] ?? $ouId,
-                'dilakukan' => $data['dilakukan'],
-                'belum' => $data['belum'],
-                'total' => $data['dilakukan'] + $data['belum'],
-            ];
-        }
-
-        usort($result, fn ($a, $b) => $b['total'] <=> $a['total']);
-        $this->perawatanVsBelum = $result;
+            return $result;
+        });
     }
 
     private function loadEmpAssetSites(): void
     {
-        $this->empAssetSites = Site::whereIn('id_site', Employee::whereNotNull('site')
-            ->where('site', '!=', '')
-            ->where('status', Employee::STATUS_ACTIVE)
-            ->distinct()
-            ->pluck('site'))
-            ->orderBy('site')
-            ->get(['id_site', 'site'])
-            ->map(fn ($s) => ['id' => $s->id_site, 'name' => "{$s->id_site} - {$s->site}"])
-            ->toArray();
+        $this->empAssetSites = Cache::remember('dashboard:empAssetSites', $this->cacheTTL, function () {
+            return Site::whereIn('id_site', Employee::whereNotNull('site')
+                ->where('site', '!=', '')
+                ->where('status', Employee::STATUS_ACTIVE)
+                ->distinct()
+                ->pluck('site'))
+                ->orderBy('site')
+                ->get(['id_site', 'site'])
+                ->map(fn ($s) => ['id' => $s->id_site, 'name' => "{$s->id_site} - {$s->site}"])
+                ->toArray();
+        });
     }
 
     private function loadEmployeesAssetBySite(): void
     {
-        $assignedNik = Asset::whereNotNull('assigned_employee_id')
-            ->where('assigned_employee_id', '!=', '')
-            ->distinct()
-            ->pluck('assigned_employee_id')
-            ->toArray();
+        $key = $this->cacheKey('dashboard:empAsset', $this->filterEmpAssetSite ?: 'all');
 
-        $query = Employee::whereNotNull('site')
-            ->where('site', '!=', '')
-            ->where('status', Employee::STATUS_ACTIVE);
+        $this->employeesAssetBySite = Cache::remember($key, $this->cacheTTL, function () {
+            $assignedNik = Asset::whereNotNull('assigned_employee_id')
+                ->where('assigned_employee_id', '!=', '')
+                ->distinct()
+                ->pluck('assigned_employee_id')
+                ->toArray();
 
-        if ($this->filterEmpAssetSite) {
-            $query->where('site', $this->filterEmpAssetSite);
-        }
+            $query = Employee::whereNotNull('site')
+                ->where('site', '!=', '')
+                ->where('status', Employee::STATUS_ACTIVE);
 
-        $employees = $query->get(['nik', 'site']);
-
-        $counts = [];
-        foreach ($employees as $emp) {
-            if (! isset($counts[$emp->site])) {
-                $counts[$emp->site] = ['punya' => 0, 'tidak' => 0];
+            if ($this->filterEmpAssetSite) {
+                $query->where('site', $this->filterEmpAssetSite);
             }
-            if (in_array($emp->nik, $assignedNik)) {
-                $counts[$emp->site]['punya']++;
-            } else {
-                $counts[$emp->site]['tidak']++;
+
+            $employees = $query->get(['nik', 'site']);
+
+            $counts = [];
+            foreach ($employees as $emp) {
+                if (! isset($counts[$emp->site])) {
+                    $counts[$emp->site] = ['punya' => 0, 'tidak' => 0];
+                }
+                if (in_array($emp->nik, $assignedNik)) {
+                    $counts[$emp->site]['punya']++;
+                } else {
+                    $counts[$emp->site]['tidak']++;
+                }
             }
-        }
 
-        $siteNames = Site::whereIn('id_site', array_keys($counts))
-            ->pluck('site', 'id_site')
-            ->toArray();
+            $siteNames = Site::whereIn('id_site', array_keys($counts))
+                ->pluck('site', 'id_site')
+                ->toArray();
 
-        $result = [];
-        foreach ($counts as $siteId => $data) {
-            $total = $data['punya'] + $data['tidak'];
-            $result[] = [
-                'site_id' => $siteId,
-                'site' => $siteNames[$siteId] ?? $siteId,
-                'punya' => $data['punya'],
-                'tidak' => $data['tidak'],
-                'total' => $total,
-                'pct' => $total > 0 ? round(($data['punya'] / $total) * 100, 1) : 0,
-            ];
-        }
+            $result = [];
+            foreach ($counts as $siteId => $data) {
+                $total = $data['punya'] + $data['tidak'];
+                $result[] = [
+                    'site_id' => $siteId,
+                    'site' => $siteNames[$siteId] ?? $siteId,
+                    'punya' => $data['punya'],
+                    'tidak' => $data['tidak'],
+                    'total' => $total,
+                    'pct' => $total > 0 ? round(($data['punya'] / $total) * 100, 1) : 0,
+                ];
+            }
 
-        usort($result, fn ($a, $b) => $b['total'] <=> $a['total']);
-        $this->employeesAssetBySite = $result;
+            usort($result, fn ($a, $b) => $b['total'] <=> $a['total']);
+
+            return $result;
+        });
     }
 
     private function loadOrgHierarchy(): void
     {
-        $employees = Employee::whereNull('deleted_at')
-            ->get(['nik', 'directorate_id', 'divisi_id', 'departement_id', 'sub_departement_id']);
+        $this->orgHierarchy = Cache::remember('dashboard:orgHierarchy', $this->cacheTTL, function () {
+            $employees = Employee::whereNull('deleted_at')
+                ->get(['nik', 'directorate_id', 'divisi_id', 'departement_id', 'sub_departement_id']);
 
-        $directorates = \App\Models\Directorate::with(['divisis.departements.subDepartements'])->get();
+            $directorates = Directorate::with(['divisis.departements.subDepartements'])->get();
 
-        $hierarchy = [];
-        $di = 0;
-        foreach ($directorates as $dir) {
-            $dirCount = $employees->where('directorate_id', $dir->id)->count();
-            $divisis = [];
-            $vi = 0;
-            foreach ($dir->divisis as $div) {
-                $divCount = $employees->where('divisi_id', $div->id)->count();
-                $departements = [];
-                $dei = 0;
-                foreach ($div->departements as $dep) {
-                    $depCount = $employees->where('departement_id', $dep->id)->count();
-                    $subDeps = [];
-                    $si = 0;
-                    foreach ($dep->subDepartements as $sub) {
-                        $subDeps[] = [
-                            'key' => "d{$di}v{$vi}e{$dei}s{$si}",
-                            'name' => $sub->name,
-                            'count' => $employees->where('sub_departement_id', $sub->id)->count(),
+            $hierarchy = [];
+            $di = 0;
+            foreach ($directorates as $dir) {
+                $dirCount = $employees->where('directorate_id', $dir->id)->count();
+                $divisis = [];
+                $vi = 0;
+                foreach ($dir->divisis as $div) {
+                    $divCount = $employees->where('divisi_id', $div->id)->count();
+                    $departements = [];
+                    $dei = 0;
+                    foreach ($div->departements as $dep) {
+                        $depCount = $employees->where('departement_id', $dep->id)->count();
+                        $subDeps = [];
+                        $si = 0;
+                        foreach ($dep->subDepartements as $sub) {
+                            $subDeps[] = [
+                                'key' => "d{$di}v{$vi}e{$dei}s{$si}",
+                                'name' => $sub->name,
+                                'count' => $employees->where('sub_departement_id', $sub->id)->count(),
+                            ];
+                            $si++;
+                        }
+                        $departements[] = [
+                            'key' => "d{$di}v{$vi}e{$dei}",
+                            'name' => $dep->name,
+                            'count' => $depCount,
+                            'sub_departements' => $subDeps,
                         ];
-                        $si++;
+                        $dei++;
                     }
-                    $departements[] = [
-                        'key' => "d{$di}v{$vi}e{$dei}",
-                        'name' => $dep->name,
-                        'count' => $depCount,
-                        'sub_departements' => $subDeps,
+                    $divisis[] = [
+                        'key' => "d{$di}v{$vi}",
+                        'name' => $div->name,
+                        'count' => $divCount,
+                        'departements' => $departements,
                     ];
-                    $dei++;
+                    $vi++;
                 }
-                $divisis[] = [
-                    'key' => "d{$di}v{$vi}",
-                    'name' => $div->name,
-                    'count' => $divCount,
-                    'departements' => $departements,
+                $hierarchy[] = [
+                    'key' => "d{$di}",
+                    'name' => $dir->name,
+                    'count' => $dirCount,
+                    'divisis' => $divisis,
                 ];
-                $vi++;
+                $di++;
             }
-            $hierarchy[] = [
-                'key' => "d{$di}",
-                'name' => $dir->name,
-                'count' => $dirCount,
-                'divisis' => $divisis,
-            ];
-            $di++;
-        }
 
-        $this->orgHierarchy = $hierarchy;
+            return $hierarchy;
+        });
     }
 
     private function loadEmpStatusSites(): void
     {
-        $this->empStatusSites = Site::whereIn('id_site', Employee::whereNull('deleted_at')
-            ->whereNotNull('site')
-            ->where('site', '!=', '')
-            ->distinct()
-            ->pluck('site'))
-            ->orderBy('site')
-            ->get(['id_site', 'site'])
-            ->map(fn ($s) => ['id' => $s->id_site, 'name' => "{$s->id_site} - {$s->site}"])
-            ->toArray();
+        $this->empStatusSites = Cache::remember('dashboard:empStatusSites', $this->cacheTTL, function () {
+            return Site::whereIn('id_site', Employee::whereNull('deleted_at')
+                ->whereNotNull('site')
+                ->where('site', '!=', '')
+                ->distinct()
+                ->pluck('site'))
+                ->orderBy('site')
+                ->get(['id_site', 'site'])
+                ->map(fn ($s) => ['id' => $s->id_site, 'name' => "{$s->id_site} - {$s->site}"])
+                ->toArray();
+        });
     }
 
     private function loadEmpStatusData(): void
     {
-        $query = Employee::whereNull('deleted_at')
-            ->whereNotNull('site')
-            ->where('site', '!=', '');
+        $key = $this->cacheKey('dashboard:empStatus', $this->filterEmpStatusSite ?: 'all');
 
-        if ($this->filterEmpStatusSite) {
-            $query->where('site', $this->filterEmpStatusSite);
-        }
+        $this->empStatusData = Cache::remember($key, $this->cacheTTL, function () {
+            $query = Employee::whereNull('deleted_at')
+                ->whereNotNull('site')
+                ->where('site', '!=', '');
 
-        $active = (clone $query)->where('status', Employee::STATUS_ACTIVE)->count();
-        $resigned = (clone $query)->where('status', Employee::STATUS_RESIGNED)->count();
+            if ($this->filterEmpStatusSite) {
+                $query->where('site', $this->filterEmpStatusSite);
+            }
 
-        $this->empStatusData = [
-            'active' => $active,
-            'resigned' => $resigned,
+            $active = (clone $query)->where('status', Employee::STATUS_ACTIVE)->count();
+            $resigned = (clone $query)->where('status', Employee::STATUS_RESIGNED)->count();
+
+            return [
+                'active' => $active,
+                'resigned' => $resigned,
+            ];
+        });
+    }
+
+    public function clearDashboardCache(): void
+    {
+        $keys = [
+            'dashboard:operatingUnits',
+            'dashboard:trendAssetOus',
+            'dashboard:trendSiteLocations',
+            'dashboard:trendSiteUsers',
+            'dashboard:empAssetSites',
+            'dashboard:empStatusSites',
+            'dashboard:orgHierarchy',
         ];
+
+        foreach ($keys as $key) {
+            Cache::forget($key);
+        }
     }
 
     public function render()
