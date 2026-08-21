@@ -375,5 +375,17 @@
   "Sebelum mengubah status menjadi Resigned, kembalikan terlebih dahulu asset berikut melalui Form Pengembalian Asset.": "Before changing the status to Resigned, please return the following assets via the Asset Return Form.",
   "Karyawan tanpa email tetap dapat diproses.": "Employees without an email can still be processed.",
   "Nama otomatis dari data Employee berdasarkan NIK": "Name is auto-filled from Employee data based on NIK",
-  "NIK belum terdaftar pada data employee.": "NIK is not registered in the employee data."
+  "NIK belum terdaftar pada data employee.": "NIK is not registered in the employee data.",
+  "Import CSV": "Import CSV",
+  "Import Pemeriksaan": "Import Inspection",
+  "Import data form pemeriksaan dari file CSV (header + items)": "Import inspection form data from CSV file (header + items)",
+  "Import Perawatan": "Import Maintenance",
+  "Import data form perawatan dari file CSV (header + items)": "Import maintenance form data from CSV file (header + items)",
+  "Format multi-baris: baris pertama = header + item pertama, baris selanjutnya = nomor_form + item tambahan": "Multi-row format: first row = header + first item, subsequent rows = form_no + additional items",
+  "Form Berhasil": "Form Successful",
+  "Form Gagal": "Form Failed",
+  "ke database? Setelah dikirim, Anda akan diarahkan ke halaman Pemeriksaan.": "to the database? After submission, you will be redirected to the Inspection page.",
+  "ke database? Setelah dikirim, Anda akan diarahkan ke halaman Perawatan.": "to the database? After submission, you will be redirected to the Maintenance page.",
+  "Lihat Pemeriksaan": "View Inspections",
+  "Lihat Perawatan": "View Maintenance"
 }

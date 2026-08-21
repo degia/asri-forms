@@ -15,6 +15,16 @@
         </div>
         <div class="flex items-center gap-2 flex-wrap">
             <span class="text-sm text-muted">{{ $forms->total() }} {{ __('form') }}</span>
+            @role('admin')
+            <a href="{{ route('admin.perawatan.import') }}" wire:navigate
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200"
+                style="background: var(--color-glass-bg); border: 1px solid var(--color-border); color: var(--color-text-secondary);">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+                {{ __('Import CSV') }}
+            </a>
+            @endrole
             <div class="relative" x-data="{ open: false }">
                 <button @click="open = !open"
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200"

@@ -1,13 +1,14 @@
 <?php
 
+use App\Http\Controllers\AssetExportController;
+use App\Http\Controllers\BulkPdfDownloadController;
+use App\Http\Controllers\EmployeeExportController;
 use App\Http\Controllers\ExportPdfController;
 use App\Http\Controllers\FormExportController;
-use App\Http\Controllers\BulkPdfDownloadController;
-use App\Http\Controllers\UserExportController;
+use App\Http\Controllers\FormImportController;
 use App\Http\Controllers\SiteExportController;
-use App\Http\Controllers\AssetExportController;
-use App\Http\Controllers\EmployeeExportController;
 use App\Http\Controllers\StructureOrganizationExportController;
+use App\Http\Controllers\UserExportController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -18,6 +19,7 @@ Route::post('logout', function () {
     Auth::guard('web')->logout();
     session()->invalidate();
     session()->regenerateToken();
+
     return redirect('/login');
 })->middleware('auth')->name('logout');
 
@@ -204,6 +206,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('pemeriksaan/bulk-pdf', [BulkPdfDownloadController::class, 'pemeriksaan'])
             ->name('pemeriksaan.bulk-pdf');
 
+        Volt::route('pemeriksaan/import', 'admin.pages.pemeriksaan.import')
+            ->middleware('role:admin')
+            ->name('pemeriksaan.import');
+
+        Route::get('pemeriksaan/import/template', [FormImportController::class, 'templatePemeriksaan'])
+            ->middleware('role:admin')
+            ->name('pemeriksaan.import.template');
+
         // Form Perawatan (PWT)
         Volt::route('perawatan', 'admin.pages.perawatan.index')
             ->name('perawatan.index');
@@ -214,6 +224,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('perawatan/bulk-pdf', [BulkPdfDownloadController::class, 'perawatan'])
             ->name('perawatan.bulk-pdf');
+
+        Volt::route('perawatan/import', 'admin.pages.perawatan.import')
+            ->middleware('role:admin')
+            ->name('perawatan.import');
+
+        Route::get('perawatan/import/template', [FormImportController::class, 'templatePerawatan'])
+            ->middleware('role:admin')
+            ->name('perawatan.import.template');
 
         // Form Pengembalian Asset (PNG)
         Volt::route('pengembalian', 'admin.pages.pengembalian.index')
@@ -232,10 +250,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('backup.index');
 
         Route::get('backup/download/{filename}', function (string $filename) {
-            $path = storage_path('app/backups/' . basename($filename));
-            if (!file_exists($path)) {
+            $path = storage_path('app/backups/'.basename($filename));
+            if (! file_exists($path)) {
                 abort(404);
             }
+
             return response()->download($path);
         })->middleware('role:admin')->name('backup.download');
 
