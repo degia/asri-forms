@@ -217,14 +217,23 @@
                         @foreach($topAssets as $i => $a)
                             <tr class="transition-colors cursor-pointer" onclick="window.Livewire.navigate('{{ route('admin.assets.index', ['search' => $a['no_asset']]) }}')" onmouseover="this.style.backgroundColor='var(--color-bg-tertiary)'" onmouseout="this.style.backgroundColor=''">
                                 <td class="py-2.5 text-muted text-xs">{{ $i + 1 }}</td>
-                                <td class="py-2.5 font-mono text-secondary text-xs">{{ $a['no_asset'] }}</td>
+                                <td class="py-2.5 font-mono text-xs">
+                                    <a href="{{ route('assets.show', $a['id']) }}" wire:navigate onclick="event.stopPropagation()"
+                                        class="font-semibold hover:underline transition-opacity duration-200 hover:opacity-80"
+                                        style="color: var(--color-primary);"
+                                        title="{{ __('Lihat detail asset') }}">
+                                        {{ $a['no_asset'] }}
+                                    </a>
+                                </td>
                                 <td class="py-2.5 font-medium text-primary">{{ $a['nama_perangkat'] }}</td>
                                 <td class="py-2.5 text-secondary text-xs hidden md:table-cell">{{ $a['operating_unit'] }}</td>
                                 <td class="py-2.5 text-secondary text-xs hidden lg:table-cell">{{ $a['site_location'] }}</td>
                                 <td class="py-2.5 text-right">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-400">
+                                    <a href="{{ route('admin.pemeriksaan.index', ['search' => $a['no_asset']]) }}" wire:navigate onclick="event.stopPropagation()"
+                                        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-400 transition-opacity duration-200 hover:opacity-80"
+                                        title="{{ __('Lihat form pemeriksaan untuk asset ini') }}">
                                         {{ $a['total'] }}
-                                    </span>
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach
