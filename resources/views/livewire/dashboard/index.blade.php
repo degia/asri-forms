@@ -866,215 +866,114 @@
                     {{ $totalEmployees }} {{ __('Employee') }}
                 </span>
             </h3>
-            <div class="flex items-center gap-1.5" x-data="orgTree()">
-                <button @click="toggleAll(false)"
+            <div class="flex items-center gap-1.5">
+                <button type="button" @click="$dispatch('org-set-all', false)"
                     class="text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors"
                     style="background: var(--color-bg-secondary); color: var(--color-text-secondary); border: 1px solid var(--color-border);">
                     {{ __('Sembunyikan Semua') }}
                 </button>
-                <button @click="toggleAll(true)"
+                <button type="button" @click="$dispatch('org-set-all', true)"
                     class="text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors"
                     style="background: var(--color-bg-secondary); color: var(--color-text-secondary); border: 1px solid var(--color-border);">
                     {{ __('Tampilkan Semua') }}
-                </button>
-                <div class="w-px h-5 mx-1" style="background: var(--color-border);"></div>
-                <button @click="zoomOut()"
-                    class="w-7 h-7 flex items-center justify-center rounded-lg font-bold text-sm transition-colors"
-                    style="background: var(--color-bg-secondary); color: var(--color-text); border: 1px solid var(--color-border);"
-                    title="Zoom Out">
-                    −
-                </button>
-                <span class="text-xs font-medium w-12 text-center" style="color: var(--color-text-secondary);" x-text="Math.round(scale * 100) + '%'"></span>
-                <button @click="zoomIn()"
-                    class="w-7 h-7 flex items-center justify-center rounded-lg font-bold text-sm transition-colors"
-                    style="background: var(--color-bg-secondary); color: var(--color-text); border: 1px solid var(--color-border);"
-                    title="Zoom In">
-                    +
-                </button>
-                <button @click="resetZoom()"
-                    class="text-xs px-2 py-1.5 rounded-lg font-medium transition-colors"
-                    style="background: var(--color-bg-secondary); color: var(--color-text-secondary); border: 1px solid var(--color-border);"
-                    title="Reset Zoom">
-                    {{ __('Reset') }}
                 </button>
             </div>
         </div>
 
         @if(count($orgHierarchy) > 0)
-            <style>
-                .org-tree-wrap { overflow: auto; cursor: grab; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-bg-primary); }
-                .org-tree-wrap:active { cursor: grabbing; }
-                .org-tree { display: flex; flex-direction: column; align-items: center; padding: 24px 32px; transform-origin: top center; min-width: min-content; }
-                .org-tree ul { position: relative; display: flex; justify-content: center; padding-top: 20px; list-style: none; }
-                .org-tree li { position: relative; padding: 20px 6px 0; display: flex; flex-direction: column; align-items: center; }
-                .org-tree li::before, .org-tree li::after { content: ''; position: absolute; top: 0; width: 50%; height: 20px; border-top: 2px solid var(--color-border); }
-                .org-tree li::before { right: 50%; border-right: 2px solid var(--color-border); }
-                .org-tree li::after { left: 50%; border-left: 2px solid var(--color-border); }
-                .org-tree li:first-child::before { border: 0; }
-                .org-tree li:last-child::after { border: 0; }
-                .org-tree li:first-child::after { border-radius: 5px 0 0 0; }
-                .org-tree li:last-child::before { border-right: 2px solid var(--color-border); border-radius: 0 5px 0 0; }
-                .org-tree ul ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 2px solid var(--color-border); width: 0; height: 20px; }
-                .org-node { display: inline-flex; flex-direction: column; align-items: center; padding: 8px 14px; border-radius: 8px; font-size: 11px; font-weight: 500; text-decoration: none; white-space: nowrap; border: 2px solid; min-width: 80px; text-align: center; transition: transform 0.15s, box-shadow 0.15s; }
-                .org-node:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-                .org-node.has-children { cursor: pointer; }
-                .org-node .count { font-size: 13px; font-weight: 700; margin-top: 2px; }
-                .org-node .arrow { display: inline-block; font-size: 9px; margin-left: 4px; transition: transform 0.2s; }
-                .org-node .arrow.open { transform: rotate(90deg); }
-                .org-root { background: var(--color-primary); color: white; border-color: var(--color-primary); padding: 10px 20px; font-size: 13px; font-weight: 700; }
-                .org-dir { background: var(--color-primary); color: white; border-color: var(--color-primary); }
-                .org-div { background: var(--color-accent); color: white; border-color: var(--color-accent); }
-                .org-dep { background: var(--color-bg-secondary); color: var(--color-text); border-color: var(--color-border); }
-                .org-sub { background: var(--color-bg-tertiary); color: var(--color-text-secondary); border-color: var(--color-border); font-size: 10px; padding: 5px 10px; min-width: 60px; }
-            </style>
+            @php
+                $orgDefaults = [];
+                foreach ($orgHierarchy as $d) {
+                    $orgDefaults[$d['key']] = true;
+                    foreach ($d['divisis'] as $v) {
+                        $orgDefaults[$v['key']] = false;
+                        foreach ($v['departements'] as $e) {
+                            $orgDefaults[$e['key']] = false;
+                        }
+                    }
+                }
+            @endphp
 
-            <div x-data="orgTree()" @org-toggle.window="toggleAll($event.detail.expanded)">
-                <div class="org-tree-wrap" x-ref="treeWrap"
-                     @wheel.prevent="onWheel($event)"
-                     @mousedown="panStart($event)"
-                     @mousemove="panMove($event)"
-                     @mouseup="panEnd($event)"
-                     @mouseleave="panEnd($event)"
-                     style="max-height: 600px;">
-                    <div class="org-tree" :style="'transform: scale(' + scale + '); margin-bottom: ' + ((1 - scale) * 400) + 'px;'">
-                        <div class="org-node org-root mb-1 has-children" @click="toggle('root')">
-                            <span>
-                                {{ __('Total Employee') }}
-                                <span class="arrow" :class="isOpen('root') && 'open'">▶</span>
-                            </span>
-                            <span class="count">{{ $totalEmployees }}</span>
-                        </div>
 
-                        <div x-show="isOpen('root')" x-transition.duration.300ms>
-                        <ul>
-                            @foreach($orgHierarchy as $dir)
-                                <li>
-                                    <div class="org-node org-dir has-children" @click="toggle('{{ $dir['key'] }}')">
-                                        <span>
-                                            {{ $dir['name'] }}
-                                            @if(count($dir['divisis']) > 0)
-                                                <span class="arrow" :class="isOpen('{{ $dir['key'] }}') && 'open'">▶</span>
-                                            @endif
-                                        </span>
-                                        <span class="count">{{ $dir['count'] }}</span>
-                                    </div>
+            {{-- Hierarki organisasi: kartu bertingkat (mobile & desktop) --}}
+            <div x-data='orgAccordion(@json($orgDefaults))' @org-set-all.window="setAll($event.detail)">
+                <p class="text-xs text-muted mb-2">{{ __('Ketuk untuk membuka / menutup cabang') }}</p>
+                <div class="space-y-2">
+                    @foreach($orgHierarchy as $dir)
+                    <div class="rounded-xl border overflow-hidden" style="border-color: var(--color-border);">
+                        <button type="button" @click="toggle('{{ $dir['key'] }}')"
+                            class="w-full flex items-center gap-2 px-3 py-2.5 text-start"
+                            style="background: var(--color-primary);">
+                            <svg class="w-4 h-4 shrink-0 transition-transform duration-200" :class="! isOpen('{{ $dir['key'] }}') && '-rotate-90'" style="color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                            <span class="flex-1 min-w-0 text-sm font-bold truncate" style="color: white;">{{ $dir['name'] }}</span>
+                            <span class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold" style="background: rgba(255,255,255,0.25); color: white;">{{ $dir['count'] }}</span>
+                        </button>
 
-                                    @if(count($dir['divisis']) > 0)
-                                        <div x-show="isOpen('{{ $dir['key'] }}')" x-transition.duration.300ms>
-                                        <ul>
-                                            @foreach($dir['divisis'] as $div)
-                                                <li>
-                                                    <div class="org-node org-div has-children" @click="toggle('{{ $div['key'] }}')">
-                                                        <span>
-                                                            {{ $div['name'] }}
-                                                            @if(count($div['departements']) > 0)
-                                                                <span class="arrow" :class="isOpen('{{ $div['key'] }}') && 'open'">▶</span>
-                                                            @endif
-                                                        </span>
-                                                        <span class="count">{{ $div['count'] }}</span>
-                                                    </div>
+                        @if(count($dir['divisis']) > 0)
+                        <div x-show="isOpen('{{ $dir['key'] }}')" class="p-2 space-y-1.5" style="background: var(--color-bg-secondary);">
+                            @foreach($dir['divisis'] as $div)
+                            <div class="rounded-lg border overflow-hidden" style="border-color: var(--color-border);">
+                                <button type="button" @click="toggle('{{ $div['key'] }}')"
+                                    class="w-full flex items-center gap-2 px-2.5 py-2 text-start"
+                                    style="background: var(--color-card-bg);">
+                                    <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-200 {{ count($div['departements']) > 0 ? '' : 'invisible' }}" :class="! isOpen('{{ $div['key'] }}') && '-rotate-90'" style="color: var(--color-text-secondary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                    <span class="flex-1 min-w-0 text-xs font-semibold truncate text-primary">{{ $div['name'] }}</span>
+                                    <span class="shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-semibold" style="background: var(--color-glass-bg); border: 1px solid var(--color-border); color: var(--color-text-secondary);">{{ $div['count'] }}</span>
+                                </button>
 
-                                                    @if(count($div['departements']) > 0)
-                                                        <div x-show="isOpen('{{ $div['key'] }}')" x-transition.duration.300ms>
-                                                        <ul>
-                                                            @foreach($div['departements'] as $dep)
-                                                                <li>
-                                                                    <div class="org-node org-dep has-children" @click="toggle('{{ $dep['key'] }}')">
-                                                                        <span>
-                                                                            {{ $dep['name'] }}
-                                                                            @if(count($dep['sub_departements']) > 0)
-                                                                                <span class="arrow" :class="isOpen('{{ $dep['key'] }}') && 'open'">▶</span>
-                                                                            @endif
-                                                                        </span>
-                                                                        <span class="count">{{ $dep['count'] }}</span>
-                                                                    </div>
+                                @if(count($div['departements']) > 0)
+                                <div x-show="isOpen('{{ $div['key'] }}')" x-cloak class="ps-4 pe-1 py-1 space-y-1 border-t" style="border-color: var(--color-border); background: var(--color-bg-secondary);">
+                                    @foreach($div['departements'] as $dep)
+                                    <div class="rounded-lg border overflow-hidden" style="border-color: var(--color-border);">
+                                        <button type="button" @click="toggle('{{ $dep['key'] }}')"
+                                            class="w-full flex items-center gap-2 px-2.5 py-1.5 text-start"
+                                            style="background: var(--color-card-bg);">
+                                            <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-200 {{ count($dep['sub_departements']) > 0 ? '' : 'invisible' }}" :class="! isOpen('{{ $dep['key'] }}') && '-rotate-90'" style="color: var(--color-text-secondary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                            </svg>
+                                            <span class="flex-1 min-w-0 text-xs font-medium truncate text-primary">{{ $dep['name'] }}</span>
+                                            <span class="shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-semibold" style="background: var(--color-glass-bg); border: 1px solid var(--color-border); color: var(--color-text-secondary);">{{ $dep['count'] }}</span>
+                                        </button>
 
-                                                                    @if(count($dep['sub_departements']) > 0)
-                                                                        <div x-show="isOpen('{{ $dep['key'] }}')" x-transition.duration.300ms>
-                                                                        <ul>
-                                                                            @foreach($dep['sub_departements'] as $sub)
-                                                                                <li>
-                                                                                    <div class="org-node org-sub">
-                                                                                        <span>{{ $sub['name'] }}</span>
-                                                                                        <span class="count">{{ $sub['count'] }}</span>
-                                                                                    </div>
-                                                                                </li>
-                                                                            @endforeach
-                                                                        </ul>
-                                                                        </div>
-                                                                    @endif
-                                                                </li>
-                                                            @endforeach
-                                                        </ul>
-                                                        </div>
-                                                    @endif
-                                                </li>
+                                        @if(count($dep['sub_departements']) > 0)
+                                        <div x-show="isOpen('{{ $dep['key'] }}')" x-cloak class="ps-4 pe-1 py-1 space-y-0.5 border-t" style="border-color: var(--color-border); background: var(--color-bg-tertiary);">
+                                            @foreach($dep['sub_departements'] as $sub)
+                                            <div class="flex items-center justify-between gap-2 px-2 py-1 rounded-md" style="background: var(--color-card-bg);">
+                                                <span class="min-w-0 text-[11px] truncate text-secondary">{{ $sub['name'] }}</span>
+                                                <span class="shrink-0 text-[10px] font-semibold text-muted">{{ $sub['count'] }}</span>
+                                            </div>
                                             @endforeach
-                                        </ul>
                                         </div>
-                                    @endif
-                                </li>
+                                        @endif
+                                    </div>
+                                    @endforeach
+                                </div>
+                                @endif
+                            </div>
                             @endforeach
-                        </ul>
                         </div>
+                        @endif
                     </div>
+                    @endforeach
                 </div>
             </div>
 
             <script>
-                function orgTree() {
+                function orgAccordion(defaults) {
                     return {
-                        open: {},
-                        allExpanded: true,
-                        scale: 0.55,
-                        minScale: 0.2,
-                        maxScale: 2,
-                        panning: false,
-                        startX: 0,
-                        startY: 0,
-                        scrollLeft: 0,
-                        scrollTop: 0,
+                        open: defaults,
                         toggle(key) {
                             this.open[key] = !this.open[key];
                         },
                         isOpen(key) {
-                            return this.open[key] ?? true;
+                            return !!this.open[key];
                         },
-                        toggleAll(expanded) {
-                            this.allExpanded = expanded;
-                            this.open = {};
-                        },
-                        zoomIn() {
-                            this.scale = Math.min(this.maxScale, +(this.scale + 0.1).toFixed(2));
-                        },
-                        zoomOut() {
-                            this.scale = Math.max(this.minScale, +(this.scale - 0.1).toFixed(2));
-                        },
-                        resetZoom() {
-                            this.scale = 0.55;
-                            var wrap = this.$refs.treeWrap;
-                            if (wrap) { wrap.scrollLeft = 0; wrap.scrollTop = 0; }
-                        },
-                        onWheel(e) {
-                            if (e.deltaY < 0) { this.zoomIn(); } else { this.zoomOut(); }
-                        },
-                        panStart(e) {
-                            this.panning = true;
-                            this.startX = e.pageX - this.$refs.treeWrap.offsetLeft;
-                            this.startY = e.pageY - this.$refs.treeWrap.offsetTop;
-                            this.scrollLeft = this.$refs.treeWrap.scrollLeft;
-                            this.scrollTop = this.$refs.treeWrap.scrollTop;
-                        },
-                        panMove(e) {
-                            if (!this.panning) return;
-                            e.preventDefault();
-                            var x = e.pageX - this.$refs.treeWrap.offsetLeft;
-                            var y = e.pageY - this.$refs.treeWrap.offsetTop;
-                            this.$refs.treeWrap.scrollLeft = this.scrollLeft - (x - this.startX);
-                            this.$refs.treeWrap.scrollTop = this.scrollTop - (y - this.startY);
-                        },
-                        panEnd() {
-                            this.panning = false;
+                        setAll(value) {
+                            Object.keys(this.open).forEach((k) => { this.open[k] = value; });
                         }
                     }
                 }
