@@ -44,7 +44,7 @@ new class extends Component
                 </div>
 
                 @auth
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <div class="hidden space-x-8 lg:-my-px lg:ms-10 lg:flex">
                     <x-nav-link :href="route('forms.search')" :active="request()->routeIs('forms.*')" wire:navigate>
                         {{ __('Cari Form') }}
                     </x-nav-link>
@@ -69,7 +69,7 @@ new class extends Component
             </div>
 
             @auth
-            <div class="hidden sm:flex sm:items-center sm:ms-6 gap-2">
+            <div class="hidden lg:flex lg:items-center lg:ms-6 gap-2">
                 <livewire:layout.notification-bell />
 
                 <div class="flex items-center gap-1 p-1 rounded-lg"
@@ -130,7 +130,7 @@ new class extends Component
                 </x-dropdown>
             </div>
 
-            <div class="-me-2 flex items-center sm:hidden gap-1">
+            <div class="-me-2 flex items-center lg:hidden gap-1">
                 <livewire:layout.notification-bell />
                 <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md transition duration-150 ease-in-out" style="color: var(--color-text-secondary);">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -144,24 +144,24 @@ new class extends Component
     </div>
 
     @auth
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+    <div :class="{'block': open, 'hidden': ! open}" class="hidden lg:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('forms.search')" :active="request()->routeIs('forms.*')" wire:navigate>
+            <x-responsive-nav-link :href="route('forms.search')" :active="request()->routeIs('forms.*')" wire:navigate x-on:click="open = false">
                 {{ __('Cari Form') }}
             </x-responsive-nav-link>
             @if(auth()->user()->hasAnyRole(['admin', 'teknisi']))
-                <x-responsive-nav-link :href="route('pemeriksaan.create')" :active="request()->routeIs('pemeriksaan.*')" wire:navigate>
+                <x-responsive-nav-link :href="route('pemeriksaan.create')" :active="request()->routeIs('pemeriksaan.*')" wire:navigate x-on:click="open = false">
                     {{ __('Form Pemeriksaan') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('perawatan.create')" :active="request()->routeIs('perawatan.*')" wire:navigate>
+                <x-responsive-nav-link :href="route('perawatan.create')" :active="request()->routeIs('perawatan.*')" wire:navigate x-on:click="open = false">
                     {{ __('Form Perawatan') }}
                 </x-responsive-nav-link>
             @endif
-            <x-responsive-nav-link :href="route('assets.index')" :active="request()->routeIs('assets.index')" wire:navigate>
+            <x-responsive-nav-link :href="route('assets.index')" :active="request()->routeIs('assets.index')" wire:navigate x-on:click="open = false">
                 {{ __('Assets') }}
             </x-responsive-nav-link>
             @if(auth()->user()->hasAnyRole(['admin', 'manager_it']))
-                <x-responsive-nav-link :href="url('/admin')" :active="request()->is('admin*')">
+                <x-responsive-nav-link :href="url('/admin')" :active="request()->is('admin*')" x-on:click="open = false">
                     {{ __('Admin Panel') }}
                 </x-responsive-nav-link>
             @endif
@@ -201,7 +201,7 @@ new class extends Component
             </div>
 
             <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile')" wire:navigate>
+                <x-responsive-nav-link :href="route('profile')" wire:navigate x-on:click="open = false">
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
                 <button type="button" class="w-full text-start"
@@ -216,9 +216,9 @@ new class extends Component
     @endauth
 </nav>
 
-{{-- Mobile Bottom Navigation --}}
+{{-- Mobile / Tablet Bottom Navigation --}}
 @auth
-<nav class="bottom-nav sm:hidden" x-data="{ }">
+<nav class="bottom-nav lg:hidden" x-data="{ }">
     <div class="flex items-center justify-around h-14">
         <a href="{{ route('forms.search') }}" wire:navigate
             class="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors duration-200 {{ request()->routeIs('forms.*') ? 'text-emerald-400' : '' }}"
@@ -261,14 +261,25 @@ new class extends Component
             <span class="text-[10px] font-medium">Assets</span>
         </a>
 
-        <a href="{{ route('profile') }}" wire:navigate
-            class="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors duration-200 {{ request()->routeIs('profile') ? 'text-amber-400' : '' }}"
-            @unless(request()->routeIs('profile')) style="color: var(--color-text-secondary);" @endunless>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
-            <span class="text-[10px] font-medium">{{ __('Profil') }}</span>
-        </a>
+        @if(auth()->user()->hasAnyRole(['admin', 'manager_it']))
+            <a href="{{ url('/admin') }}" wire:navigate
+                class="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors duration-200 {{ request()->is('admin*') ? 'text-emerald-400' : '' }}"
+                @unless(request()->is('admin*')) style="color: var(--color-text-secondary);" @endunless>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span class="text-[10px] font-medium">{{ __('Admin') }}</span>
+            </a>
+        @else
+            <a href="{{ route('profile') }}" wire:navigate
+                class="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors duration-200 {{ request()->routeIs('profile') ? 'text-amber-400' : '' }}"
+                @unless(request()->routeIs('profile')) style="color: var(--color-text-secondary);" @endunless>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                <span class="text-[10px] font-medium">{{ __('Profil') }}</span>
+            </a>
+        @endif
     </div>
 </nav>
 @endauth

@@ -78,7 +78,7 @@
         </script>
     </head>
     <body class="font-sans antialiased transition-colors duration-300" style="background-color: var(--color-bg-primary); color: var(--color-text-primary);">
-        <div class="min-h-screen pb-16 sm:pb-0 pt-16" style="background-color: var(--color-bg-primary);">
+        <div class="min-h-screen pt-16" style="background-color: var(--color-bg-primary);">
             <livewire:layout.navigation />
 
             @if (isset($header) && $header !== null)

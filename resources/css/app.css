@@ -144,9 +144,15 @@
         padding-bottom: env(safe-area-inset-bottom);
     }
 
-    @media (min-width: 640px) {
+    @media (min-width: 1024px) {
         .bottom-nav {
             display: none;
+        }
+    }
+
+    @media (max-width: 1023.98px) {
+        body:has(.bottom-nav) {
+            padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
         }
     }
 
