@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Picqer\Barcode\BarcodeGeneratorSVG;
 
 class Asset extends Model
@@ -88,11 +89,20 @@ class Asset extends Model
 
     protected static function booted(): void
     {
-        static::deleting(function (Asset $asset) {
+        static::saved(fn () => self::clearDashboardCache());
+        static::deleted(function (Asset $asset) {
             FormPemeriksaan::where('asset_id', $asset->id)->where('status', '!=', 'selesai')->each(fn($f) => $f->delete());
             FormPerawatan::where('asset_id', $asset->id)->where('status', '!=', 'selesai')->each(fn($f) => $f->delete());
             \App\Models\FormPengembalianItem::where('asset_id', $asset->id)->delete();
+            self::clearDashboardCache();
         });
+    }
+
+    private static function clearDashboardCache(): void
+    {
+        Cache::forget('dashboard:operatingUnits');
+        Cache::forget('dashboard:empAssetSites');
+        Cache::forget('dashboard:trendAssetOus');
     }
 
     public function getIsActiveAttribute(): bool

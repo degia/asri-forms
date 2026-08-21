@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\FormPemeriksaanExport;
 use App\Exports\FormPerawatanExport;
+use App\Jobs\GeneratePdfExport;
 use App\Models\FormPemeriksaan;
 use App\Models\FormPerawatan;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -20,7 +21,7 @@ class FormExportController extends Controller
         $baseName = "form-pemeriksaan-{$timestamp}";
 
         return match ($format) {
-            'pdf' => $this->exportPdf('pemeriksaan', $status, $kondisi, $baseName),
+            'pdf' => $this->exportPdfQueued('pemeriksaan', $status, $kondisi),
             'xlsx' => Excel::download(new FormPemeriksaanExport($status, $kondisi), "{$baseName}.xlsx"),
             'xls' => Excel::download(new FormPemeriksaanExport($status, $kondisi), "{$baseName}.xls"),
             'csv' => $this->exportCsv('pemeriksaan', $status, $kondisi, $baseName),
@@ -37,7 +38,7 @@ class FormExportController extends Controller
         $baseName = "form-perawatan-{$timestamp}";
 
         return match ($format) {
-            'pdf' => $this->exportPdf('perawatan', $status, $kondisi, $baseName),
+            'pdf' => $this->exportPdfQueued('perawatan', $status, $kondisi),
             'xlsx' => Excel::download(new FormPerawatanExport($status, $kondisi), "{$baseName}.xlsx"),
             'xls' => Excel::download(new FormPerawatanExport($status, $kondisi), "{$baseName}.xls"),
             'csv' => $this->exportCsv('perawatan', $status, $kondisi, $baseName),
@@ -46,35 +47,11 @@ class FormExportController extends Controller
         };
     }
 
-    private function exportPdf(string $type, ?string $status, ?string $kondisi, string $baseName)
+    private function exportPdfQueued(string $type, ?string $status, ?string $kondisi)
     {
-        if ($type === 'pemeriksaan') {
-            $query = FormPemeriksaan::with(['teknisi', 'pengguna', 'asset', 'site', 'items', 'approvals.user']);
-            if ($status) {
-                $query->where('status', $status);
-            }
-            if ($kondisi) {
-                $query->where('kondisi', $kondisi);
-            }
-            $forms = $query->orderBy('submitted_at', 'desc')->get();
+        GeneratePdfExport::dispatch($type, $status, $kondisi, auth()->user()->email);
 
-            $pdf = Pdf::loadView('pdf.admin-bulk-pemeriksaan', compact('forms'))
-                ->setPaper('a4', 'landscape');
-        } else {
-            $query = FormPerawatan::with(['teknisi', 'pengguna', 'asset', 'site', 'items', 'approvals.user']);
-            if ($status) {
-                $query->where('status', $status);
-            }
-            if ($kondisi) {
-                $query->where('kondisi_akhir', $kondisi);
-            }
-            $forms = $query->orderBy('submitted_at', 'desc')->get();
-
-            $pdf = Pdf::loadView('pdf.admin-bulk-perawatan', compact('forms'))
-                ->setPaper('a4', 'landscape');
-        }
-
-        return $pdf->download("{$baseName}.pdf");
+        return redirect()->back()->with('success', 'PDF sedang diproses di background. Anda akan menerima notifikasi email ketika file siap diunduh.');
     }
 
     private function exportCsv(string $type, ?string $status, ?string $kondisi, string $baseName): StreamedResponse
@@ -96,7 +73,7 @@ class FormExportController extends Controller
                 if ($kondisi) {
                     $query->where('kondisi', $kondisi);
                 }
-                $query->orderBy('submitted_at', 'desc')->each(function ($form) use ($file) {
+                $query->orderBy('submitted_at', 'desc')->cursor()->each(function ($form) use ($file) {
                     fputcsv($file, [
                         $form->nomor_form,
                         $form->submitted_at?->format('d/m/Y H:i') ?? '-',
@@ -119,7 +96,7 @@ class FormExportController extends Controller
                 if ($kondisi) {
                     $query->where('kondisi_akhir', $kondisi);
                 }
-                $query->orderBy('submitted_at', 'desc')->each(function ($form) use ($file) {
+                $query->orderBy('submitted_at', 'desc')->cursor()->each(function ($form) use ($file) {
                     fputcsv($file, [
                         $form->nomor_form,
                         $form->submitted_at?->format('d/m/Y H:i') ?? '-',
