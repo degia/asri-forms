@@ -49,7 +49,7 @@ class Index extends Component
 
     public array $perawatanVsBelum = [];
 
-    public string $filterAssetStatus = '';
+    public string $filterAssetStatus = 'active';
 
     public array $employeesAssetBySite = [];
 
