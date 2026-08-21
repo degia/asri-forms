@@ -17,6 +17,8 @@ class Index extends Component
 
     public string $kondisi_akhir = '';
 
+    public string $site = '';
+
     public ?array $viewingForm = null;
 
     public array $selected = [];
@@ -33,6 +35,7 @@ class Index extends Component
         'search' => ['except' => ''],
         'status' => ['except' => ''],
         'kondisi_akhir' => ['except' => ''],
+        'site' => ['except' => ''],
     ];
 
     public function updatedSearch(): void
@@ -50,23 +53,43 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function updatedSite(): void
+    {
+        $this->resetPage();
+    }
+
+    public function clearSiteFilter(): void
+    {
+        $this->site = '';
+        $this->resetPage();
+    }
+
     public function viewForm(int $id): void
     {
-        $form = FormPerawatan::with(['teknisi', 'pengguna', 'asset', 'site', 'items', 'approvals.user', 'attachments'])
+        $form = FormPerawatan::with(['teknisi', 'pengguna.position', 'pengguna.divisi', 'asset', 'site', 'items', 'approvals.user', 'attachments'])
             ->findOrFail($id);
 
         $this->viewingForm = [
             'id' => $form->id,
             'nomor_form' => $form->nomor_form,
             'status' => $form->status,
-            'submitted_at' => $form->submitted_at?->format('d/m/Y H:i'),
+            'submitted_at' => $form->submitted_at,
+            'submitted_at_formatted' => $form->submitted_at?->format('d/m/Y H:i'),
             'kondisi_akhir' => $form->kondisi_akhir,
             'kondisi_akhir_notes' => $form->kondisi_akhir_notes,
             'notes' => $form->notes,
             'location_detail' => $form->location_detail,
             'barcode_fisik' => (bool) ($form->barcode_fisik ?? false),
             'teknisi' => $form->teknisi ? ['name' => $form->teknisi->name, 'email' => $form->teknisi->email] : null,
-            'pengguna' => $form->pengguna ? ['name' => $form->pengguna->name, 'nik' => $form->pengguna->nik, 'site' => $form->pengguna->site_name] : null,
+            'pengguna' => $form->pengguna ? [
+                'name' => $form->pengguna->name,
+                'nik' => $form->pengguna->nik,
+                'email' => $form->pengguna->email,
+                'no_telepon' => $form->pengguna->no_telepon,
+                'site_name' => $form->pengguna->site_name,
+                'position' => $form->pengguna->position ? ['name' => $form->pengguna->position->name] : null,
+                'divisi' => $form->pengguna->divisi ? ['name' => $form->pengguna->divisi->name] : null,
+            ] : null,
             'asset' => $form->asset ? [
                 'nama_perangkat' => $form->asset->nama_perangkat,
                 'no_asset' => $form->asset->no_asset,
@@ -84,12 +107,16 @@ class Index extends Component
                 'keterangan' => $item->keterangan,
                 'full_charge_capacity' => $item->full_charge_capacity,
                 'design_capacity' => $item->design_capacity,
+                'sort_order' => $item->sort_order,
             ])->toArray(),
             'approvals' => $form->approvals->map(fn ($a) => [
                 'approval_level' => $a->approval_level,
                 'status' => $a->status,
                 'user_name' => $a->user?->name ?? $a->custom_signer_name,
-                'approved_at' => $a->approved_at?->format('d/m/Y H:i'),
+                'user' => $a->user ? ['name' => $a->user->name] : null,
+                'signature_path' => $a->signature_path,
+                'approved_at' => $a->approved_at,
+                'approved_at_formatted' => $a->approved_at?->format('d/m/Y H:i'),
             ])->toArray(),
         ];
     }
@@ -231,7 +258,8 @@ class Index extends Component
                         ->orWhere('no_asset', 'like', "%{$this->search}%"));
             }))
             ->when($this->status, fn ($q) => $q->where('status', $this->status))
-            ->when($this->kondisi_akhir, fn ($q) => $q->where('kondisi_akhir', $this->kondisi_akhir));
+            ->when($this->kondisi_akhir, fn ($q) => $q->where('kondisi_akhir', $this->kondisi_akhir))
+            ->when($this->site, fn ($q) => $q->whereHas('site', fn ($sq) => $sq->where('site', $this->site)));
     }
 
     public function render()
@@ -241,10 +269,13 @@ class Index extends Component
         $pageIds = collect($forms->items())->pluck('id')->all();
         $allSelected = count($pageIds) > 0 && count(array_intersect($this->selected, $pageIds)) === count($pageIds);
 
+        $sites = \App\Models\Site::select('id_site', 'site')->orderBy('site')->get();
+
         return view('livewire.admin.perawatan.index', [
             'forms' => $forms,
             'pageIds' => $pageIds,
             'allSelected' => $allSelected,
+            'sites' => $sites,
         ]);
     }
 }

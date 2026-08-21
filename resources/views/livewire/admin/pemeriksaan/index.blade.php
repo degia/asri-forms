@@ -213,150 +213,271 @@
         </div>
     @endif
 
-    {{-- Detail Modal --}}
+    {{-- Detail Modal (Document Layout) --}}
     @if($viewingForm)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);"
-            x-data x-on:keydown.escape.window="$wire.closeView()">
-            <div class="glass-card w-full max-w-3xl max-h-[85vh] overflow-y-auto p-6 space-y-5"
-                @click.away="$wire.closeView()">
-
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-lg font-bold text-primary">{{ __('Detail Form Pemeriksaan') }}</h2>
-                        <p class="text-xs text-muted font-mono mt-0.5">{{ $viewingForm['nomor_form'] }}</p>
-                    </div>
-                    <button wire:click="closeView" class="text-muted hover:text-primary text-xl">&times;</button>
+        @php
+            $_form = $viewingForm;
+            $_items = $_form['items'] ?? [];
+            $_hardware = array_values(array_filter($_items, fn($i) => ($i['category'] ?? '') === 'hardware'));
+            $_aplikasi = array_values(array_filter($_items, fn($i) => ($i['category'] ?? '') === 'aplikasi'));
+            $_os = array_values(array_filter($_items, fn($i) => ($i['category'] ?? '') === 'operating_system'));
+            usort($_hardware, fn($a, $b) => ($a['sort_order'] ?? 0) - ($b['sort_order'] ?? 0));
+            usort($_aplikasi, fn($a, $b) => ($a['sort_order'] ?? 0) - ($b['sort_order'] ?? 0));
+            usort($_os, fn($a, $b) => ($a['sort_order'] ?? 0) - ($b['sort_order'] ?? 0));
+            $_approvals = $_form['approvals'] ?? [];
+            $_diperiksa = current(array_filter($_approvals, fn($a) => ($a['approval_level'] ?? '') === 'diperiksa_oleh')) ?: null;
+            $_diketahui = current(array_filter($_approvals, fn($a) => ($a['approval_level'] ?? '') === 'diketahui_oleh')) ?: null;
+            $_disetujui = current(array_filter($_approvals, fn($a) => ($a['approval_level'] ?? '') === 'disetujui_oleh')) ?: null;
+        @endphp
+        <div class="fixed inset-0 z-50 flex items-start justify-center p-4 pt-8 overflow-y-auto"
+            style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);" x-data x-on:click.self="$wire.closeView()" x-on:keydown.escape.window="$wire.closeView()">
+            <div class="w-full max-w-5xl bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+                x-on:click.self="$wire.closeView()">
+                <div class="sticky top-0 z-10 flex justify-end p-2 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                    <button wire:click="closeView" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl leading-none px-1">&times;</button>
                 </div>
-
-                {{-- Info Section --}}
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
-                    <div><span class="text-muted text-xs">{{ __('Status') }}</span>
+                <div class="p-6 space-y-5 text-sm text-gray-800 dark:text-gray-200">
+                    <table class="w-full">
+                        <tr>
+                            <td class="w-14 align-middle"><img src="{{ asset('images/asri.png') }}" class="w-12 h-12 object-contain" alt="ASRI"></td>
+                            <td class="text-center">
+                                <h1 class="text-lg font-bold">FORMULIR PEMERIKSAAN PERANGKAT</h1>
+                                <p class="text-xs text-gray-500">IT Department &mdash; ASRI</p>
+                            </td>
+                            <td class="w-14"></td>
+                        </tr>
+                    </table>
+                    <table class="w-full">
+                        <tr>
+                            <td class="font-semibold">No : {{ $_form['nomor_form'] }}</td>
+                            <td class="text-right text-gray-500">Tanggal : {{ $_form['submitted_at'] ? \Carbon\Carbon::parse($_form['submitted_at'])->format('d/m/Y') : '-' }}</td>
+                        </tr>
+                    </table>
+                    <div>
+                        <div class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500">Informasi Pengguna</div>
+                        <table class="w-full border border-gray-300 dark:border-gray-600">
+                            <tr>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold w-[16%]">Nama - [ NIK ]</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 w-[34%]">{{ $_form['pengguna']['name'] ?? '-' }} - [ {{ $_form['pengguna']['nik'] ?? '-' }} ]</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold w-[16%]">Position</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 w-[34%]">{{ $_form['pengguna']['position']['name'] ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">Alamat Email</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">{{ $_form['pengguna']['email'] ?? '-' }}</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">SO</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">{{ $_form['pengguna']['divisi']['name'] ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">No. Telepon</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">{{ $_form['pengguna']['no_telepon'] ?? '-' }}</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">Unit Site</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">{{ $_form['pengguna']['site_name'] ?? '-' }}</td>
+                            </tr>
+                        </table>
+                        <div class="mt-1 text-xs text-gray-500">Location Pemeriksaan: Site: {{ $_form['site_location'] ?? '-' }}, on {{ $_form['location_detail'] ?? '-' }}</div>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500">Informasi Perangkat</div>
+                        <table class="w-full border border-gray-300 dark:border-gray-600" style="text-align: center;">
+                            <tr>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">Kategori</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">Brand, Tipe</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">Hostname</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">No. Serial</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold">No. Asset</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">{{ $_form['asset']['kategori'] ?? '-' }}</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">{{ ($_form['asset']['brand'] ?? '') . ', ' . ($_form['asset']['tipe'] ?? '') }}</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">{{ $_form['asset']['nama_perangkat'] ?? '-' }}</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">{{ $_form['asset']['no_serial'] ?? '-' }}</td>
+                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5">{{ $_form['asset']['no_asset'] ?? '-' }}</td>
+                            </tr>
+                        </table>
                         @php
-                            $sc = match($viewingForm['status']) {
-                                'draft' => 'color: #6b7280;',
-                                'submitted' => 'color: #3b82f6;',
-                                'diketahui' => 'color: #eab308;',
-                                'disetujui' => 'color: #22c55e;',
-                                'selesai' => 'color: #10b981;',
-                                'revisi' => 'color: #ef4444;',
-                                default => '',
-                            };
+                            $_k = $_form['kondisi'] ?? '';
+                            $_kk = $_form['kondisi_keterangan'] ?? '';
                         @endphp
-                        <p class="font-semibold" style="{{ $sc }}">{{ ucfirst($viewingForm['status']) }}</p>
+                        @if ($_k)
+                            <table class="w-full border border-gray-300 dark:border-gray-600 mt-1">
+                                <tr><td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 font-semibold text-left">Kondisi, Keterangan</td></tr>
+                                <tr>
+                                    <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-left">
+                                        @if ($_k === 'baru') <strong>BARU</strong>
+                                        @elseif($_k === 'lama') LAMA{{ $_kk ? " ({$_kk})" : '' }}
+                                        @elseif($_k === 'good_normal') Good / Normal{{ $_kk ? " ({$_kk})" : '' }}
+                                        @elseif($_k === 'caution_poor') Caution / Poor{{ $_kk ? " ({$_kk})" : '' }}
+                                        @else - @endif
+                                    </td>
+                                </tr>
+                            </table>
+                        @endif
                     </div>
-                    <div><span class="text-muted text-xs">{{ __('Tanggal') }}</span><p class="text-primary">{{ $viewingForm['submitted_at'] ?? '-' }}</p></div>
-                    <div><span class="text-muted text-xs">{{ __('Kondisi') }}</span><p class="text-primary">{{ ucfirst($viewingForm['kondisi'] ?? '-') }}</p></div>
-                    <div><span class="text-muted text-xs">{{ __('Teknisi') }}</span><p class="text-primary">{{ $viewingForm['teknisi']['name'] ?? '-' }}</p></div>
-                    <div><span class="text-muted text-xs">{{ __('Pengguna') }}</span><p class="text-primary">{{ $viewingForm['pengguna']['name'] ?? '-' }}</p></div>
-                    <div><span class="text-muted text-xs">NIK</span><p class="text-primary">{{ $viewingForm['pengguna']['nik'] ?? '-' }}</p></div>
-                    <div><span class="text-muted text-xs">{{ __('Perangkat') }}</span><p class="text-primary">{{ $viewingForm['asset']['nama_perangkat'] ?? '-' }}</p></div>
-                    <div><span class="text-muted text-xs">{{ __('No. Asset') }}</span><p class="text-primary font-mono text-xs">{{ $viewingForm['asset']['no_asset'] ?? '-' }}</p></div>
-                    <div><span class="text-muted text-xs">Site</span><p class="text-primary">{{ $viewingForm['site']['site'] ?? $viewingForm['site_location'] ?? '-' }}</p></div>
-                    @if($viewingForm['kondisi_keterangan'])
-                        <div class="col-span-2 sm:col-span-3"><span class="text-muted text-xs">{{ __('Keterangan Kondisi') }}</span><p class="text-primary">{{ $viewingForm['kondisi_keterangan'] }}</p></div>
-                    @endif
-                    @if($viewingForm['location_detail'])
-                        <div class="col-span-2 sm:col-span-3"><span class="text-muted text-xs">Location Detail</span><p class="text-primary">{{ $viewingForm['location_detail'] }}</p></div>
-                    @endif
-                </div>
 
-                {{-- Items --}}
-                @if(count($viewingForm['items']) > 0)
-                    @php
-                        $hwItems = collect($viewingForm['items'])->where('category', 'hardware');
-                        $appItems = collect($viewingForm['items'])->where('category', 'aplikasi');
-                        $osItems = collect($viewingForm['items'])->where('category', 'operating_system');
-                    @endphp
-                    <div class="space-y-3">
-                        @foreach(['Hardware' => $hwItems, 'Aplikasi' => $appItems, 'Operating System' => $osItems] as $catName => $items)
-                            @if($items->count() > 0)
-                                <div>
-                                    <h3 class="text-xs font-semibold text-muted uppercase mb-2">{{ $catName }}</h3>
-                                    <div class="space-y-1">
-                                        @foreach($items as $item)
-                                            <div class="flex items-center justify-between py-1.5 px-3 rounded text-xs" style="background: var(--color-bg-tertiary);">
-                                                <span class="text-primary">{{ $item['name'] }}</span>
-                                                <div class="flex items-center gap-3">
-                                                    @if($item['full_charge_capacity'] || $item['design_capacity'])
-                                                        <span class="text-muted">
-                                                            @if(!empty($item['full_charge_capacity']) && !empty($item['design_capacity']) && $item['design_capacity'] > 0)
-                                                                <span class="font-semibold" style="color: var(--color-text-primary);">{{ round(($item['full_charge_capacity'] / $item['design_capacity']) * 100) }} %</span>
-                                                            @else
-                                                                <span class="font-semibold" style="color: var(--color-text-primary);">-</span>
+                    {{-- CHECKLIST ITEMS (two-col) --}}
+                    @if (count($_hardware) || count($_aplikasi) || count($_os))
+                        <div>
+                            <table class="w-full">
+                                <tr class="align-top">
+                                    <td class="w-1/2 pr-2 align-top">
+                                        <div class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500" style="margin-top:0;">Pemeriksaan Hardware</div>
+                                        <table class="w-full border border-gray-300 dark:border-gray-600">
+                                            <thead><tr class="bg-gray-100 dark:bg-gray-800">
+                                                <th class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[36%]">Name</th>
+                                                <th class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-center text-xs font-semibold w-[20%]">Kondisi</th>
+                                                <th class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[44%]">Keterangan</th>
+                                            </tr></thead>
+                                            <tbody>
+                                                @forelse ($_hardware as $_item)
+                                                    <tr class="even:bg-gray-50 dark:even:bg-gray-800/50">
+                                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">{{ $_item['name'] }}</td>
+                                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-center">
+                                                            @if (($_item['status'] ?? '') === 'baik') Baik @elseif(($_item['status'] ?? '') === 'tidak_baik') Tidak Baik @else - @endif
+                                                        </td>
+                                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">{{ $_item['keterangan'] ?? '' }}
+                                                            @if ((($_item['name'] ?? '') === 'Battery' || ($_item['name'] ?? '') === 'Battery Report') && (!empty($_item['full_charge_capacity']) || !empty($_item['design_capacity'])))
+                                                                @if (!empty($_item['full_charge_capacity']) && !empty($_item['design_capacity']) && $_item['design_capacity'] > 0) <strong>{{ round(($_item['full_charge_capacity'] / $_item['design_capacity']) * 100) }} %</strong> @else <strong>-</strong> @endif
+                                                                [FCC {{ $_item['full_charge_capacity'] ?? '-' }} / DC {{ $_item['design_capacity'] ?? '-' }}]
                                                             @endif
-                                                            [FCC {{ $item['full_charge_capacity'] ?? '-' }} / DC {{ $item['design_capacity'] ?? '-' }}]
-                                                        </span>
-                                                    @endif
-                                                    @if($item['keterangan'])
-                                                        <span class="text-muted max-w-[200px] truncate" title="{{ $item['keterangan'] }}">{{ $item['keterangan'] }}</span>
-                                                    @endif
-                                                    <span class="{{ $item['status'] === 'baik' ? 'text-emerald-400' : ($item['status'] === 'tidak_baik' ? 'text-red-400' : 'text-muted') }}">
-                                                        {{ ucfirst(str_replace('_', ' ', $item['status'] ?? '-')) }}
-                                                    </span>
-                                                </div>
-                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                @empty
+                                                    <tr><td colspan="3" class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-gray-400 text-center">-</td></tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                        <div class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500">Operating System</div>
+                                        <table class="w-full border border-gray-300 dark:border-gray-600">
+                                            <thead><tr class="bg-gray-100 dark:bg-gray-800">
+                                                <th class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[36%]">Name</th>
+                                                <th class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-center text-xs font-semibold w-[20%]">Kondisi</th>
+                                                <th class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[44%]">Keterangan</th>
+                                            </tr></thead>
+                                            <tbody>
+                                                @forelse ($_os as $_item)
+                                                    <tr class="even:bg-gray-50 dark:even:bg-gray-800/50">
+                                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">{{ $_item['name'] }}</td>
+                                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-center">
+                                                            @if (($_item['status'] ?? '') === 'baik') Baik @elseif(($_item['status'] ?? '') === 'tidak_baik') Tidak Baik @else - @endif
+                                                        </td>
+                                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">{{ $_item['keterangan'] ?? '' }}</td>
+                                                    </tr>
+                                                @empty
+                                                    <tr><td colspan="3" class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-gray-400 text-center">-</td></tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                    <td class="w-1/2 pl-2 align-top">
+                                        <div class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500" style="margin-top:0;">Pemeriksaan Aplikasi</div>
+                                        <table class="w-full border border-gray-300 dark:border-gray-600">
+                                            <thead><tr class="bg-gray-100 dark:bg-gray-800">
+                                                <th class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[36%]">Name</th>
+                                                <th class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-center text-xs font-semibold w-[20%]">Kondisi</th>
+                                                <th class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-left text-xs font-semibold w-[44%]">Keterangan</th>
+                                            </tr></thead>
+                                            <tbody>
+                                                @forelse ($_aplikasi as $_item)
+                                                    <tr class="even:bg-gray-50 dark:even:bg-gray-800/50">
+                                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">{{ $_item['name'] }}</td>
+                                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-center">
+                                                            @if (($_item['status'] ?? '') === 'baik') Installed @elseif(($_item['status'] ?? '') === 'tidak_baik') Not Installed @else - @endif
+                                                        </td>
+                                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs">{{ $_item['keterangan'] ?? '' }}</td>
+                                                    </tr>
+                                                @empty
+                                                    <tr><td colspan="3" class="border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-gray-400 text-center">-</td></tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    @endif
+
+                    {{-- TINDAKAN + NOTE --}}
+                    <table class="w-full">
+                        <tr class="align-top">
+                            <td class="w-1/2 pr-2 align-top">
+                                <div class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500" style="margin-top:0;">Tindakan</div>
+                                @if (!empty($_form['tindakan_categories']))
+                                    <table class="w-full border border-gray-300 dark:border-gray-600">
+                                        @foreach ($_form['tindakan_categories'] as $_cat)
+                                            @if (!empty($_cat['selected'] ?? []))
+                                                <tr>
+                                                    <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 font-semibold w-[35%] text-xs">{{ $_cat['label'] ?? '' }}</td>
+                                                    <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-xs">{{ implode(', ', $_cat['selected']) }}</td>
+                                                </tr>
+                                            @endif
                                         @endforeach
-                                    </div>
-                                </div>
-                            @endif
-                        @endforeach
-                    </div>
-                @endif
-
-                {{-- Tindakan --}}
-                @if($viewingForm['tindakan_categories'])
-                    <div>
-                        <h3 class="text-xs font-semibold text-muted uppercase mb-2">{{ __('Tindakan') }}</h3>
-                        <div class="space-y-1">
-                            @foreach($viewingForm['tindakan_categories'] as $cat)
-                                @if(!empty($cat['selected']))
-                                    <div class="flex items-start gap-2 py-1 px-3 rounded text-xs" style="background: var(--color-bg-tertiary);">
-                                        <span class="text-muted font-medium shrink-0">{{ $cat['label'] }}:</span>
-                                        <span class="text-primary">{{ implode(', ', $cat['selected']) }}</span>
-                                    </div>
+                                        @if (!empty($_form['tindakan_solution']))
+                                            <tr>
+                                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 font-semibold text-xs">Solution</td>
+                                                <td class="border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-xs">{{ $_form['tindakan_solution'] }}</td>
+                                            </tr>
+                                        @endif
+                                    </table>
+                                @else
+                                    <div class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs text-gray-400">Tidak ada tindakan</div>
                                 @endif
-                            @endforeach
-                            @if($viewingForm['tindakan_solution'])
-                                <div class="flex items-start gap-2 py-1 px-3 rounded text-xs" style="background: var(--color-bg-tertiary);">
-                                    <span class="text-muted font-medium shrink-0">Solution:</span>
-                                    <span class="text-primary">{{ $viewingForm['tindakan_solution'] }}</span>
+                            </td>
+                            <td class="w-1/2 align-top">
+                                <div class="text-xs font-bold mb-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500" style="margin-top:0;">Note</div>
+                                <div class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 text-xs text-gray-500">
+                                    <strong>V : BAIK</strong><br><strong>X : TIDAK BAIK</strong><br>
+                                    <span class="text-[10px]">(Mohon jelaskan kerusakan atau masalah yang ada)</span>
                                 </div>
-                            @endif
-                        </div>
-                    </div>
-                @endif
-
-                {{-- Notes --}}
-                @if($viewingForm['notes'])
-                    <div>
-                        <h3 class="text-xs font-semibold text-muted uppercase mb-1">{{ __('Catatan') }}</h3>
-                        <p class="text-sm text-primary px-3 py-2 rounded" style="background: var(--color-bg-tertiary);">{{ $viewingForm['notes'] }}</p>
-                    </div>
-                @endif
-
-                {{-- Approvals --}}
-                @if(count($viewingForm['approvals']) > 0)
-                    <div>
-                        <h3 class="text-xs font-semibold text-muted uppercase mb-2">Approval History</h3>                        <div class="space-y-1">
-                            @foreach($viewingForm['approvals'] as $approval)
-                                <div class="flex items-center justify-between py-1.5 px-3 rounded text-xs" style="background: var(--color-bg-tertiary);">
-                                    <span class="text-primary">{{ ucfirst(str_replace('_', ' ', $approval['approval_level'])) }} &mdash; {{ $approval['user_name'] ?? '-' }}</span>
-                                    <span class="text-muted">{{ ucfirst($approval['status']) }} {{ $approval['approved_at'] ?? '' }}</span>
+                                <div class="mt-2 px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs">
+                                    <strong class="block mb-0.5">CATATAN :</strong>{{ $_form['notes'] ?? '*) : diisi untuk perangkat lama' }}
                                 </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
+                            </td>
+                        </tr>
+                    </table>
 
-                {{-- Actions --}}
-                <div class="flex justify-end gap-2 pt-2 border-t" style="border-color: var(--color-border);">
-                    <a href="{{ route('pemeriksaan.export-pdf', $viewingForm['id']) }}" target="_blank"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-colors duration-200"
-                        style="background: var(--color-primary); color: var(--color-button-text);">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        {{ __('Export PDF') }}
-                    </a>
+                    {{-- SIGNATURES --}}
+                    <table class="w-full mt-4">
+                        <tr class="text-center align-top">
+                            <td class="w-1/3 px-1">
+                                <div class="text-xs font-bold underline mb-1">Diperiksa Oleh</div>
+                                @if ($_diperiksa && !empty($_diperiksa['signature_path']))
+                                    <img src="{{ $_diperiksa['signature_path'] }}" class="w-[90px] h-[35px] mx-auto my-1 object-contain" alt="TTD">
+                                @else <div class="w-[90px] border-b border-gray-400 mx-auto my-5"></div> @endif
+                                <div class="text-[10px] mt-1">{{ $_diperiksa['user_name'] ?? '_______________' }}</div>
+                                <div class="text-[9px] text-gray-500 mt-0.5">Tanggal : {{ $_diperiksa && !empty($_diperiksa['approved_at']) ? \Carbon\Carbon::parse($_diperiksa['approved_at'])->format('d/m/Y') : '___/___/______' }}</div>
+                            </td>
+                            <td class="w-1/3 px-1">
+                                <div class="text-xs font-bold underline mb-1">Diketahui Oleh</div>
+                                @if ($_diketahui && !empty($_diketahui['signature_path']))
+                                    <img src="{{ $_diketahui['signature_path'] }}" class="w-[90px] h-[35px] mx-auto my-1 object-contain" alt="TTD">
+                                @else <div class="w-[90px] border-b border-gray-400 mx-auto my-5"></div> @endif
+                                <div class="text-[10px] mt-1">{{ $_diketahui['user_name'] ?? '_______________' }}</div>
+                                <div class="text-[9px] text-gray-500 mt-0.5">Tanggal : {{ $_diketahui && !empty($_diketahui['approved_at']) ? \Carbon\Carbon::parse($_diketahui['approved_at'])->format('d/m/Y') : '___/___/______' }}</div>
+                            </td>
+                            <td class="w-1/3 px-1">
+                                <div class="text-xs font-bold underline mb-1">Disetujui Oleh</div>
+                                @if ($_disetujui && !empty($_disetujui['signature_path']))
+                                    <img src="{{ $_disetujui['signature_path'] }}" class="w-[90px] h-[35px] mx-auto my-1 object-contain" alt="TTD">
+                                @else <div class="w-[90px] border-b border-gray-400 mx-auto my-5"></div> @endif
+                                <div class="text-[10px] mt-1">{{ $_disetujui['user_name'] ?? '_______________' }}</div>
+                                <div class="text-[9px] text-gray-500 mt-0.5">Tanggal : {{ $_disetujui && !empty($_disetujui['approved_at']) ? \Carbon\Carbon::parse($_disetujui['approved_at'])->format('d/m/Y') : '___/___/______' }}</div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div class="text-center text-[9px] text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
+                        FM-ASRI/ITE/08-00 - Form Pemeriksaan Perangkat &mdash; {{ $_form['nomor_form'] }} &mdash; {{ $_form['asset']['nama_perangkat'] ?? '' }}
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <a href="{{ route('pemeriksaan.export-pdf', $_form['id']) }}" target="_blank"
+                            class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">Export PDF</a>
+                        @if (in_array($_form['status'], ['draft', 'submitted', 'diketahui']) && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('teknisi')))
+                            <a href="{{ route('pemeriksaan.create') }}?formId={{ $_form['id'] }}" wire:navigate
+                                class="px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors">Edit</a>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
