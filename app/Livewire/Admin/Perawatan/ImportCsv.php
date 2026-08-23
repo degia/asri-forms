@@ -346,7 +346,7 @@ class ImportCsv extends Component
         }
     }
 
-    public function confirmImport(): void
+    public function confirmImport()
     {
         if (! $this->processed) {
             $this->dismissConfirmImport();

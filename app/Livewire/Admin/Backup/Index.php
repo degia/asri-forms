@@ -5,6 +5,8 @@ namespace App\Livewire\Admin\Backup;
 use App\Helpers\ActivityLogger;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use ZipArchive;
 
@@ -134,31 +136,15 @@ class Index extends Component
             }
 
             $sqlFile = $sqlFiles[0];
-            $content = file_get_contents($sqlFile);
-            $clean = implode("\n", array_filter(explode("\n", $content), fn($line) => !str_starts_with(trim($line), 'mysqldump:')));
-            if ($clean !== $content) {
-                file_put_contents($sqlFile, $clean);
-            }
+            $this->sanitizeDumpFile($sqlFile);
 
-            $host = config('database.connections.mysql.host');
-            $port = config('database.connections.mysql.port');
-            $database = config('database.connections.mysql.database');
-            $username = config('database.connections.mysql.username');
-            $password = config('database.connections.mysql.password');
+            $safetyPath = storage_path('app/backups/safety_before_restore_' . now()->format('Ymd_His') . '.sql');
+            $this->dumpDatabase($safetyPath);
 
-            $passwordArg = $password ? ' --password=' . escapeshellarg($password) : '';
-            $cmd = sprintf(
-                '%s --host=%s --port=%s --user=%s%s %s < %s 2>&1',
-                escapeshellarg($mysql),
-                escapeshellarg($host),
-                escapeshellarg($port),
-                escapeshellarg($username),
-                $passwordArg,
-                escapeshellarg($database),
-                escapeshellarg($sqlFile)
-            );
+            $this->dropAllTables();
 
-            exec($cmd, $output, $exitCode);
+            $output = [];
+            $exitCode = $this->importSqlFile($sqlFile, $output);
 
             $this->rrmdir($tempDir);
 
@@ -166,6 +152,8 @@ class Index extends Component
                 $error = implode("\n", $output);
                 throw new \Exception("Gagal merestore database" . ($error ? ": {$error}" : ''));
             }
+
+            $this->runPendingMigrations();
 
             ActivityLogger::log('restore', "Merestore database dari backup: {$filename}", null, null, ['filename' => $filename]);
             $this->successMessage = "Database berhasil direstore dari {$filename}";
@@ -236,31 +224,15 @@ class Index extends Component
                 $sqlFile = $tempPath;
             }
 
-            $content = file_get_contents($sqlFile);
-            $clean = implode("\n", array_filter(explode("\n", $content), fn($line) => !str_starts_with(trim($line), 'mysqldump:')));
-            if ($clean !== $content) {
-                file_put_contents($sqlFile, $clean);
-            }
+            $this->sanitizeDumpFile($sqlFile);
 
-            $host = config('database.connections.mysql.host');
-            $port = config('database.connections.mysql.port');
-            $database = config('database.connections.mysql.database');
-            $username = config('database.connections.mysql.username');
-            $password = config('database.connections.mysql.password');
+            $safetyPath = storage_path('app/backups/safety_before_restore_' . now()->format('Ymd_His') . '.sql');
+            $this->dumpDatabase($safetyPath);
 
-            $passwordArg = $password ? ' --password=' . escapeshellarg($password) : '';
-            $cmd = sprintf(
-                '%s --host=%s --port=%s --user=%s%s %s < %s 2>&1',
-                escapeshellarg($mysql),
-                escapeshellarg($host),
-                escapeshellarg($port),
-                escapeshellarg($username),
-                $passwordArg,
-                escapeshellarg($database),
-                escapeshellarg($sqlFile)
-            );
+            $this->dropAllTables();
 
-            exec($cmd, $output, $exitCode);
+            $output = [];
+            $exitCode = $this->importSqlFile($sqlFile, $output);
 
             $this->rrmdir($tempDir);
 
@@ -268,6 +240,8 @@ class Index extends Component
                 $error = implode("\n", $output);
                 throw new \Exception("Gagal merestore database dari file yang diupload" . ($error ? ": {$error}" : ''));
             }
+
+            $this->runPendingMigrations();
 
             $this->uploadedFile = null;
             ActivityLogger::log('restore', "Merestore database dari file upload: {$originalName}", null, null, ['filename' => $originalName]);
@@ -312,6 +286,117 @@ class Index extends Component
         usort($backups, fn($a, $b) => strcmp($b['created_at'], $a['created_at']));
 
         return $backups;
+    }
+
+    private function sanitizeDumpFile(string $sqlFile): void
+    {
+        $content = file_get_contents($sqlFile);
+        $clean = implode("\n", array_filter(explode("\n", $content), fn($line) => !str_starts_with(trim($line), 'mysqldump:')));
+        if ($clean !== $content) {
+            file_put_contents($sqlFile, $clean);
+        }
+    }
+
+    private function dumpDatabase(string $targetSql): void
+    {
+        $mysqldump = $this->findMysqldump();
+        if (!$mysqldump) {
+            throw new \Exception('mysqldump tidak ditemukan di sistem. Tidak bisa membuat safety backup.');
+        }
+
+        $host = config('database.connections.mysql.host');
+        $port = config('database.connections.mysql.port');
+        $database = config('database.connections.mysql.database');
+        $username = config('database.connections.mysql.username');
+        $password = config('database.connections.mysql.password');
+
+        $passwordArg = $password ? ' --password=' . escapeshellarg($password) : '';
+        $nullDevice = DIRECTORY_SEPARATOR === '\\' ? 'NUL' : '/dev/null';
+        $errFile = $targetSql . '.err';
+        $cmd = sprintf(
+            '%s --host=%s --port=%s --user=%s%s %s --routines --single-transaction --quick > %s 2>%s',
+            escapeshellarg($mysqldump),
+            escapeshellarg($host),
+            escapeshellarg($port),
+            escapeshellarg($username),
+            $passwordArg,
+            escapeshellarg($database),
+            escapeshellarg($targetSql),
+            escapeshellarg($errFile)
+        );
+
+        exec($cmd, $output, $exitCode);
+
+        if (!file_exists($targetSql) || filesize($targetSql) === 0) {
+            $error = file_exists($errFile) ? trim((string) file_get_contents($errFile)) : implode("\n", $output);
+            @unlink($targetSql);
+            @unlink($errFile);
+            throw new \Exception("Gagal membuat safety backup sebelum restore" . ($error ? ": {$error}" : ''));
+        }
+
+        @unlink($errFile);
+    }
+
+    private function dropAllTables(): void
+    {
+        $tables = array_map(
+            fn($row) => array_values((array) $row)[0],
+            DB::select('SHOW FULL TABLES WHERE Table_type = \'BASE TABLE\'')
+        );
+
+        if (empty($tables)) {
+            return;
+        }
+
+        Schema::disableForeignKeyConstraints();
+        foreach ($tables as $table) {
+            Schema::dropIfExists($table);
+        }
+        Schema::enableForeignKeyConstraints();
+    }
+
+    private function importSqlFile(string $sqlFile, array &$output = []): int
+    {
+        $mysql = $this->findMysql();
+        if (!$mysql) {
+            throw new \Exception('mysql client tidak ditemukan di sistem.');
+        }
+
+        $host = config('database.connections.mysql.host');
+        $port = config('database.connections.mysql.port');
+        $database = config('database.connections.mysql.database');
+        $username = config('database.connections.mysql.username');
+        $password = config('database.connections.mysql.password');
+
+        $passwordArg = $password ? ' --password=' . escapeshellarg($password) : '';
+        $cmd = sprintf(
+            '%s --host=%s --port=%s --user=%s%s %s < %s 2>&1',
+            escapeshellarg($mysql),
+            escapeshellarg($host),
+            escapeshellarg($port),
+            escapeshellarg($username),
+            $passwordArg,
+            escapeshellarg($database),
+            escapeshellarg($sqlFile)
+        );
+
+        exec($cmd, $output, $exitCode);
+
+        return $exitCode;
+    }
+
+    private function runPendingMigrations(): void
+    {
+        try {
+            $exitCode = \Artisan::call('migrate', ['--force' => true]);
+            $output = trim(\Artisan::output());
+        } catch (\Throwable $e) {
+            throw new \Exception('Restore berhasil diimpor, namun gagal menjalankan migrasi: ' . $e->getMessage());
+        }
+
+        if ($exitCode !== 0) {
+            throw new \Exception('Restore berhasil diimpor, namun gagal menjalankan migrasi' . ($output ? ": {$output}" : ''));
+        }
     }
 
     private function findMysqldump(): ?string
