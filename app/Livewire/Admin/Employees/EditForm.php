@@ -104,8 +104,6 @@ class EditForm extends Component
                 return;
             }
 
-            $this->renameNikIfChanged();
-
             $this->employee->update([
                 'name' => $this->name,
                 'nik' => $this->nik ?: null,
@@ -134,20 +132,6 @@ class EditForm extends Component
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->dispatch('show-toast', message: 'Data gagal disimpan. Periksa kembali isian form, termasuk NIK/Email yang sudah terdaftar.', type: 'error');
             $this->dispatch('validation-error', errors: $e->errors());
-        }
-    }
-
-    private function renameNikIfChanged(): void
-    {
-        $oldNik = $this->employee->nik;
-        $newNik = $this->nik ?: null;
-
-        if ($newNik === $oldNik) {
-            return;
-        }
-
-        if ($oldNik !== null) {
-            User::where('nik', $oldNik)->update(['nik' => $newNik]);
         }
     }
 
