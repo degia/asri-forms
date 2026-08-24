@@ -134,11 +134,11 @@ new #[Layout('components.app-layout')] class extends Component
         <h1 class="text-2xl font-bold text-primary mb-6">Tanda Tangan - Diperiksa Oleh</h1>
 
         <div class="glass-card p-4 mb-4">
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-                <div><span class="text-xs text-muted">No. Form</span><p class="font-mono font-semibold text-primary">{{ $form->nomor_form }}</p></div>
-                <div><span class="text-xs text-muted">Teknisi</span><p class="text-primary">{{ $form->teknisi->name }}</p></div>
-                <div><span class="text-xs text-muted">Perangkat</span><p class="text-primary">{{ $form->asset->nama_perangkat }}</p></div>
-                <div><span class="text-xs text-muted">No. Asset</span><p class="font-mono text-primary">{{ $form->asset->no_asset }}</p></div>
+            <div class="grid grid-cols-2 sm:grid-cols-[2fr_1fr_1fr_1fr] gap-3 text-sm">
+                <div class="min-w-0"><span class="text-xs text-muted">No. Form</span><p class="font-mono font-semibold text-primary truncate" title="{{ $form->nomor_form }}">{{ $form->nomor_form }}</p></div>
+                <div class="min-w-0"><span class="text-xs text-muted">Teknisi</span><p class="text-primary truncate" title="{{ $form->teknisi->name }}">{{ $form->teknisi->name }}</p></div>
+                <div class="min-w-0"><span class="text-xs text-muted">Perangkat</span><p class="text-primary truncate" title="{{ $form->asset->nama_perangkat }}">{{ $form->asset->nama_perangkat }}</p></div>
+                <div class="min-w-0"><span class="text-xs text-muted">No. Asset</span><p class="font-mono text-primary truncate" title="{{ $form->asset->no_asset }}">{{ $form->asset->no_asset }}</p></div>
             </div>
         </div>
 
