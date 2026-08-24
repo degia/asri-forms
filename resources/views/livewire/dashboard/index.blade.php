@@ -522,6 +522,18 @@
                                         c.restore();
                                     });
                                 });
+                                const isDarkTotal = document.documentElement.classList.contains('dark');
+                                chart.getDatasetMeta(0).data.forEach((_, i) => {
+                                    const lastSeg = chart.getDatasetMeta(1).data[i];
+                                    if (!lastSeg || !totals[i]) return;
+                                    c.save();
+                                    c.font = '700 11px system-ui, -apple-system, sans-serif';
+                                    c.fillStyle = isDarkTotal ? '#f9fafb' : '#374151';
+                                    c.textAlign = 'left';
+                                    c.textBaseline = 'middle';
+                                    c.fillText(totals[i], lastSeg.x + 6, lastSeg.y);
+                                    c.restore();
+                                });
                             }
                         };
                         this.chart = new Chart(ctx, {
@@ -551,6 +563,7 @@
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 indexAxis: 'y',
+                                layout: { padding: { right: 40 } },
                                 plugins: {
                                     legend: {
                                         display: true,
