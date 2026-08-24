@@ -17,6 +17,8 @@ class Index extends Component
 
     public string $kondisi = '';
 
+    public string $site = '';
+
     public ?array $viewingForm = null;
 
     public array $selected = [];
@@ -33,6 +35,7 @@ class Index extends Component
         'search' => ['except' => ''],
         'status' => ['except' => ''],
         'kondisi' => ['except' => ''],
+        'site' => ['except' => ''],
     ];
 
     public function updatedSearch(): void
@@ -47,6 +50,17 @@ class Index extends Component
 
     public function updatedKondisi(): void
     {
+        $this->resetPage();
+    }
+
+    public function updatedSite(): void
+    {
+        $this->resetPage();
+    }
+
+    public function clearSiteFilter(): void
+    {
+        $this->site = '';
         $this->resetPage();
     }
 
@@ -245,7 +259,8 @@ class Index extends Component
                         ->orWhere('no_asset', 'like', "%{$this->search}%"));
             }))
             ->when($this->status, fn ($q) => $q->where('status', $this->status))
-            ->when($this->kondisi, fn ($q) => $q->where('kondisi', $this->kondisi));
+            ->when($this->kondisi, fn ($q) => $q->where('kondisi', $this->kondisi))
+            ->when($this->site, fn ($q) => $q->whereHas('site', fn ($sq) => $sq->where('site', $this->site)));
     }
 
     public function render()

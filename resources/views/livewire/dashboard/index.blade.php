@@ -134,6 +134,7 @@
             @php
                 $pmLabels = json_encode(array_column($pemeriksaanBySite, 'site'));
                 $pmData = json_encode(array_column($pemeriksaanBySite, 'total'));
+                $pmTotal = collect($pemeriksaanBySite)->sum('total');
             @endphp
             <div x-data="{
                 chart: null,
@@ -144,6 +145,23 @@
                         if (this.chart) this.chart.destroy();
                         const existing = Chart.getChart(ctx);
                         if (existing) existing.destroy();
+                        const valueLabelPlugin = {
+                            id: 'pmValueLabel',
+                            afterDatasetsDraw(chart) {
+                                const { ctx: c, chartArea } = chart;
+                                chart.getDatasetMeta(0).data.forEach((bar, i) => {
+                                    const val = chart.data.datasets[0].data[i];
+                                    if (val === 0) return;
+                                    c.save();
+                                    c.font = '600 11px system-ui, -apple-system, sans-serif';
+                                    c.fillStyle = 'rgb(59, 130, 246)';
+                                    c.textAlign = 'left';
+                                    c.textBaseline = 'middle';
+                                    c.fillText(val, bar.x + 6, bar.y);
+                                    c.restore();
+                                });
+                            }
+                        };
                         this.chart = new Chart(ctx, {
                             type: 'bar',
                             data: {
@@ -161,18 +179,53 @@
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 indexAxis: 'y',
+                                layout: { padding: { right: 40 } },
                                 plugins: { legend: { display: false } },
                                 scales: {
                                     x: { ticks: { color: 'rgb(156,163,175)', stepSize: 1 }, grid: { color: 'rgb(229,231,235)' } },
                                     y: { ticks: { color: 'rgb(156,163,175)', font: { size: 11 } }, grid: { display: false } }
                                 }
-                            }
+                            },
+                            plugins: [valueLabelPlugin]
                         });
                     });
                 },
                 destroy() { if (this.chart) this.chart.destroy(); }
             }" style="height: {{ max(200, count($pemeriksaanBySite) * 40 + 60) }}px;" wire:ignore wire:key="pm-{{ md5($pmLabels.$pmData) }}">
                 <canvas x-ref="chartPemeriksaan"></canvas>
+            </div>
+
+            <div class="mt-4 overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b" style="border-color: var(--color-border);">
+                            <th class="text-left py-2 text-xs text-muted font-medium">{{ __('Site') }}</th>
+                            <th class="text-right py-2 text-xs text-muted font-medium">{{ __('Jumlah Pemeriksaan') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y" style="border-color: var(--color-border);">
+                        @foreach($pemeriksaanBySite as $row)
+                            <tr class="transition-colors cursor-pointer" onclick="window.Livewire.navigate('{{ route('admin.pemeriksaan.index', ['site' => $row['site']]) }}')" onmouseover="this.style.backgroundColor='var(--color-bg-tertiary)'" onmouseout="this.style.backgroundColor=''">
+                                <td class="py-2.5 font-medium text-primary">{{ $row['site'] }}</td>
+                                <td class="py-2.5 text-right">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold" style="background: rgba(59,130,246,0.15); color: #3b82f6;">
+                                        {{ $row['total'] }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr class="font-bold border-t-2" style="border-color: var(--color-border);">
+                            <td class="py-2.5 text-primary">{{ __('Total') }}</td>
+                            <td class="py-2.5 text-right">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold" style="background: rgba(59,130,246,0.15); color: #3b82f6;">
+                                    {{ $pmTotal }}
+                                </span>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
         @else
             <p class="text-sm text-muted text-center py-4">{{ __('Tidak ada data pemeriksaan pada periode ini') }}</p>

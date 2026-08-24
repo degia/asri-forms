@@ -84,6 +84,15 @@
                 </select>
             </div>
         </div>
+        @if($site)
+            <div class="mt-3 flex items-center gap-2">
+                <span class="text-xs text-muted">{{ __('Filter Site:') }}</span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/15 text-blue-400">
+                    {{ $site }}
+                    <button wire:click="clearSiteFilter" class="ml-0.5 hover:text-blue-300" title="{{ __('Hapus filter') }}">&times;</button>
+                </span>
+            </div>
+        @endif
     </div>
 
     {{-- Table --}}
