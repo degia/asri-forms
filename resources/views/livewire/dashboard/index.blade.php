@@ -976,17 +976,17 @@
                             <tr class="transition-colors" onmouseover="this.style.backgroundColor='var(--color-bg-tertiary)'" onmouseout="this.style.backgroundColor=''">
                                 <td class="py-2.5 font-medium text-primary">{{ $row['site'] }}</td>
                                 <td class="py-2.5 text-right text-secondary">
-                                    <a href="{{ route('admin.employees.index', ['filterSite' => $row['site_id']]) }}" wire:navigate class="hover:underline font-semibold" style="color: var(--color-text-secondary);">
+                                    <a href="{{ route('admin.employees.index', ['filterSite' => $row['site_id'], 'filterStatus' => \App\Models\Employee::STATUS_ACTIVE]) }}" wire:navigate class="hover:underline font-semibold" style="color: var(--color-text-secondary);" title="{{ __('Lihat employee Active di site ini') }}">
                                         {{ $row['total'] }}
                                     </a>
                                 </td>
                                 <td class="py-2.5 text-right">
-                                    <a href="{{ route('admin.employees.index', ['filterSite' => $row['site_id'], 'filterAssetStatus' => 'punya']) }}" wire:navigate class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold transition-opacity hover:opacity-70" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                                    <a href="{{ route('admin.employees.index', ['filterSite' => $row['site_id'], 'filterAssetStatus' => 'punya', 'filterStatus' => \App\Models\Employee::STATUS_ACTIVE]) }}" wire:navigate class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold transition-opacity hover:opacity-70" style="background: rgba(16,185,129,0.15); color: #10b981;" title="{{ __('Lihat employee Active punya asset di site ini') }}">
                                         {{ $row['punya'] }}
                                     </a>
                                 </td>
                                 <td class="py-2.5 text-right">
-                                    <a href="{{ route('admin.employees.index', ['filterSite' => $row['site_id'], 'filterAssetStatus' => 'tidak']) }}" wire:navigate class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold transition-opacity hover:opacity-70" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                                    <a href="{{ route('admin.employees.index', ['filterSite' => $row['site_id'], 'filterAssetStatus' => 'tidak', 'filterStatus' => \App\Models\Employee::STATUS_ACTIVE]) }}" wire:navigate class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold transition-opacity hover:opacity-70" style="background: rgba(239,68,68,0.15); color: #ef4444;" title="{{ __('Lihat employee Active tidak punya asset di site ini') }}">
                                         {{ $row['tidak'] }}
                                     </a>
                                 </td>
