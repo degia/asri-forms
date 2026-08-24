@@ -492,6 +492,38 @@
                         if (this.chart) this.chart.destroy();
                         const existing = Chart.getChart(ctx);
                         if (existing) existing.destroy();
+                        const pvbValueLabelPlugin = {
+                            id: 'pvbValueLabel',
+                            afterDatasetsDraw(chart) {
+                                const { ctx: c } = chart;
+                                const isDark = document.documentElement.classList.contains('dark');
+                                const totals = chart.data.datasets[0].data.map((v, i) => (v || 0) + (chart.data.datasets[1].data[i] || 0));
+                                [0, 1].forEach((di) => {
+                                    const meta = chart.getDatasetMeta(di);
+                                    meta.data.forEach((seg, i) => {
+                                        const val = chart.data.datasets[di].data[i];
+                                        if (!seg || !val || val === 0 || totals[i] === 0) return;
+                                        const len = Math.abs(seg.x - seg.base);
+                                        if (len < 44) return;
+                                        const pct = ((val / totals[i]) * 100).toFixed(1);
+                                        const label = val + ' (' + pct + '%)';
+                                        const cx = (seg.x + seg.base) / 2;
+                                        const cy = seg.y;
+                                        c.save();
+                                        c.font = '700 11px system-ui, -apple-system, sans-serif';
+                                        c.textAlign = 'center';
+                                        c.textBaseline = 'middle';
+                                        c.lineJoin = 'round';
+                                        c.lineWidth = 3;
+                                        c.strokeStyle = isDark ? 'rgba(17,24,39,0.85)' : 'rgba(255,255,255,0.9)';
+                                        c.strokeText(label, cx, cy);
+                                        c.fillStyle = isDark ? '#f9fafb' : '#111827';
+                                        c.fillText(label, cx, cy);
+                                        c.restore();
+                                    });
+                                });
+                            }
+                        };
                         this.chart = new Chart(ctx, {
                             type: 'bar',
                             data: {
@@ -539,11 +571,19 @@
                                         grid: { display: false }
                                     }
                                 }
-                            }
+                            },
+                            plugins: [pvbValueLabelPlugin]
                         });
+                        this.themeObserver = new MutationObserver(() => {
+                            if (this.chart) this.chart.update('none');
+                        });
+                        this.themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
                     });
                 },
-                destroy() { if (this.chart) this.chart.destroy(); }
+                destroy() {
+                    if (this.themeObserver) this.themeObserver.disconnect();
+                    if (this.chart) this.chart.destroy();
+                }
             }" style="height: {{ $chartHeight }}px;" wire:ignore wire:key="pvb-{{ md5($pvbLabels.$pvbDilakukan.$pvbBelum) }}">
                 <canvas x-ref="chartPerawatanVsBelum"></canvas>
             </div>
