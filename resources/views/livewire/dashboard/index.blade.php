@@ -851,6 +851,49 @@
                         if (this.chart) this.chart.destroy();
                         const existing = Chart.getChart(ctx);
                         if (existing) existing.destroy();
+                        const eabValueLabelPlugin = {
+                            id: 'eabValueLabel',
+                            afterDatasetsDraw(chart) {
+                                const { ctx: c } = chart;
+                                const isDark = document.documentElement.classList.contains('dark');
+                                const totals = chart.data.datasets[0].data.map((v, i) => (v || 0) + (chart.data.datasets[1].data[i] || 0));
+                                [0, 1].forEach((di) => {
+                                    const meta = chart.getDatasetMeta(di);
+                                    meta.data.forEach((seg, i) => {
+                                        const val = chart.data.datasets[di].data[i];
+                                        if (!seg || !val || val === 0 || totals[i] === 0) return;
+                                        const len = Math.abs(seg.x - seg.base);
+                                        if (len < 44) return;
+                                        const pct = ((val / totals[i]) * 100).toFixed(1);
+                                        const label = val + ' (' + pct + '%)';
+                                        const cx = (seg.x + seg.base) / 2;
+                                        const cy = seg.y;
+                                        c.save();
+                                        c.font = '700 11px system-ui, -apple-system, sans-serif';
+                                        c.textAlign = 'center';
+                                        c.textBaseline = 'middle';
+                                        c.lineJoin = 'round';
+                                        c.lineWidth = 3;
+                                        c.strokeStyle = isDark ? 'rgba(17,24,39,0.85)' : 'rgba(255,255,255,0.9)';
+                                        c.strokeText(label, cx, cy);
+                                        c.fillStyle = isDark ? '#f9fafb' : '#111827';
+                                        c.fillText(label, cx, cy);
+                                        c.restore();
+                                    });
+                                });
+                                chart.getDatasetMeta(0).data.forEach((_, i) => {
+                                    const lastSeg = chart.getDatasetMeta(1).data[i];
+                                    if (!lastSeg || !totals[i]) return;
+                                    c.save();
+                                    c.font = '700 11px system-ui, -apple-system, sans-serif';
+                                    c.fillStyle = isDark ? '#f9fafb' : '#374151';
+                                    c.textAlign = 'left';
+                                    c.textBaseline = 'middle';
+                                    c.fillText(totals[i], lastSeg.x + 6, lastSeg.y);
+                                    c.restore();
+                                });
+                            }
+                        };
                         this.chart = new Chart(ctx, {
                             type: 'bar',
                             data: {
@@ -878,6 +921,7 @@
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 indexAxis: 'y',
+                                layout: { padding: { right: 40 } },
                                 plugins: {
                                     legend: {
                                         display: true,
@@ -898,11 +942,19 @@
                                         grid: { display: false }
                                     }
                                 }
-                            }
+                            },
+                            plugins: [eabValueLabelPlugin]
                         });
+                        this.themeObserver = new MutationObserver(() => {
+                            if (this.chart) this.chart.update('none');
+                        });
+                        this.themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
                     });
                 },
-                destroy() { if (this.chart) this.chart.destroy(); }
+                destroy() {
+                    if (this.themeObserver) this.themeObserver.disconnect();
+                    if (this.chart) this.chart.destroy();
+                }
             }" style="height: {{ $eabChartHeight }}px;" wire:ignore wire:key="eab-{{ md5($eabLabels.$eabPunya.$eabTidak) }}">
                 <canvas x-ref="chartEmployeesAssetBySite"></canvas>
             </div>
