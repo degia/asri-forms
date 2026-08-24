@@ -64,6 +64,26 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function deleteForm(int $id): void
+    {
+        $this->authorizeAdmin();
+
+        $form = FormPemeriksaan::find($id);
+        if ($form) {
+            $nomorForm = $form->nomor_form;
+            $form->items()->delete();
+            $form->approvals()->delete();
+            $form->attachments()->delete();
+            $form->delete();
+        } else {
+            return;
+        }
+
+        ActivityLogger::log('delete', "Menghapus form pemeriksaan: {$nomorForm}", 'App\Models\FormPemeriksaan', $id);
+        $this->dispatch('show-toast', message: 'Form pemeriksaan berhasil dihapus.', type: 'success');
+        $this->dispatch('form-bulk');
+    }
+
     public function viewForm(int $id): void
     {
         $form = FormPemeriksaan::with(['teknisi', 'pengguna.position', 'pengguna.divisi', 'asset', 'site', 'items', 'approvals.user', 'attachments'])
