@@ -135,6 +135,8 @@ class CreateForm extends Component
 
     public bool $showAssetDropdown = false;
 
+    public bool $serialExists = false;
+
     // Sites
     public array $sites = [];
 
@@ -594,6 +596,7 @@ class CreateForm extends Component
         if (strlen($term) < 2) {
             $this->assetResults = [];
             $this->showAssetDropdown = false;
+            $this->serialExists = false;
 
             return;
         }
@@ -613,6 +616,11 @@ class CreateForm extends Component
 
         $this->assetResults = $query->limit(10)->get()->toArray();
 
+        $this->serialExists = false;
+        if ($this->assetSearchSerial !== '' && strlen($this->assetSearchSerial) >= 2) {
+            $this->serialExists = Asset::where('no_serial', $this->assetSearchSerial)->exists();
+        }
+
         $this->showAssetDropdown = strlen($term) >= 2;
     }
 
@@ -631,6 +639,7 @@ class CreateForm extends Component
             $this->assetSearchSerial = '';
             $this->assetSearchNama = '';
             $this->showAssetDropdown = false;
+            $this->serialExists = false;
         }
     }
 
@@ -647,6 +656,7 @@ class CreateForm extends Component
         $this->assetSearchSerial = '';
         $this->assetSearchNama = '';
         $this->showAssetDropdown = false;
+        $this->serialExists = false;
         $this->showCreateAsset = false;
         $this->resetNewAssetFields();
     }

@@ -263,7 +263,7 @@
                                             </button>
                                         @endforeach
                                     </div>
-                                @elseif($showAssetDropdown && count($assetResults) === 0)
+                                @elseif($showAssetDropdown && count($assetResults) === 0 && ! $serialExists)
                                     @php $term = $assetSearchNoAsset ?: $assetSearchSerial ?: $assetSearchNama; @endphp
                                     <div class="absolute z-20 mt-1 w-full rounded-lg shadow-lg"
                                         style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">
@@ -273,6 +273,12 @@
                                             <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                             <span>Tambah Asset Baru: <strong>{{ $term }}</strong></span>
                                         </button>
+                                    </div>
+                                @elseif($showAssetDropdown && $serialExists)
+                                    <div class="absolute z-20 mt-1 w-full rounded-lg shadow-lg px-3 py-2 flex items-center gap-2"
+                                        style="background: var(--color-bg-secondary); border: 1px solid rgba(239, 68, 68, 0.3);">
+                                        <svg class="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span class="text-sm text-red-400">No. Serial <strong>{{ $assetSearchSerial }}</strong> sudah tercatat di sistem. Silakan pilih asset dari daftar.</span>
                                     </div>
                                 @endif
                             </div>
