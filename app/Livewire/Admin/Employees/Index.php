@@ -8,6 +8,9 @@ use App\Models\Position;
 use App\Models\Site;
 use App\Models\SubDepartement;
 use App\Models\User;
+use App\Models\Directorate;
+use App\Models\Divisi;
+use App\Models\Departement;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -20,6 +23,10 @@ class Index extends Component
     public string $filterPosition = '';
     public string $filterStatus = '';
     public string $filterAssetStatus = '';
+    public string $filterDirectorate = '';
+    public string $filterDivisi = '';
+    public string $filterDepartement = '';
+    public string $filterSubDepartement = '';
     public string $sortBy = 'name';
     public string $sortDirection = 'asc';
     public bool $showDeleteModal = false;
@@ -40,6 +47,10 @@ class Index extends Component
         'filterPosition' => ['except' => ''],
         'filterStatus' => ['except' => ''],
         'filterAssetStatus' => ['except' => ''],
+        'filterDirectorate' => ['except' => ''],
+        'filterDivisi' => ['except' => ''],
+        'filterDepartement' => ['except' => ''],
+        'filterSubDepartement' => ['except' => ''],
         'sortBy' => ['except' => 'name'],
         'sortDirection' => ['except' => 'asc'],
     ];
@@ -290,7 +301,11 @@ class Index extends Component
             ->when($this->filterPosition, fn ($q) => $q->where('position_id', $this->filterPosition))
             ->when($this->filterStatus, fn ($q) => $q->where('status', $this->filterStatus))
             ->when($this->filterAssetStatus === 'punya', fn ($q) => $q->whereHas('assignedAssets'))
-            ->when($this->filterAssetStatus === 'tidak', fn ($q) => $q->whereDoesntHave('assignedAssets'));
+            ->when($this->filterAssetStatus === 'tidak', fn ($q) => $q->whereDoesntHave('assignedAssets'))
+            ->when($this->filterDirectorate, fn ($q) => $q->where('directorate_id', $this->filterDirectorate))
+            ->when($this->filterDivisi, fn ($q) => $q->where('divisi_id', $this->filterDivisi))
+            ->when($this->filterDepartement, fn ($q) => $q->where('departement_id', $this->filterDepartement))
+            ->when($this->filterSubDepartement, fn ($q) => $q->where('sub_departement_id', $this->filterSubDepartement));
     }
 
     public function getSiteOptions(): array
@@ -311,6 +326,27 @@ class Index extends Component
     {
         return SubDepartement::orderBy('name')->get(['id', 'name'])
             ->mapWithKeys(fn ($s) => [$s->id => $s->name])
+            ->toArray();
+    }
+
+    public function getDirectorateOptions(): array
+    {
+        return Directorate::orderBy('name')->get(['id', 'name'])
+            ->mapWithKeys(fn ($d) => [$d->id => $d->name])
+            ->toArray();
+    }
+
+    public function getDivisiOptions(): array
+    {
+        return Divisi::orderBy('name')->get(['id', 'name'])
+            ->mapWithKeys(fn ($d) => [$d->id => $d->name])
+            ->toArray();
+    }
+
+    public function getDepartementOptions(): array
+    {
+        return Departement::orderBy('name')->get(['id', 'name'])
+            ->mapWithKeys(fn ($d) => [$d->id => $d->name])
             ->toArray();
     }
 

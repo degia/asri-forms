@@ -508,6 +508,7 @@ class Index extends Component
                         foreach ($dep->subDepartements as $sub) {
                             $subDeps[] = [
                                 'key' => "d{$di}v{$vi}e{$dei}s{$si}",
+                                'id' => $sub->id,
                                 'name' => $sub->name,
                                 'count' => $employees->where('sub_departement_id', $sub->id)->count(),
                             ];
@@ -515,6 +516,7 @@ class Index extends Component
                         }
                         $departements[] = [
                             'key' => "d{$di}v{$vi}e{$dei}",
+                            'id' => $dep->id,
                             'name' => $dep->name,
                             'count' => $depCount,
                             'sub_departements' => $subDeps,
@@ -523,6 +525,7 @@ class Index extends Component
                     }
                     $divisis[] = [
                         'key' => "d{$di}v{$vi}",
+                        'id' => $div->id,
                         'name' => $div->name,
                         'count' => $divCount,
                         'departements' => $departements,
@@ -531,6 +534,7 @@ class Index extends Component
                 }
                 $hierarchy[] = [
                     'key' => "d{$di}",
+                    'id' => $dir->id,
                     'name' => $dir->name,
                     'count' => $dirCount,
                     'divisis' => $divisis,
