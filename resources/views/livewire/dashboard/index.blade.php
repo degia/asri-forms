@@ -1041,7 +1041,7 @@
             @php
                 $orgDefaults = [];
                 foreach ($orgHierarchy as $d) {
-                    $orgDefaults[$d['key']] = true;
+                    $orgDefaults[$d['key']] = false;
                     foreach ($d['divisis'] as $v) {
                         $orgDefaults[$v['key']] = false;
                         foreach ($v['departements'] as $e) {
@@ -1052,22 +1052,22 @@
             @endphp
 
             <div x-data='orgAccordion(@json($orgDefaults))' @org-set-all.window="setAll($event.detail)">
-                <p class="text-xs text-muted mb-3">{{ __('Ketuk nama untuk lihat data employee, ketuk panah untuk buka/tutup cabang') }}</p>
+                <p class="text-xs text-muted mb-3">{{ __('Ketuk panah untuk buka/tutup, ketuk nama untuk lihat data employee') }}</p>
                 <div class="space-y-2">
                     @foreach($orgHierarchy as $dir)
                     <div class="rounded-xl overflow-hidden transition-all duration-200" style="border: 1px solid var(--color-card-border);">
 
                         {{-- Level 1: Direktorat --}}
-                        <div class="flex items-center" style="background: var(--color-primary);">
+                        <div class="flex items-stretch" style="background: var(--color-primary);">
                             <button type="button" @click="toggle('{{ $dir['key'] }}')"
-                                class="shrink-0 px-2.5 py-3 transition-all duration-200 hover:opacity-80"
+                                class="shrink-0 flex items-center justify-center px-3 transition-all duration-200 hover:bg-white/10"
                                 title="{{ __('Buka / tutup') }}">
                                 <svg class="w-4 h-4 transition-transform duration-200" :class="! isOpen('{{ $dir['key'] }}') && '-rotate-90'" style="color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                 </svg>
                             </button>
                             <a href="{{ route('admin.employees.index', ['filterDirectorate' => $dir['id'], 'filterStatus' => 'Active']) }}" wire:navigate
-                                class="flex-1 min-w-0 flex items-center gap-2.5 py-3 pr-3 text-start transition-all duration-200 hover:opacity-90">
+                                class="flex-1 min-w-0 flex items-center gap-2.5 py-3 pr-3 text-start transition-all duration-200 hover:bg-white/10 border-l border-white/20">
                                 <span class="flex-1 min-w-0 text-sm font-bold truncate" style="color: white;">{{ $dir['name'] }}</span>
                                 <span class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold" style="background: rgba(255,255,255,0.2); color: white;">{{ $dir['count'] }}</span>
                             </a>
@@ -1079,16 +1079,16 @@
                             <div class="p-2 space-y-1.5">
                             @foreach($dir['divisis'] as $div)
                             <div class="rounded-lg overflow-hidden transition-all duration-200" style="border: 1px solid var(--color-border);">
-                                <div class="flex items-center" style="background: var(--color-card-bg);">
+                                <div class="flex items-stretch" style="background: var(--color-card-bg);">
                                     <button type="button" @click="toggle('{{ $div['key'] }}')"
-                                        class="shrink-0 px-2 py-2 transition-colors duration-150 hover:bg-[var(--color-bg-tertiary)]"
+                                        class="shrink-0 flex items-center justify-center px-2 transition-colors duration-150 hover:bg-[var(--color-bg-tertiary)]"
                                         title="{{ __('Buka / tutup') }}">
                                         <svg class="w-3.5 h-3.5 transition-transform duration-200 {{ count($div['departements']) > 0 ? '' : 'invisible' }}" :class="! isOpen('{{ $div['key'] }}') && '-rotate-90'" style="color: var(--color-text-secondary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                         </svg>
                                     </button>
                                     <a href="{{ route('admin.employees.index', ['filterDivisi' => $div['id'], 'filterStatus' => 'Active']) }}" wire:navigate
-                                        class="flex-1 min-w-0 flex items-center gap-2 py-2 pr-2.5 text-start transition-colors duration-150 hover:bg-[var(--color-bg-tertiary)]">
+                                        class="flex-1 min-w-0 flex items-center gap-2 py-2 pr-2.5 text-start transition-colors duration-150 hover:bg-[var(--color-bg-tertiary)] border-l border-glass">
                                         <span class="flex-1 min-w-0 text-xs font-semibold truncate text-primary">{{ $div['name'] }}</span>
                                         <span class="shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-semibold" style="background: var(--color-bg-tertiary); color: var(--color-text-secondary);">{{ $div['count'] }}</span>
                                     </a>
@@ -1100,16 +1100,16 @@
                                     <div class="p-2 space-y-1">
                                     @foreach($div['departements'] as $dep)
                                     <div class="rounded-md overflow-hidden transition-all duration-200" style="border: 1px solid var(--color-border);">
-                                        <div class="flex items-center" style="background: var(--color-card-bg);">
+                                        <div class="flex items-stretch" style="background: var(--color-card-bg);">
                                             <button type="button" @click="toggle('{{ $dep['key'] }}')"
-                                                class="shrink-0 px-2 py-1.5 transition-colors duration-150 hover:bg-[var(--color-bg-tertiary)]"
+                                                class="shrink-0 flex items-center justify-center px-2 transition-colors duration-150 hover:bg-[var(--color-bg-tertiary)]"
                                                 title="{{ __('Buka / tutup') }}">
                                                 <svg class="w-3 h-3 transition-transform duration-200 {{ count($dep['sub_departements']) > 0 ? '' : 'invisible' }}" :class="! isOpen('{{ $dep['key'] }}') && '-rotate-90'" style="color: var(--color-text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                                 </svg>
                                             </button>
                                             <a href="{{ route('admin.employees.index', ['filterDepartement' => $dep['id'], 'filterStatus' => 'Active']) }}" wire:navigate
-                                                class="flex-1 min-w-0 flex items-center gap-2 py-1.5 pr-2.5 text-start transition-colors duration-150 hover:bg-[var(--color-bg-tertiary)]">
+                                                class="flex-1 min-w-0 flex items-center gap-2 py-1.5 pr-2.5 text-start transition-colors duration-150 hover:bg-[var(--color-bg-tertiary)] border-l border-glass">
                                                 <span class="flex-1 min-w-0 text-[11px] font-medium truncate text-secondary">{{ $dep['name'] }}</span>
                                                 <span class="shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-semibold" style="background: var(--color-bg-tertiary); color: var(--color-text-secondary);">{{ $dep['count'] }}</span>
                                             </a>
@@ -1121,7 +1121,7 @@
                                             <div class="p-1.5 space-y-0.5">
                                             @foreach($dep['sub_departements'] as $sub)
                                             <a href="{{ route('admin.employees.index', ['filterSubDepartement' => $sub['id'], 'filterStatus' => 'Active']) }}" wire:navigate
-                                                class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md transition-colors duration-150 hover:bg-[var(--color-card-bg)]" style="background: var(--color-card-bg); border: 1px solid var(--color-card-border);">
+                                                class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md transition-colors duration-150 hover:opacity-80" style="background: var(--color-card-bg); border: 1px solid var(--color-card-border);">
                                                 <span class="min-w-0 text-[11px] truncate text-muted flex items-center gap-1.5">
                                                     <span class="w-1 h-1 rounded-full shrink-0" style="background: var(--color-text-muted);"></span>
                                                     {{ $sub['name'] }}</span>
