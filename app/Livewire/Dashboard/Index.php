@@ -486,6 +486,7 @@ class Index extends Component
     {
         $this->orgHierarchy = Cache::remember('dashboard:orgHierarchy', $this->cacheTTL, function () {
             $employees = Employee::whereNull('deleted_at')
+                ->where('status', Employee::STATUS_ACTIVE)
                 ->get(['nik', 'directorate_id', 'divisi_id', 'departement_id', 'sub_departement_id']);
 
             $directorates = Directorate::with(['divisis.departements.subDepartements'])->get();

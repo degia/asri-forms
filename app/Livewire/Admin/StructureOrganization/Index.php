@@ -6,6 +6,7 @@ use App\Helpers\ActivityLogger;
 use App\Models\Departement;
 use App\Models\Directorate;
 use App\Models\Divisi;
+use App\Models\Employee;
 use App\Models\Position;
 use App\Models\SubDepartement;
 use Livewire\Component;
@@ -370,7 +371,7 @@ class Index extends Component
             'divisi' => Divisi::with('directorate')->withCount('departements')->with('departements'),
             'departement' => Departement::with('divisi.directorate')->withCount('subDepartements')->with('subDepartements'),
             'sub_departement' => SubDepartement::with('departement.divisi.directorate'),
-            'position' => Position::withCount('employees'),
+            'position' => Position::withCount(['employees as employees_count' => fn ($q) => $q->where('status', Employee::STATUS_ACTIVE)]),
             default => Directorate::query(),
         };
 
