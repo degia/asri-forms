@@ -125,7 +125,11 @@ class CreateForm extends Component
     public string $addUserRole = 'pengguna';
 
     // Search - Asset
-    public string $assetSearch = '';
+    public string $assetSearchNoAsset = '';
+
+    public string $assetSearchSerial = '';
+
+    public string $assetSearchNama = '';
 
     public array $assetResults = [];
 
@@ -225,7 +229,7 @@ class CreateForm extends Component
             $this->namaPerangkat = $form->asset->nama_perangkat ?? '';
             $this->noSerial = $form->asset->no_serial ?? '';
             $this->noAsset = $form->asset->no_asset ?? '';
-            $this->assetSearch = $form->asset->no_asset ?? '';
+            $this->assetSearchNoAsset = $form->asset->no_asset ?? '';
         }
 
         $this->siteLocation = $form->site_location ?? '';
@@ -585,18 +589,22 @@ class CreateForm extends Component
 
     public function searchAsset(): void
     {
-        if (strlen($this->assetSearch) < 2) {
+        $term = $this->assetSearchNoAsset ?: $this->assetSearchSerial ?: $this->assetSearchNama;
+
+        if (strlen($term) < 2) {
             $this->assetResults = [];
             $this->showAssetDropdown = false;
 
             return;
         }
 
-        $query = Asset::where('no_asset', 'like', "%{$this->assetSearch}%")
-            ->orWhere('nama_perangkat', 'like', "%{$this->assetSearch}%")
-            ->orWhere('brand', 'like', "%{$this->assetSearch}%")
-            ->orWhere('tipe', 'like', "%{$this->assetSearch}%")
-            ->orWhere('no_serial', 'like', "%{$this->assetSearch}%");
+        $query = Asset::query();
+
+        $query->where(function ($q) use ($term) {
+            $q->when($this->assetSearchNoAsset, fn ($q) => $q->where('no_asset', 'like', "%{$this->assetSearchNoAsset}%"))
+                ->when($this->assetSearchSerial, fn ($q) => $q->where('no_serial', 'like', "%{$this->assetSearchSerial}%"))
+                ->when($this->assetSearchNama, fn ($q) => $q->where('nama_perangkat', 'like', "%{$this->assetSearchNama}%"));
+        });
 
         $user = Auth::user();
         if ($user && ! $user->hasPermissionTo('view-all-forms') && $user->hasPermissionTo('view-assigned-forms')) {
@@ -605,7 +613,7 @@ class CreateForm extends Component
 
         $this->assetResults = $query->limit(10)->get()->toArray();
 
-        $this->showAssetDropdown = strlen($this->assetSearch) >= 2;
+        $this->showAssetDropdown = strlen($term) >= 2;
     }
 
     public function selectAsset(int $assetId): void
@@ -619,7 +627,9 @@ class CreateForm extends Component
             $this->namaPerangkat = $asset->nama_perangkat ?? '';
             $this->noSerial = $asset->no_serial ?? '';
             $this->noAsset = $asset->no_asset;
-            $this->assetSearch = $asset->no_asset;
+            $this->assetSearchNoAsset = $asset->no_asset;
+            $this->assetSearchSerial = '';
+            $this->assetSearchNama = '';
             $this->showAssetDropdown = false;
         }
     }
@@ -633,7 +643,9 @@ class CreateForm extends Component
         $this->namaPerangkat = '';
         $this->noSerial = '';
         $this->noAsset = '';
-        $this->assetSearch = '';
+        $this->assetSearchNoAsset = '';
+        $this->assetSearchSerial = '';
+        $this->assetSearchNama = '';
         $this->showAssetDropdown = false;
         $this->showCreateAsset = false;
         $this->resetNewAssetFields();
@@ -643,7 +655,7 @@ class CreateForm extends Component
     {
         $this->showCreateAsset = true;
         $this->showAssetDropdown = false;
-        $this->newAssetNoAsset = $this->assetSearch;
+        $this->newAssetNoAsset = $this->assetSearchNoAsset ?: $this->assetSearchSerial ?: $this->assetSearchNama;
     }
 
     public function closeCreateAsset(): void
@@ -680,7 +692,9 @@ class CreateForm extends Component
         $this->namaPerangkat = $asset->nama_perangkat ?? '';
         $this->noSerial = $asset->no_serial ?? '';
         $this->noAsset = $asset->no_asset;
-        $this->assetSearch = $asset->no_asset;
+        $this->assetSearchNoAsset = $asset->no_asset;
+        $this->assetSearchSerial = '';
+        $this->assetSearchNama = '';
         $this->showAssetDropdown = false;
         $this->showCreateAsset = false;
         $this->resetNewAssetFields();

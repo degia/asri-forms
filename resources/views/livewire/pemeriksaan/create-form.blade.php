@@ -278,10 +278,29 @@
                             </div>
                         @else
                             <div class="relative">
-                                <input type="text" wire:model.live="assetSearch"
-                                    wire:input.debounce.300ms="searchAsset"
-                                    placeholder="Cari No. Asset, Nama Perangkat, Brand, atau Tipe..."
-                                    class="glass-input w-full rounded-lg px-3 py-2 text-sm">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
+                                    <div>
+                                        <label class="text-[10px] font-medium text-muted uppercase tracking-wider mb-1 block">No. Asset / Barcode</label>
+                                        <input type="text" wire:model.live="assetSearchNoAsset"
+                                            wire:input.debounce.300ms="searchAsset"
+                                            placeholder="Cari No. Asset..."
+                                            class="glass-input w-full rounded-lg px-3 py-2 text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-medium text-muted uppercase tracking-wider mb-1 block">No. Serial (SN)</label>
+                                        <input type="text" wire:model.live="assetSearchSerial"
+                                            wire:input.debounce.300ms="searchAsset"
+                                            placeholder="Cari Serial Number..."
+                                            class="glass-input w-full rounded-lg px-3 py-2 text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-medium text-muted uppercase tracking-wider mb-1 block">Nama Perangkat</label>
+                                        <input type="text" wire:model.live="assetSearchNama"
+                                            wire:input.debounce.300ms="searchAsset"
+                                            placeholder="Cari Nama Perangkat..."
+                                            class="glass-input w-full rounded-lg px-3 py-2 text-sm">
+                                    </div>
+                                </div>
                                 @if($showAssetDropdown && count($assetResults) > 0)
                                     <div class="absolute z-20 mt-1 w-full rounded-lg shadow-lg max-h-48 overflow-auto"
                                         style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">
@@ -294,14 +313,15 @@
                                             </button>
                                         @endforeach
                                     </div>
-                                @elseif($showAssetDropdown && strlen($assetSearch) >= 2 && count($assetResults) === 0)
+                                @elseif($showAssetDropdown && count($assetResults) === 0)
+                                    @php $term = $assetSearchNoAsset ?: $assetSearchSerial ?: $assetSearchNama; @endphp
                                     <div class="absolute z-20 mt-1 w-full rounded-lg shadow-lg"
                                         style="background: var(--color-bg-secondary); border: 1px solid var(--color-border);">
                                         <button wire:click="openCreateAsset" type="button"
                                             class="w-full text-left px-3 py-2 text-sm hover:opacity-80 transition flex items-center gap-2"
                                             style="color: var(--color-text-primary);">
                                             <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                            <span>Tambah Asset Baru: <strong>{{ $assetSearch }}</strong></span>
+                                            <span>Tambah Asset Baru: <strong>{{ $term }}</strong></span>
                                         </button>
                                     </div>
                                 @endif
