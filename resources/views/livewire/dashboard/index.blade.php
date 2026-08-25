@@ -1019,21 +1019,19 @@
     @endphp
     <div class="glass-card p-5 overflow-hidden">
         <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <h3 class="text-lg font-semibold" style="color: var(--color-text);">
+            <h3 class="text-lg font-semibold text-primary">
                 {{ __('Hierarki Organisasi') }}
-                <span class="text-sm font-normal ml-2 px-2 py-0.5 rounded-full" style="background: var(--color-bg-secondary); color: var(--color-text-secondary);">
-                    {{ $totalEmployees }} {{ __('Employee') }}
+                <span class="text-xs font-normal ml-2 px-2 py-0.5 rounded-full bg-secondary text-secondary border border-glass">
+                    {{ $totalEmployees }} {{ __('Karyawan') }}
                 </span>
             </h3>
             <div class="flex items-center gap-1.5">
                 <button type="button" @click="$dispatch('org-set-all', false)"
-                    class="text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors"
-                    style="background: var(--color-bg-secondary); color: var(--color-text-secondary); border: 1px solid var(--color-border);">
+                    class="text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors duration-200 bg-secondary text-secondary border border-glass hover:bg-tertiary">
                     {{ __('Sembunyikan Semua') }}
                 </button>
                 <button type="button" @click="$dispatch('org-set-all', true)"
-                    class="text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors"
-                    style="background: var(--color-bg-secondary); color: var(--color-text-secondary); border: 1px solid var(--color-border);">
+                    class="text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors duration-200 bg-secondary text-secondary border border-glass hover:bg-tertiary">
                     {{ __('Tampilkan Semua') }}
                 </button>
             </div>
@@ -1053,67 +1051,78 @@
                 }
             @endphp
 
-
-            {{-- Hierarki organisasi: kartu bertingkat (mobile & desktop) --}}
             <div x-data='orgAccordion(@json($orgDefaults))' @org-set-all.window="setAll($event.detail)">
-                <p class="text-xs text-muted mb-2">{{ __('Ketuk untuk membuka / menutup cabang') }}</p>
+                <p class="text-xs text-muted mb-3">{{ __('Ketuk untuk membuka / menutup cabang') }}</p>
                 <div class="space-y-2">
                     @foreach($orgHierarchy as $dir)
-                    <div class="rounded-xl border overflow-hidden" style="border-color: var(--color-border);">
+                    <div class="rounded-xl overflow-hidden transition-all duration-200" style="border: 1px solid var(--color-card-border);">
+
+                        {{-- Level 1: Direktorat --}}
                         <button type="button" @click="toggle('{{ $dir['key'] }}')"
-                            class="w-full flex items-center gap-2 px-3 py-2.5 text-start"
+                            class="w-full flex items-center gap-2.5 px-3.5 py-3 text-start transition-all duration-200 hover:opacity-90"
                             style="background: var(--color-primary);">
                             <svg class="w-4 h-4 shrink-0 transition-transform duration-200" :class="! isOpen('{{ $dir['key'] }}') && '-rotate-90'" style="color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
                             <span class="flex-1 min-w-0 text-sm font-bold truncate" style="color: white;">{{ $dir['name'] }}</span>
-                            <span class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold" style="background: rgba(255,255,255,0.25); color: white;">{{ $dir['count'] }}</span>
+                            <span class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold" style="background: rgba(255,255,255,0.2); color: white;">{{ $dir['count'] }}</span>
                         </button>
 
+                        {{-- Level 2: Divisi --}}
                         @if(count($dir['divisis']) > 0)
-                        <div x-show="isOpen('{{ $dir['key'] }}')" class="p-2 space-y-1.5" style="background: var(--color-bg-secondary);">
+                        <div x-show="isOpen('{{ $dir['key'] }}')" x-cloak class="border-t" style="border-color: var(--color-card-border); background: var(--color-bg-secondary);">
+                            <div class="p-2 space-y-1.5">
                             @foreach($dir['divisis'] as $div)
-                            <div class="rounded-lg border overflow-hidden" style="border-color: var(--color-border);">
+                            <div class="rounded-lg overflow-hidden transition-all duration-200" style="border: 1px solid var(--color-border);">
                                 <button type="button" @click="toggle('{{ $div['key'] }}')"
-                                    class="w-full flex items-center gap-2 px-2.5 py-2 text-start"
+                                    class="w-full flex items-center gap-2 px-2.5 py-2 text-start transition-colors duration-150"
                                     style="background: var(--color-card-bg);">
                                     <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-200 {{ count($div['departements']) > 0 ? '' : 'invisible' }}" :class="! isOpen('{{ $div['key'] }}') && '-rotate-90'" style="color: var(--color-text-secondary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                     </svg>
                                     <span class="flex-1 min-w-0 text-xs font-semibold truncate text-primary">{{ $div['name'] }}</span>
-                                    <span class="shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-semibold" style="background: var(--color-glass-bg); border: 1px solid var(--color-border); color: var(--color-text-secondary);">{{ $div['count'] }}</span>
+                                    <span class="shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-semibold" style="background: var(--color-bg-tertiary); color: var(--color-text-secondary);">{{ $div['count'] }}</span>
                                 </button>
 
+                                {{-- Level 3: Departemen --}}
                                 @if(count($div['departements']) > 0)
-                                <div x-show="isOpen('{{ $div['key'] }}')" x-cloak class="ps-4 pe-1 py-1 space-y-1 border-t" style="border-color: var(--color-border); background: var(--color-bg-secondary);">
+                                <div x-show="isOpen('{{ $div['key'] }}')" x-cloak class="border-t" style="border-color: var(--color-border); background: var(--color-bg-secondary);">
+                                    <div class="p-2 space-y-1">
                                     @foreach($div['departements'] as $dep)
-                                    <div class="rounded-lg border overflow-hidden" style="border-color: var(--color-border);">
+                                    <div class="rounded-md overflow-hidden transition-all duration-200" style="border: 1px solid var(--color-border);">
                                         <button type="button" @click="toggle('{{ $dep['key'] }}')"
-                                            class="w-full flex items-center gap-2 px-2.5 py-1.5 text-start"
+                                            class="w-full flex items-center gap-2 px-2.5 py-1.5 text-start transition-colors duration-150"
                                             style="background: var(--color-card-bg);">
-                                            <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-200 {{ count($dep['sub_departements']) > 0 ? '' : 'invisible' }}" :class="! isOpen('{{ $dep['key'] }}') && '-rotate-90'" style="color: var(--color-text-secondary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg class="w-3 h-3 shrink-0 transition-transform duration-200 {{ count($dep['sub_departements']) > 0 ? '' : 'invisible' }}" :class="! isOpen('{{ $dep['key'] }}') && '-rotate-90'" style="color: var(--color-text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                             </svg>
-                                            <span class="flex-1 min-w-0 text-xs font-medium truncate text-primary">{{ $dep['name'] }}</span>
-                                            <span class="shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-semibold" style="background: var(--color-glass-bg); border: 1px solid var(--color-border); color: var(--color-text-secondary);">{{ $dep['count'] }}</span>
+                                            <span class="flex-1 min-w-0 text-[11px] font-medium truncate text-secondary">{{ $dep['name'] }}</span>
+                                            <span class="shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-semibold" style="background: var(--color-bg-tertiary); color: var(--color-text-secondary);">{{ $dep['count'] }}</span>
                                         </button>
 
+                                        {{-- Level 4: Sub Departemen --}}
                                         @if(count($dep['sub_departements']) > 0)
-                                        <div x-show="isOpen('{{ $dep['key'] }}')" x-cloak class="ps-4 pe-1 py-1 space-y-0.5 border-t" style="border-color: var(--color-border); background: var(--color-bg-tertiary);">
+                                        <div x-show="isOpen('{{ $dep['key'] }}')" x-cloak class="border-t" style="border-color: var(--color-border); background: var(--color-bg-tertiary);">
+                                            <div class="p-1.5 space-y-0.5">
                                             @foreach($dep['sub_departements'] as $sub)
-                                            <div class="flex items-center justify-between gap-2 px-2 py-1 rounded-md" style="background: var(--color-card-bg);">
-                                                <span class="min-w-0 text-[11px] truncate text-secondary">{{ $sub['name'] }}</span>
-                                                <span class="shrink-0 text-[10px] font-semibold text-muted">{{ $sub['count'] }}</span>
+                                            <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md transition-colors duration-150" style="background: var(--color-card-bg); border: 1px solid var(--color-card-border);">
+                                                <span class="min-w-0 text-[11px] truncate text-muted flex items-center gap-1.5">
+                                                    <span class="w-1 h-1 rounded-full shrink-0" style="background: var(--color-text-muted);"></span>
+                                                    {{ $sub['name'] }}</span>
+                                                <span class="shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-semibold" style="background: var(--color-bg-secondary); color: var(--color-text-muted);">{{ $sub['count'] }}</span>
                                             </div>
                                             @endforeach
+                                            </div>
                                         </div>
                                         @endif
                                     </div>
                                     @endforeach
+                                    </div>
                                 </div>
                                 @endif
                             </div>
                             @endforeach
+                            </div>
                         </div>
                         @endif
                     </div>
