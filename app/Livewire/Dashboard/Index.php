@@ -5,10 +5,10 @@ namespace App\Livewire\Dashboard;
 use App\Models\Asset;
 use App\Models\Directorate;
 use App\Models\Employee;
-use App\Models\FormPemeriksaan;
 use App\Models\FormPerawatan;
 use App\Models\Site;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -174,7 +174,7 @@ class Index extends Component
         });
     }
 
-    private function trendQuery(): \Illuminate\Database\Eloquent\Builder
+    private function trendQuery(): Builder
     {
         $query = FormPerawatan::whereNotNull('submitted_at');
 
@@ -214,7 +214,7 @@ class Index extends Component
 
     private function cacheKey(string $prefix, ...$parts): string
     {
-        return $prefix . ':' . md5(implode(':', array_map(fn ($p) => (string) $p, $parts)));
+        return $prefix.':'.md5(implode(':', array_map(fn ($p) => (string) $p, $parts)));
     }
 
     private function loadPerawatanBySite(): void
@@ -279,6 +279,7 @@ class Index extends Component
             $query = DB::table('form_pemeriksaan')
                 ->join('assets', 'assets.id', '=', 'form_pemeriksaan.asset_id')
                 ->whereNull('form_pemeriksaan.deleted_at')
+                ->whereNotNull('form_pemeriksaan.submitted_at')
                 ->select('assets.id', 'assets.nama_perangkat', 'assets.no_asset', 'assets.operating_unit', 'assets.site_location_asset')
                 ->selectRaw('COUNT(form_pemeriksaan.id) as total_pemeriksaan')
                 ->groupBy('assets.id', 'assets.nama_perangkat', 'assets.no_asset', 'assets.operating_unit', 'assets.site_location_asset');
