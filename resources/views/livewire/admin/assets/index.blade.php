@@ -182,15 +182,17 @@
                     </thead>
                     <tbody class="divide-y" style="border-color: var(--color-border);">
                         @foreach($assets as $a)
-                            <tr class="transition-colors duration-150 cursor-pointer" style="hover: background: var(--color-glass-bg);"
-                                @if(auth()->user()->hasRole('admin')) onclick="window.location='{{ route('admin.assets.edit', $a->id) }}'" @endif>
+                            <tr class="transition-colors duration-150" style="hover: background: var(--color-glass-bg);">
                                 @if(auth()->user()->hasRole('admin'))
-                                    <td class="px-4 py-3 w-10" onclick="event.stopPropagation()">
+                                    <td class="px-4 py-3 w-10">
                                         <input type="checkbox" value="{{ $a->id }}" wire:model.live="selected"
                                             class="rounded cursor-pointer" style="accent-color: var(--color-primary);">
                                     </td>
                                 @endif
-                                <td class="px-4 py-3 font-mono text-secondary whitespace-nowrap">{{ $a->no_asset }}</td>
+                                <td class="px-4 py-3 font-mono text-secondary whitespace-nowrap">
+                                    <a href="{{ route('assets.show', $a->id) }}" wire:navigate
+                                        class="text-blue-400 hover:text-blue-300 hover:underline">{{ $a->no_asset }}</a>
+                                </td>
                                 <td class="px-4 py-3 whitespace-nowrap">
                                     <div class="flex items-center gap-2.5">
                                         @if($a->foto_url)
@@ -240,7 +242,7 @@
                                     @endif
                                 </td>
                                 @if(auth()->user()->hasRole('admin'))
-                                    <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
+                                    <td class="px-4 py-3 text-right">
                                         <div class="flex items-center justify-end gap-1">
                                             <a href="{{ route('admin.assets.edit', $a->id) }}" wire:navigate
                                                 class="p-1.5 rounded-lg transition-colors duration-200"
