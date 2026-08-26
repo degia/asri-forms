@@ -214,7 +214,15 @@ class Index extends Component
 
     private function cacheKey(string $prefix, ...$parts): string
     {
-        return $prefix.':'.md5(implode(':', array_map(fn ($p) => (string) $p, $parts)));
+        $key = $prefix.':'.md5(implode(':', array_map(fn ($p) => (string) $p, $parts)));
+
+        $registry = Cache::get('dashboard:cacheRegistry', []);
+        if (! in_array($key, $registry)) {
+            $registry[] = $key;
+            Cache::put('dashboard:cacheRegistry', $registry, $this->cacheTTL);
+        }
+
+        return $key;
     }
 
     private function loadPerawatanBySite(): void
@@ -226,6 +234,7 @@ class Index extends Component
             $end = $this->endDate ? Carbon::parse($this->endDate)->endOfDay() : now()->endOfDay();
 
             $counts = DB::table('form_perawatan')
+                ->whereNull('form_perawatan.deleted_at')
                 ->whereNotNull('submitted_at')
                 ->whereBetween('submitted_at', [$start, $end])
                 ->leftJoin('sites', 'sites.id_site', '=', 'form_perawatan.site_location')
@@ -253,6 +262,7 @@ class Index extends Component
             $end = $this->endDate ? Carbon::parse($this->endDate)->endOfDay() : now()->endOfDay();
 
             $counts = DB::table('form_pemeriksaan')
+                ->whereNull('form_pemeriksaan.deleted_at')
                 ->whereNotNull('submitted_at')
                 ->whereBetween('submitted_at', [$start, $end])
                 ->leftJoin('sites', 'sites.id_site', '=', 'form_pemeriksaan.site_location')
@@ -587,7 +597,12 @@ class Index extends Component
 
     public function clearDashboardCache(): void
     {
-        $keys = [
+        self::clearAllDashboardCache();
+    }
+
+    public static function clearAllDashboardCache(): void
+    {
+        $staticKeys = [
             'dashboard:operatingUnits',
             'dashboard:trendAssetOus',
             'dashboard:trendSiteLocations',
@@ -597,9 +612,15 @@ class Index extends Component
             'dashboard:orgHierarchy',
         ];
 
-        foreach ($keys as $key) {
+        foreach ($staticKeys as $key) {
             Cache::forget($key);
         }
+
+        $registry = Cache::get('dashboard:cacheRegistry', []);
+        foreach ($registry as $key) {
+            Cache::forget($key);
+        }
+        Cache::forget('dashboard:cacheRegistry');
     }
 
     public function render()

@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
+use App\Livewire\Dashboard\Index as DashboardIndex;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Cache;
 
 class FormPerawatan extends Model
 {
@@ -37,21 +37,13 @@ class FormPerawatan extends Model
 
     protected static function booted(): void
     {
-        static::saved(fn () => self::clearDashboardCache());
+        static::saved(fn () => DashboardIndex::clearAllDashboardCache());
         static::deleting(function (FormPerawatan $form) {
             $form->items()->delete();
             $form->approvals()->delete();
             $form->attachments()->delete();
-            self::clearDashboardCache();
+            DashboardIndex::clearAllDashboardCache();
         });
-    }
-
-    private static function clearDashboardCache(): void
-    {
-        Cache::forget('dashboard:operatingUnits');
-        Cache::forget('dashboard:trendAssetOus');
-        Cache::forget('dashboard:trendSiteLocations');
-        Cache::forget('dashboard:trendSiteUsers');
     }
 
     public function teknisi(): BelongsTo
