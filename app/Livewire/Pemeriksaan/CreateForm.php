@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Pemeriksaan;
 
-use App\Helpers\ActivityLogger;
 use App\Enums\FormStatus;
+use App\Helpers\ActivityLogger;
 use App\Models\Asset;
 use App\Models\ChecklistTemplate;
 use App\Models\Employee;
@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Spatie\Permission\Models\Role;
 
 class CreateForm extends Component
 {
@@ -199,7 +200,7 @@ class CreateForm extends Component
         ];
     }
 
-    public function mount(?int $formId = null): void
+    public function mount(?int $formId = null, ?int $assetId = null): void
     {
         $user = Auth::user();
         $this->teknisiName = $user->name;
@@ -218,7 +219,39 @@ class CreateForm extends Component
 
         if ($formId) {
             $this->loadFormData($formId);
+        } elseif ($assetId) {
+            $this->prefillFromAsset($assetId);
         }
+    }
+
+    private function prefillFromAsset(int $assetId): void
+    {
+        $asset = Asset::with('assignedEmployee')->find($assetId);
+        if (! $asset) {
+            return;
+        }
+
+        $this->assetId = $asset->id;
+        $this->noAsset = $asset->no_asset;
+        $this->kategori = $asset->kategori;
+        $this->brand = $asset->brand;
+        $this->tipe = $asset->tipe;
+        $this->namaPerangkat = $asset->nama_perangkat;
+        $this->noSerial = $asset->no_serial ?? '';
+        $this->assetSearchNoAsset = $asset->no_asset;
+
+        $this->updateOsHostname($asset->nama_perangkat);
+
+        if ($asset->assignedEmployee) {
+            $employee = $asset->assignedEmployee;
+            $this->penggunaId = $employee->nik;
+            $this->penggunaName = $employee->name;
+            $this->penggunaNik = $employee->nik;
+            $this->penggunaEmail = $employee->email ?? '';
+            $this->penggunaSearch = $employee->name;
+        }
+
+        $this->siteLocation = $asset->site_location_asset ?? '';
     }
 
     private function initTindakanCategories(): void
@@ -252,7 +285,9 @@ class CreateForm extends Component
     private function loadFormData(int $formId): void
     {
         $user = Auth::user();
-        if (!$user || !($user->hasRole('admin') || $user->hasRole('teknisi'))) return;
+        if (! $user || ! ($user->hasRole('admin') || $user->hasRole('teknisi'))) {
+            return;
+        }
 
         $form = FormPemeriksaan::with(['items', 'pengguna', 'asset'])->find($formId);
         if (! $form || ! in_array($form->status, [FormStatus::Draft->value, FormStatus::Submitted->value, FormStatus::Diketahui->value])) {
@@ -575,7 +610,7 @@ class CreateForm extends Component
 
     public function getRoleList(): array
     {
-        return \Spatie\Permission\Models\Role::pluck('name')->toArray();
+        return Role::pluck('name')->toArray();
     }
 
     public function saveAddUser(): void
@@ -668,7 +703,7 @@ class CreateForm extends Component
 
         $query = Asset::query();
 
-        $query->where(function ($q) use ($term) {
+        $query->where(function ($q) {
             $q->when($this->assetSearchNoAsset, fn ($q) => $q->where('no_asset', 'like', "%{$this->assetSearchNoAsset}%"))
                 ->when($this->assetSearchSerial, fn ($q) => $q->where('no_serial', 'like', "%{$this->assetSearchSerial}%"))
                 ->when($this->assetSearchNama, fn ($q) => $q->where('nama_perangkat', 'like', "%{$this->assetSearchNama}%"));
