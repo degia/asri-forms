@@ -17,15 +17,60 @@
         </div>
     </div>
 
-    {{-- Report 1: Perawatan by Site --}}
+    {{-- Report 1: Perawatan by Site / Pemeriksa --}}
     <div class="glass-card p-5">
-        <h3 class="text-sm font-bold text-primary mb-4">{{ __('Laporan Perawatan Perangkat by Site Lokasi') }}</h3>
-        @if(count($perawatanBySite) > 0)
-            @php
-                $pwLabels = json_encode(array_column($perawatanBySite, 'site'));
-                $pwData = json_encode(array_column($perawatanBySite, 'total'));
-                $pwTotal = collect($perawatanBySite)->sum('total');
-            @endphp
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h3 class="text-sm font-bold text-primary">{{ $filterPerawatanGroup === 'pemeriksa' ? __('Laporan Perawatan Perangkat by Pemeriksa') : __('Laporan Perawatan Perangkat by Site Lokasi') }}</h3>
+            <div class="flex items-center gap-2 flex-wrap">
+                <label class="text-xs text-muted">{{ __('Grup By') }}:</label>
+                <select wire:model.live="filterPerawatanGroup"
+                    class="px-3 py-1.5 rounded-lg text-xs transition-colors duration-200"
+                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                    <option value="site">{{ __('Site Lokasi') }}</option>
+                    <option value="pemeriksa">{{ __('Pemeriksa') }}</option>
+                </select>
+                <label class="text-xs text-muted">{{ __('Status') }}:</label>
+                <select wire:model.live="filterPerawatanStatus"
+                    class="px-3 py-1.5 rounded-lg text-xs transition-colors duration-200"
+                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                    <option value="">{{ __('Semua') }}</option>
+                    <option value="submitted">Submitted</option>
+                    <option value="diketahui">Diketahui</option>
+                    <option value="disetujui">Disetujui</option>
+                    <option value="selesai">Selesai</option>
+                    <option value="revisi">Revisi</option>
+                </select>
+            </div>
+        </div>
+        @php
+            $pwRows = $perawatanBySite['rows'] ?? [];
+            $pwStatusTotals = $perawatanBySite['statusTotals'] ?? [];
+            $pwGroupKey = $filterPerawatanGroup === 'pemeriksa' ? 'search' : 'site';
+            $pwGroupLabel = $filterPerawatanGroup === 'pemeriksa' ? __('Pemeriksa') : __('Site');
+            $pwStatusColors = [
+                'submitted' => ['bg' => 'rgba(59,130,246,0.15)', 'text' => '#3b82f6', 'solid' => 'rgb(59, 130, 246)'],
+                'diketahui' => ['bg' => 'rgba(234,179,8,0.15)', 'text' => '#eab308', 'solid' => 'rgb(234, 179, 8)'],
+                'disetujui' => ['bg' => 'rgba(34,197,94,0.15)', 'text' => '#22c55e', 'solid' => 'rgb(34, 197, 94)'],
+                'selesai' => ['bg' => 'rgba(16,185,129,0.15)', 'text' => '#10b981', 'solid' => 'rgb(16, 185, 129)'],
+                'revisi' => ['bg' => 'rgba(239,68,68,0.15)', 'text' => '#ef4444', 'solid' => 'rgb(239, 68, 68)'],
+            ];
+            $pwLabels = json_encode(array_column($pwRows, 'kelompok'));
+            $pwTotal = collect($pwRows)->sum('total');
+            $pwDatasets = [];
+            foreach ($pwStatusColors as $statusKey => $color) {
+                $pwDatasets[] = [
+                    'label' => ucfirst($statusKey),
+                    'data' => array_map(fn ($r) => $r['statuses'][$statusKey] ?? 0, $pwRows),
+                    'backgroundColor' => $color['solid'],
+                    'borderColor' => $color['solid'],
+                    'borderWidth' => 1,
+                    'borderRadius' => 2,
+                    'clip' => false,
+                ];
+            }
+            $pwDatasetsJson = json_encode(array_values(array_filter($pwDatasets, fn ($ds) => array_sum($ds['data']) > 0)));
+        @endphp
+        @if(count($pwRows) > 0)
             <div x-data="{
                 chart: null,
                 init() {
@@ -38,42 +83,49 @@
                         const valueLabelPlugin = {
                             id: 'pwValueLabel',
                             afterDatasetsDraw(chart) {
-                                const { ctx: c, chartArea } = chart;
-                                chart.getDatasetMeta(0).data.forEach((bar, i) => {
-                                    const val = chart.data.datasets[0].data[i];
-                                    if (val === 0) return;
-                                    c.save();
-                                    c.font = '600 11px system-ui, -apple-system, sans-serif';
-                                    c.fillStyle = 'rgb(168, 85, 247)';
-                                    c.textAlign = 'left';
-                                    c.textBaseline = 'middle';
-                                    c.fillText(val, bar.x + 6, bar.y);
-                                    c.restore();
+                                const { ctx: c } = chart;
+                                const meta0 = chart.getDatasetMeta(0);
+                                if (!meta0.data.length) return;
+                                const isDarkPw = document.documentElement.classList.contains('dark');
+                                c.save();
+                                c.font = '600 11px system-ui, -apple-system, sans-serif';
+                                c.textAlign = 'left';
+                                c.textBaseline = 'middle';
+                                c.lineJoin = 'round';
+                                c.lineWidth = 3;
+                                c.strokeStyle = isDarkPw ? 'rgba(17,24,39,0.85)' : 'rgba(255,255,255,0.9)';
+                                c.fillStyle = 'rgb(168, 85, 247)';
+                                meta0.data.forEach((bar, i) => {
+                                    let total = 0;
+                                    let endX = 0;
+                                    chart.data.datasets.forEach((ds, di) => {
+                                        const val = ds.data[i] || 0;
+                                        total += val;
+                                        const seg = chart.getDatasetMeta(di).data[i];
+                                        if (seg && val !== 0 && seg.x > endX) endX = seg.x;
+                                    });
+                                    if (total === 0) return;
+                                    c.strokeText(String(total), endX + 8, bar.y);
+                                    c.fillText(String(total), endX + 8, bar.y);
                                 });
+                                c.restore();
                             }
                         };
                         this.chart = new Chart(ctx, {
                             type: 'bar',
                             data: {
                                 labels: {{ $pwLabels }},
-                                datasets: [{
-                                    label: '{{ __('Jumlah Perawatan') }}',
-                                    data: {{ $pwData }},
-                                    backgroundColor: 'rgba(168, 85, 247, 0.6)',
-                                    borderColor: 'rgba(168, 85, 247, 1)',
-                                    borderWidth: 1,
-                                    borderRadius: 4,
-                                }]
+                                datasets: {{ $pwDatasetsJson }}
                             },
                             options: {
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 indexAxis: 'y',
-                                layout: { padding: { right: 40 } },
-                                plugins: { legend: { display: false } },
+                                layout: { padding: { right: 56 } },
+                                plugins: { legend: { display: true, position: 'bottom', labels: { color: 'rgb(156,163,175)', boxWidth: 10, font: { size: 10 } } } },
                                 scales: {
-                                    x: { ticks: { color: 'rgb(156,163,175)', stepSize: 1 }, grid: { color: 'rgb(229,231,235)' } },
-                                    y: { ticks: { color: 'rgb(156,163,175)', font: { size: 11 } }, grid: { display: false } }
+                                    x: { stacked: true, ticks: { color: 'rgb(156,163,175)', stepSize: 1 }, grid: { color: 'rgb(229,231,235)' } },
+                                    y: { stacked: true, ticks: { color: 'rgb(156,163,175)', font: { size: 11 } }, grid: { display: false } }
                                 }
                             },
                             plugins: [valueLabelPlugin]
@@ -81,7 +133,7 @@
                     });
                 },
                 destroy() { if (this.chart) this.chart.destroy(); }
-            }" style="height: {{ max(200, count($perawatanBySite) * 40 + 60) }}px;" wire:ignore wire:key="pw-{{ md5($pwLabels.$pwData) }}">
+            }" style="height: {{ max(200, count($pwRows) * 40 + 60) }}px;" wire:ignore wire:key="pw-{{ md5($pwLabels.$pwDatasetsJson) }}">
                 <canvas x-ref="chartPerawatan"></canvas>
             </div>
 
@@ -89,14 +141,35 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b" style="border-color: var(--color-border);">
-                            <th class="text-left py-2 text-xs text-muted font-medium">{{ __('Site') }}</th>
-                            <th class="text-right py-2 text-xs text-muted font-medium">{{ __('Jumlah Perawatan') }}</th>
+                            <th class="text-left py-2 text-xs text-muted font-medium">{{ $pwGroupLabel }}</th>
+                            @foreach($pwStatusColors as $statusKey => $color)
+                                <th class="text-right py-2 text-xs text-muted font-medium hidden sm:table-cell">
+                                    <span class="inline-flex items-center gap-1">
+                                        <span class="inline-block w-2 h-2 rounded-full" style="background: {{ $color['solid'] }};"></span>
+                                        {{ ucfirst($statusKey) }}
+                                    </span>
+                                </th>
+                            @endforeach
+                            <th class="text-right py-2 text-xs text-muted font-medium">{{ __('Total') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y" style="border-color: var(--color-border);">
-                        @foreach($perawatanBySite as $row)
-                            <tr class="transition-colors cursor-pointer" onclick="window.Livewire.navigate('{{ route('admin.perawatan.index', ['site' => $row['site']]) }}')" onmouseover="this.style.backgroundColor='var(--color-bg-tertiary)'" onmouseout="this.style.backgroundColor=''">
-                                <td class="py-2.5 font-medium text-primary">{{ $row['site'] }}</td>
+                        @foreach($pwRows as $row)
+                            <tr class="transition-colors cursor-pointer" onclick="window.Livewire.navigate('{{ route('admin.perawatan.index', [$pwGroupKey => $row['kelompok']]) }}')" onmouseover="this.style.backgroundColor='var(--color-bg-tertiary)'" onmouseout="this.style.backgroundColor=''">
+                                <td class="py-2.5 font-medium text-primary">{{ $row['kelompok'] }}</td>
+                                @foreach($pwStatusColors as $statusKey => $color)
+                                    <td class="py-2.5 text-right hidden sm:table-cell">
+                                        @if(($row['statuses'][$statusKey] ?? 0) > 0)
+                                            <a href="{{ route('admin.perawatan.index', [$pwGroupKey => $row['kelompok'], 'status' => $statusKey]) }}" wire:navigate onclick="event.stopPropagation()"
+                                                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold transition-opacity hover:opacity-75"
+                                                style="background: {{ $color['bg'] }}; color: {{ $color['text'] }}; text-decoration: none;">
+                                                {{ $row['statuses'][$statusKey] }}
+                                            </a>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                @endforeach
                                 <td class="py-2.5 text-right">
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold" style="background: rgba(168,85,247,0.15); color: #a855f7;">
                                         {{ $row['total'] }}
@@ -108,6 +181,19 @@
                     <tfoot>
                         <tr class="font-bold border-t-2" style="border-color: var(--color-border);">
                             <td class="py-2.5 text-primary">{{ __('Total') }}</td>
+                            @foreach($pwStatusColors as $statusKey => $color)
+                                <td class="py-2.5 text-right hidden sm:table-cell">
+                                    @if(($pwStatusTotals[$statusKey] ?? 0) > 0)
+                                        <a href="{{ route('admin.perawatan.index', ['status' => $statusKey]) }}" wire:navigate
+                                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold transition-opacity hover:opacity-75"
+                                            style="background: {{ $color['bg'] }}; color: {{ $color['text'] }}; text-decoration: none;">
+                                            {{ $pwStatusTotals[$statusKey] ?? 0 }}
+                                        </a>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                            @endforeach
                             <td class="py-2.5 text-right">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold" style="background: rgba(168,85,247,0.15); color: #a855f7;">
                                     {{ $pwTotal }}
@@ -173,6 +259,7 @@
                                     borderColor: 'rgba(59, 130, 246, 1)',
                                     borderWidth: 1,
                                     borderRadius: 4,
+                                    clip: false,
                                 }]
                             },
                             options: {

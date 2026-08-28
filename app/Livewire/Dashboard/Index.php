@@ -21,6 +21,10 @@ class Index extends Component
 
     public ?string $filterOperatingUnit = '';
 
+    public ?string $filterPerawatanStatus = '';
+
+    public string $filterPerawatanGroup = 'site';
+
     public array $perawatanBySite = [];
 
     public array $pemeriksaanBySite = [];
@@ -101,6 +105,16 @@ class Index extends Component
     public function updatedFilterOperatingUnit(): void
     {
         $this->loadTopAssets();
+    }
+
+    public function updatedFilterPerawatanStatus(): void
+    {
+        $this->loadPerawatanBySite();
+    }
+
+    public function updatedFilterPerawatanGroup(): void
+    {
+        $this->loadPerawatanBySite();
     }
 
     public function updatedFilterAssetStatus(): void
@@ -227,29 +241,56 @@ class Index extends Component
 
     private function loadPerawatanBySite(): void
     {
-        $key = $this->cacheKey('dashboard:perawatanBySite', $this->startDate, $this->endDate);
+        $key = $this->cacheKey('dashboard:perawatanBySite', $this->startDate, $this->endDate, $this->filterPerawatanStatus ?: 'all', $this->filterPerawatanGroup);
 
         $this->perawatanBySite = Cache::remember($key, $this->cacheTTL, function () {
             $start = $this->startDate ? Carbon::parse($this->startDate)->startOfDay() : now()->subDays(29)->startOfDay();
             $end = $this->endDate ? Carbon::parse($this->endDate)->endOfDay() : now()->endOfDay();
 
-            $counts = DB::table('form_perawatan')
+            $query = DB::table('form_perawatan')
                 ->whereNull('form_perawatan.deleted_at')
                 ->whereNotNull('submitted_at')
-                ->whereBetween('submitted_at', [$start, $end])
-                ->leftJoin('sites', 'sites.id_site', '=', 'form_perawatan.site_location')
-                ->selectRaw('COALESCE(sites.site, form_perawatan.site_location) as site_name, COUNT(*) as total')
-                ->groupBy('site_name')
-                ->orderByDesc('total')
-                ->pluck('total', 'site_name')
-                ->toArray();
+                ->where('form_perawatan.status', '!=', 'draft')
+                ->whereBetween('submitted_at', [$start, $end]);
 
-            $result = [];
-            foreach ($counts as $site => $total) {
-                $result[] = ['site' => $site, 'total' => (int) $total];
+            if ($this->filterPerawatanStatus) {
+                $query->where('form_perawatan.status', $this->filterPerawatanStatus);
             }
 
-            return $result;
+            if ($this->filterPerawatanGroup === 'pemeriksa') {
+                $query->leftJoin('users', 'users.email', '=', 'form_perawatan.user_id');
+                $groupColumn = "COALESCE(NULLIF(TRIM(users.name), ''), 'Tidak Diketahui')";
+            } else {
+                $query->leftJoin('sites', 'sites.id_site', '=', 'form_perawatan.site_location');
+                $groupColumn = 'COALESCE(sites.site, form_perawatan.site_location)';
+            }
+
+            $rows = $query->selectRaw("{$groupColumn} as kelompok, form_perawatan.status as status, COUNT(*) as total")
+                ->groupBy('kelompok', 'form_perawatan.status')
+                ->orderByDesc('total')
+                ->get()
+                ->toArray();
+
+            $grouped = [];
+            $statusTotals = [];
+            foreach ($rows as $row) {
+                $kelompok = $row->kelompok;
+                $status = $row->status;
+                $total = (int) $row->total;
+
+                if (! isset($grouped[$kelompok])) {
+                    $grouped[$kelompok] = ['kelompok' => $kelompok, 'total' => 0, 'statuses' => []];
+                }
+                $grouped[$kelompok]['total'] += $total;
+                $grouped[$kelompok]['statuses'][$status] = $total;
+
+                $statusTotals[$status] = ($statusTotals[$status] ?? 0) + $total;
+            }
+
+            $result = array_values($grouped);
+            usort($result, fn ($a, $b) => $b['total'] <=> $a['total']);
+
+            return ['rows' => $result, 'statusTotals' => $statusTotals];
         });
     }
 
