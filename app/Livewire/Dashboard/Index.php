@@ -25,6 +25,8 @@ class Index extends Component
 
     public string $filterPerawatanGroup = 'site';
 
+    public string $filterPemeriksaanGroup = 'site';
+
     public array $perawatanBySite = [];
 
     public array $pemeriksaanBySite = [];
@@ -115,6 +117,11 @@ class Index extends Component
     public function updatedFilterPerawatanGroup(): void
     {
         $this->loadPerawatanBySite();
+    }
+
+    public function updatedFilterPemeriksaanGroup(): void
+    {
+        $this->loadPemeriksaanBySite();
     }
 
     public function updatedFilterAssetStatus(): void
@@ -257,12 +264,12 @@ class Index extends Component
                 $query->where('form_perawatan.status', $this->filterPerawatanStatus);
             }
 
-            if ($this->filterPerawatanGroup === 'pemeriksa') {
-                $query->leftJoin('users', 'users.email', '=', 'form_perawatan.user_id');
-                $groupColumn = "COALESCE(NULLIF(TRIM(users.name), ''), 'Tidak Diketahui')";
-            } else {
+            if ($this->filterPerawatanGroup === 'site') {
                 $query->leftJoin('sites', 'sites.id_site', '=', 'form_perawatan.site_location');
                 $groupColumn = 'COALESCE(sites.site, form_perawatan.site_location)';
+            } else {
+                $query->leftJoin('users', 'users.email', '=', 'form_perawatan.user_id');
+                $groupColumn = "COALESCE(NULLIF(TRIM(users.name), ''), 'Tidak Diketahui')";
             }
 
             $rows = $query->selectRaw("{$groupColumn} as kelompok, form_perawatan.status as status, COUNT(*) as total")
@@ -296,18 +303,26 @@ class Index extends Component
 
     private function loadPemeriksaanBySite(): void
     {
-        $key = $this->cacheKey('dashboard:pemeriksaanBySite', $this->startDate, $this->endDate);
+        $key = $this->cacheKey('dashboard:pemeriksaanBySite', $this->startDate, $this->endDate, $this->filterPemeriksaanGroup ?: 'all');
 
         $this->pemeriksaanBySite = Cache::remember($key, $this->cacheTTL, function () {
             $start = $this->startDate ? Carbon::parse($this->startDate)->startOfDay() : now()->subDays(29)->startOfDay();
             $end = $this->endDate ? Carbon::parse($this->endDate)->endOfDay() : now()->endOfDay();
 
-            $counts = DB::table('form_pemeriksaan')
+            $query = DB::table('form_pemeriksaan')
                 ->whereNull('form_pemeriksaan.deleted_at')
                 ->whereNotNull('submitted_at')
-                ->whereBetween('submitted_at', [$start, $end])
-                ->leftJoin('sites', 'sites.id_site', '=', 'form_pemeriksaan.site_location')
-                ->selectRaw('COALESCE(sites.site, form_pemeriksaan.site_location) as site_name, COUNT(*) as total')
+                ->whereBetween('submitted_at', [$start, $end]);
+
+            if ($this->filterPemeriksaanGroup === 'site') {
+                $query->leftJoin('sites', 'sites.id_site', '=', 'form_pemeriksaan.site_location');
+                $groupColumn = 'COALESCE(sites.site, form_pemeriksaan.site_location) as site_name';
+            } else {
+                $query->leftJoin('users', 'users.email', '=', 'form_pemeriksaan.user_id');
+                $groupColumn = "COALESCE(NULLIF(TRIM(users.name), ''), 'Tidak Diketahui') as site_name";
+            }
+
+            $counts = $query->selectRaw("{$groupColumn}, COUNT(*) as total")
                 ->groupBy('site_name')
                 ->orderByDesc('total')
                 ->pluck('total', 'site_name')

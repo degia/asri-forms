@@ -17,10 +17,14 @@
         </div>
     </div>
 
-    {{-- Report 1: Perawatan by Site / Pemeriksa --}}
+    {{-- Report 1: Perawatan by Site / Pemeriksa / Teknisi --}}
     <div class="glass-card p-5">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <h3 class="text-sm font-bold text-primary">{{ $filterPerawatanGroup === 'pemeriksa' ? __('Laporan Perawatan Perangkat by Pemeriksa') : __('Laporan Perawatan Perangkat by Site Lokasi') }}</h3>
+            <h3 class="text-sm font-bold text-primary">{{ match($filterPerawatanGroup) {
+                'pemeriksa' => __('Laporan Perawatan Perangkat by Pemeriksa'),
+                'teknisi' => __('Laporan Perawatan Perangkat by Teknisi'),
+                default => __('Laporan Perawatan Perangkat by Site Lokasi'),
+            } }}</h3>
             <div class="flex items-center gap-2 flex-wrap">
                 <label class="text-xs text-muted">{{ __('Grup By') }}:</label>
                 <select wire:model.live="filterPerawatanGroup"
@@ -28,6 +32,7 @@
                     style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
                     <option value="site">{{ __('Site Lokasi') }}</option>
                     <option value="pemeriksa">{{ __('Pemeriksa') }}</option>
+                    <option value="teknisi">{{ __('Teknisi') }}</option>
                 </select>
                 <label class="text-xs text-muted">{{ __('Status') }}:</label>
                 <select wire:model.live="filterPerawatanStatus"
@@ -45,8 +50,12 @@
         @php
             $pwRows = $perawatanBySite['rows'] ?? [];
             $pwStatusTotals = $perawatanBySite['statusTotals'] ?? [];
-            $pwGroupKey = $filterPerawatanGroup === 'pemeriksa' ? 'search' : 'site';
-            $pwGroupLabel = $filterPerawatanGroup === 'pemeriksa' ? __('Pemeriksa') : __('Site');
+            $pwGroupKey = $filterPerawatanGroup === 'site' ? 'site' : 'search';
+            $pwGroupLabel = match($filterPerawatanGroup) {
+                'pemeriksa' => __('Pemeriksa'),
+                'teknisi' => __('Teknisi'),
+                default => __('Site'),
+            };
             $pwStatusColors = [
                 'submitted' => ['bg' => 'rgba(59,130,246,0.15)', 'text' => '#3b82f6', 'solid' => 'rgb(59, 130, 246)'],
                 'diketahui' => ['bg' => 'rgba(234,179,8,0.15)', 'text' => '#eab308', 'solid' => 'rgb(234, 179, 8)'],
@@ -213,14 +222,36 @@
         </div>
     </div>
 
-    {{-- Report 2: Pemeriksaan by Site --}}
+    {{-- Report 2: Pemeriksaan by Site / Pemeriksa / Teknisi --}}
     <div class="glass-card p-5">
-        <h3 class="text-sm font-bold text-primary mb-4">{{ __('Laporan Pemeriksaan Perangkat by Site Lokasi') }}</h3>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h3 class="text-sm font-bold text-primary">{{ match($filterPemeriksaanGroup) {
+                'pemeriksa' => __('Laporan Pemeriksaan Perangkat by Pemeriksa'),
+                'teknisi' => __('Laporan Pemeriksaan Perangkat by Teknisi'),
+                default => __('Laporan Pemeriksaan Perangkat by Site Lokasi'),
+            } }}</h3>
+            <div class="flex items-center gap-2 flex-wrap">
+                <label class="text-xs text-muted">{{ __('Grup By') }}:</label>
+                <select wire:model.live="filterPemeriksaanGroup"
+                    class="px-3 py-1.5 rounded-lg text-xs transition-colors duration-200"
+                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                    <option value="site">{{ __('Site Lokasi') }}</option>
+                    <option value="pemeriksa">{{ __('Pemeriksa') }}</option>
+                    <option value="teknisi">{{ __('Teknisi') }}</option>
+                </select>
+            </div>
+        </div>
         @if(count($pemeriksaanBySite) > 0)
             @php
                 $pmLabels = json_encode(array_column($pemeriksaanBySite, 'site'));
                 $pmData = json_encode(array_column($pemeriksaanBySite, 'total'));
                 $pmTotal = collect($pemeriksaanBySite)->sum('total');
+                $pmGroupKey = $filterPemeriksaanGroup === 'site' ? 'site' : 'search';
+                $pmGroupLabel = match($filterPemeriksaanGroup) {
+                    'pemeriksa' => __('Pemeriksa'),
+                    'teknisi' => __('Teknisi'),
+                    default => __('Site'),
+                };
             @endphp
             <div x-data="{
                 chart: null,
@@ -286,13 +317,13 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b" style="border-color: var(--color-border);">
-                            <th class="text-left py-2 text-xs text-muted font-medium">{{ __('Site') }}</th>
+                            <th class="text-left py-2 text-xs text-muted font-medium">{{ $pmGroupLabel }}</th>
                             <th class="text-right py-2 text-xs text-muted font-medium">{{ __('Jumlah Pemeriksaan') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y" style="border-color: var(--color-border);">
                         @foreach($pemeriksaanBySite as $row)
-                            <tr class="transition-colors cursor-pointer" onclick="window.Livewire.navigate('{{ route('admin.pemeriksaan.index', ['site' => $row['site']]) }}')" onmouseover="this.style.backgroundColor='var(--color-bg-tertiary)'" onmouseout="this.style.backgroundColor=''">
+                            <tr class="transition-colors cursor-pointer" onclick="window.Livewire.navigate('{{ route('admin.pemeriksaan.index', [$pmGroupKey => $row['site']]) }}')" onmouseover="this.style.backgroundColor='var(--color-bg-tertiary)'" onmouseout="this.style.backgroundColor=''">
                                 <td class="py-2.5 font-medium text-primary">{{ $row['site'] }}</td>
                                 <td class="py-2.5 text-right">
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold" style="background: rgba(59,130,246,0.15); color: #3b82f6;">
