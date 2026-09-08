@@ -128,10 +128,8 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider hidden lg:table-cell">{{ __('Perangkat') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider hidden lg:table-cell">Site</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{{ __('Kondisi Akhir') }}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{{ __('Kondisi Akhir Note') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{{ __('Status') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider hidden xl:table-cell">{{ __('Tanggal') }}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{{ __('Notes') }}</th>
                             <th class="px-4 py-3 text-right text-xs font-medium text-muted uppercase tracking-wider">{{ __('Aksi') }}</th>
                         </tr>
                     </thead>
@@ -185,9 +183,6 @@
                                         <span class="text-xs text-muted">-</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-primary text-xs max-w-xs">
-                                    {{ $form->kondisi_akhir_notes ?: '-' }}
-                                </td>
                                 <td class="px-4 py-3">
                                     @php
                                         $statusColors = [
@@ -204,9 +199,6 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-muted text-xs hidden xl:table-cell">{{ $form->submitted_at?->format('d/m/Y') ?? '-' }}</td>
-                                <td class="px-4 py-3 text-primary text-xs max-w-xs">
-                                    {{ $form->notes ?: '-' }}
-                                </td>
                                 <td class="px-4 py-3 text-right">
                                     <div class="flex items-center justify-end gap-1">
                                         <button wire:click="viewForm({{ $form->id }})"

@@ -13,10 +13,10 @@
         .chart-wrap { text-align: center; margin-bottom: 18px; page-break-inside: avoid; }
         .chart-wrap svg { width: 100%; height: auto; max-width: 980px; }
         h2 { font-size: 14px; color: #111827; margin: 22px 0 8px; border-bottom: 2px solid #2563eb; padding-bottom: 4px; }
-        table { border-collapse: collapse; width: 100%; font-size: 11px; }
-        th { background: #2563eb; color: white; padding: 7px 9px; text-align: left; }
+        table { border-collapse: collapse; width: 100%; font-size: 11px; table-layout: auto; }
+        th { background: #2563eb; color: white; padding: 7px 9px; text-align: left; word-wrap: break-word; }
         th.center, td.center { text-align: center; }
-        td { padding: 6px 9px; border-bottom: 1px solid #e5e7eb; }
+        td { padding: 6px 9px; border-bottom: 1px solid #e5e7eb; word-wrap: break-word; vertical-align: top; }
         tr:nth-child(even) td { background: #f9fafb; }
         tr.total-row td { background: #eff6ff; font-weight: bold; border-top: 2px solid #2563eb; }
         .chip { display: inline-block; padding: 1px 8px; border-radius: 10px; color: #fff; font-size: 10px; }
@@ -150,16 +150,14 @@
     <table>
         <thead>
             <tr>
-                <th>No. Form</th>
-                <th>Teknisi</th>
-                <th>Pengguna</th>
-                <th>Perangkat</th>
-                <th>Site</th>
-                <th class="center">Kondisi Akhir</th>
-                <th>Kondisi Akhir Note</th>
-                <th class="center">Status</th>
-                <th class="center">Tanggal</th>
-                <th>Notes</th>
+                <th style="width:15%;">No. Form</th>
+                <th style="width:13%;">Teknisi</th>
+                <th style="width:13%;">Pengguna</th>
+                <th style="width:18%;">Perangkat</th>
+                <th style="width:12%;">Site</th>
+                <th style="width:10%;" class="center">Kondisi Akhir</th>
+                <th style="width:11%;" class="center">Status</th>
+                <th style="width:8%;" class="center">Tanggal</th>
             </tr>
         </thead>
         <tbody>
@@ -184,18 +182,16 @@
                             -
                         @endif
                     </td>
-                    <td>{{ $form['kondisi_akhir_notes'] ?: '-' }}</td>
                     <td class="center">
                         <span class="chip" style="background: {{ $statusColors[$form['status']] ?? '#6b7280' }};">
                             {{ ucfirst($form['status']) }}
                         </span>
                     </td>
                     <td class="center">{{ $form['tanggal'] }}</td>
-                    <td>{{ $form['notes'] ?: '-' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="10" style="text-align:center; padding:18px;">Tidak ada data</td>
+                    <td colspan="8" style="text-align:center; padding:18px;">Tidak ada data</td>
                 </tr>
             @endforelse
         </tbody>

@@ -131,10 +131,8 @@ class DashboardExportController extends Controller
                 'no_asset' => $form->asset?->no_asset ?? '',
                 'site' => $form->site?->site ?? $form->site_location ?? '-',
                 'kondisi_akhir' => $form->kondisi_akhir,
-                'kondisi_akhir_notes' => $form->kondisi_akhir_notes,
                 'status' => $form->status,
                 'tanggal' => $form->submitted_at?->format('d/m/Y') ?? '-',
-                'notes' => $form->notes,
             ]);
     }
 
