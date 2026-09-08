@@ -2,9 +2,28 @@
     x-data="{
         openStep: @entangle('currentStep'),
         showUpload: null,
+        focusMissing(step, field) {
+            setTimeout(() => {
+                this.openStep = step;
+                const el = document.getElementById('pmr-field-' + field);
+                if (!el) return;
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                try { el.focus({ preventScroll: true }); } catch (e) {}
+                const prevOutline = el.style.outline;
+                const prevOffset = el.style.outlineOffset;
+                el.style.transition = 'outline-color .25s ease';
+                el.style.outline = '2px solid #ef4444';
+                el.style.outlineOffset = '2px';
+                setTimeout(() => {
+                    el.style.outline = prevOutline;
+                    el.style.outlineOffset = prevOffset;
+                }, 2500);
+            }, 300);
+        },
         get isDark() { return document.documentElement.classList.contains('dark') },
     }"
     x-init=""
+    @focus-missing-field.window="focusMissing($event.detail.step, $event.detail.field)"
     @asset-found.window="showToast('Aset ditemukan: ' + $event.detail.asset.nama_perangkat, 'success')"
     @asset-not-found.window="showToast('Aset tidak ditemukan untuk kode: ' + $event.detail.code, 'error')"
     @asset-created.window="showToast('Asset baru berhasil dibuat: ' + $event.detail.name, 'success')"
@@ -133,6 +152,7 @@
                             <div class="relative">
                                 <input type="text" wire:model.live="penggunaSearch"
                                     wire:input.debounce.300ms="searchPengguna"
+                                    id="pmr-field-penggunaId"
                                     placeholder="Cari nama, NIK, atau email..."
                                     class="glass-input w-full rounded-lg px-3 py-2 text-sm">
                                 @if($showPenggunaDropdown && count($penggunaResults) > 0)
@@ -283,6 +303,7 @@
                                         <label class="text-[10px] font-medium text-muted uppercase tracking-wider mb-1 block">No. Asset / Barcode</label>
                                         <input type="text" wire:model.live="assetSearchNoAsset"
                                             wire:input.debounce.300ms="searchAsset"
+                                            id="pmr-field-assetId"
                                             placeholder="Cari No. Asset..."
                                             class="glass-input w-full rounded-lg px-3 py-2 text-sm">
                                     </div>
@@ -383,6 +404,7 @@
                             <div>
                                 <label class="text-xs text-muted">Site Location Pemeriksaan <span class="text-red-400">*</span></label>
                                 <select wire:model.live="siteLocation"
+                                    id="pmr-field-siteLocation"
                                     class="glass-input w-full rounded-lg px-3 py-2 text-sm mt-1">
                                     <option value="">Pilih Site Location</option>
                                     @foreach($sites as $site)
@@ -428,7 +450,7 @@
                 <div class="px-4 pb-4 space-y-4 border-t min-h-0 overflow-hidden" style="border-color: var(--color-border);">
                     <div class="pt-4">
                         <label class="text-xs font-semibold text-muted uppercase tracking-wider">Kondisi Perangkat</label>
-                        <div class="flex gap-3 mt-2">
+                        <div class="flex gap-3 mt-2" id="pmr-field-kondisi" tabindex="-1">
                             <button wire:click="$set('kondisi', 'baru')" type="button"
                                 class="flex-1 p-3 rounded-lg border-2 text-sm font-semibold text-center transition-all"
                                 :class="$wire.kondisi === 'baru'
@@ -1029,6 +1051,39 @@
                     <div class="flex justify-end gap-2 mt-5">
                         <button wire:click="closeAddUserPopup" type="button" class="glass-button-secondary text-xs">Batal</button>
                         <button wire:click="saveAddUser" type="button" class="glass-button-primary text-xs">Simpan & Pilih</button>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- Alert Field Wajib Belum Terisi --}}
+        @if($showMissingFieldsAlert && count($missingFields) > 0)
+            <div class="fixed inset-0 z-[60] flex items-center justify-center px-4" role="alert" aria-modal="true">
+                <div class="fixed inset-0 opacity-75" style="background-color: var(--color-bg-tertiary);" wire:click="closeMissingFieldsAlert"></div>
+                <div class="relative w-full max-w-md glass-card p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style="background: rgba(239,68,68,0.15);">
+                                <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </span>
+                            <div>
+                                <h3 class="text-sm font-semibold text-primary">Field Wajib Belum Terisi</h3>
+                                <p class="text-xs text-muted mt-0.5">Form tidak dapat disubmit karena field berikut masih kosong:</p>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="space-y-2 max-h-48 overflow-auto">
+                        @foreach($missingFields as $field)
+                            <li class="flex items-center gap-2 text-sm text-primary">
+                                <span class="w-1.5 h-1.5 rounded-full shrink-0" style="background: #ef4444;"></span>
+                                {{ $field }}
+                            </li>
+                        @endforeach
+                    </ul>
+                    <div class="flex justify-end gap-2 mt-5">
+                        <button wire:click="focusFirstMissing" type="button" class="glass-button-primary text-xs">Isi Field Terlebih Dahulu</button>
                     </div>
                 </div>
             </div>

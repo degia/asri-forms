@@ -177,6 +177,13 @@ class CreateForm extends Component
     // Photo uploads per item
     public array $itemPhotos = [];
 
+    // Missing mandatory fields alert
+    public bool $showMissingFieldsAlert = false;
+
+    public array $missingFields = [];
+
+    public ?string $firstMissingField = null;
+
     protected $listeners = [
         'autosave' => 'saveDraft',
     ];
@@ -186,6 +193,7 @@ class CreateForm extends Component
         return [
             'penggunaId' => 'required|exists:employees,nik',
             'assetId' => 'required|exists:assets,id',
+            'siteLocation' => 'required|exists:sites,id_site',
             'kondisi' => 'required|in:baru,lama',
             'hardwareItems.*.status' => 'nullable|in:baik,tidak_baik',
             'hardwareItems.*.keterangan' => 'nullable|string|max:1000',
@@ -894,9 +902,102 @@ class CreateForm extends Component
 
     public function nextStep(): void
     {
-        if ($this->currentStep < self::TOTAL_STEPS) {
-            $this->currentStep++;
+        if ($this->currentStep >= self::TOTAL_STEPS) {
+            return;
         }
+
+        if (! $this->validateCurrentStep()) {
+            return;
+        }
+
+        $this->currentStep++;
+    }
+
+    private function validateCurrentStep(): bool
+    {
+        $rules = match ($this->currentStep) {
+            1 => ['penggunaId' => 'required'],
+            2 => ['assetId' => 'required', 'siteLocation' => 'required'],
+            3 => ['kondisi' => 'required|in:baru,lama'],
+            default => null,
+        };
+
+        if ($rules === null) {
+            return true;
+        }
+
+        try {
+            $this->validate($rules);
+        } catch (ValidationException $e) {
+            $this->handleValidationFailure($e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function handleValidationFailure(ValidationException $e, bool $alert = false): void
+    {
+        $errors = $e->errors();
+        $firstAttribute = (string) array_key_first($errors);
+        $label = $this->labelForAttribute($firstAttribute);
+
+        $this->currentStep = $this->stepForAttribute($firstAttribute);
+
+        if ($alert) {
+            $this->missingFields = [];
+            foreach (array_keys($errors) as $attr) {
+                $missingLabel = $this->labelForAttribute((string) $attr);
+                if (! in_array($missingLabel, $this->missingFields, true)) {
+                    $this->missingFields[] = $missingLabel;
+                }
+            }
+            $this->firstMissingField = $firstAttribute;
+            $this->showMissingFieldsAlert = count($this->missingFields) > 0;
+        } else {
+            $this->dispatch('show-toast', message: "Mohon lengkapi field wajib: {$label}.", type: 'error');
+        }
+
+        $this->dispatch('focusMissingField', step: $this->currentStep, field: $firstAttribute);
+    }
+
+    public function closeMissingFieldsAlert(): void
+    {
+        $this->showMissingFieldsAlert = false;
+    }
+
+    public function focusFirstMissing(): void
+    {
+        $this->showMissingFieldsAlert = false;
+
+        if ($this->firstMissingField) {
+            $this->dispatch('focusMissingField', step: $this->currentStep, field: $this->firstMissingField);
+        }
+    }
+
+    private function stepForAttribute(string $attribute): int
+    {
+        return match (true) {
+            str_starts_with($attribute, 'hardwareItems') => 4,
+            str_starts_with($attribute, 'aplikasiItems') => 5,
+            str_starts_with($attribute, 'osItems') => 6,
+            $attribute === 'penggunaId' => 1,
+            in_array($attribute, ['assetId', 'siteLocation'], true) => 2,
+            $attribute === 'kondisi' => 3,
+            default => 9,
+        };
+    }
+
+    private function labelForAttribute(string $attribute): string
+    {
+        return match ($attribute) {
+            'penggunaId' => 'Pengguna Perangkat',
+            'assetId' => 'Perangkat (Asset)',
+            'siteLocation' => 'Site Location Pemeriksaan',
+            'kondisi' => 'Kondisi Perangkat',
+            default => 'yang wajib diisi',
+        };
     }
 
     public function prevStep(): void
@@ -1035,8 +1136,7 @@ class CreateForm extends Component
         try {
             $this->validate();
         } catch (ValidationException $e) {
-            $firstError = collect($e->errors())->first();
-            $this->dispatch('submitError', message: $firstError ?? 'Mohon lengkapi semua field yang wajib diisi');
+            $this->handleValidationFailure($e, alert: true);
 
             return;
         }
