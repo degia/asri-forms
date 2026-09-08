@@ -71,6 +71,16 @@ class Index extends Component
 
     public array $empStatusSites = [];
 
+    public string $filterKondisiYear = '';
+
+    public string $filterKondisiOu = '';
+
+    public array $perawatanKondisi = [];
+
+    public array $kondisiYears = [];
+
+    public array $kondisiOus = [];
+
     private int $cacheTTL = 300;
 
     public function mount(): void
@@ -89,6 +99,9 @@ class Index extends Component
         $this->loadEmpAssetSites();
         $this->loadEmpStatusSites();
         $this->loadTrendFilterOptions();
+        $this->loadKondisiFilterOptions();
+        $this->filterKondisiYear = '';
+        $this->filterKondisiOu = Site::where('site', 'PIK Avenue')->value('id_site') ?? '';
         $this->loadAll();
     }
 
@@ -127,6 +140,7 @@ class Index extends Component
     public function updatedFilterAssetStatus(): void
     {
         $this->loadPerawatanVsBelumByOperatingUnit();
+        $this->loadPerawatanKondisi();
     }
 
     public function updatedFilterEmpAssetSite(): void
@@ -137,6 +151,16 @@ class Index extends Component
     public function updatedFilterEmpStatusSite(): void
     {
         $this->loadEmpStatusData();
+    }
+
+    public function updatedFilterKondisiYear(): void
+    {
+        $this->loadPerawatanKondisi();
+    }
+
+    public function updatedFilterKondisiOu(): void
+    {
+        $this->loadPerawatanKondisi();
     }
 
     public function updatedFilterTrendAssetOu(): void
@@ -230,6 +254,7 @@ class Index extends Component
         $this->loadEmployeesAssetBySite();
         $this->loadOrgHierarchy();
         $this->loadEmpStatusData();
+        $this->loadPerawatanKondisi();
         $this->dispatch('chartsUpdated');
     }
 
@@ -651,6 +676,98 @@ class Index extends Component
         });
     }
 
+    private function loadKondisiFilterOptions(): void
+    {
+        $this->kondisiYears = Cache::remember('dashboard:kondisiYears', $this->cacheTTL, function () {
+            return FormPerawatan::whereNotNull('submitted_at')
+                ->whereNotNull('kondisi_akhir')
+                ->where('kondisi_akhir', '!=', '')
+                ->pluck('submitted_at')
+                ->map(fn ($d) => Carbon::parse($d)->format('Y'))
+                ->unique()
+                ->sortDesc()
+                ->values()
+                ->toArray();
+        });
+
+        $this->kondisiOus = Cache::remember('dashboard:kondisiOus', $this->cacheTTL, function () {
+            return Site::whereIn('id_site', FormPerawatan::whereNotNull('submitted_at')
+                ->whereNotNull('kondisi_akhir')
+                ->where('kondisi_akhir', '!=', '')
+                ->join('assets', 'assets.id', '=', 'form_perawatan.asset_id')
+                ->whereNotNull('assets.operating_unit')
+                ->where('assets.operating_unit', '!=', '')
+                ->distinct()
+                ->pluck('assets.operating_unit'))
+                ->orderBy('site')
+                ->get(['id_site', 'site'])
+                ->map(fn ($s) => ['id' => $s->id_site, 'name' => $s->site])
+                ->toArray();
+        });
+    }
+
+    private function loadPerawatanKondisi(): void
+    {
+        $key = $this->cacheKey('dashboard:perawatanKondisi', $this->filterKondisiYear ?: 'all', $this->filterKondisiOu ?: 'all', $this->filterAssetStatus ?: 'all');
+
+        $this->perawatanKondisi = Cache::remember($key, $this->cacheTTL, function () {
+            $query = DB::table('form_perawatan')
+                ->join('assets', 'assets.id', '=', 'form_perawatan.asset_id')
+                ->whereNull('form_perawatan.deleted_at')
+                ->whereNotNull('form_perawatan.submitted_at')
+                ->whereNotNull('form_perawatan.kondisi_akhir')
+                ->where('form_perawatan.kondisi_akhir', '!=', '')
+                ->whereNotNull('assets.operating_unit')
+                ->where('assets.operating_unit', '!=', '');
+
+            if ($this->filterKondisiYear) {
+                $query->whereYear('form_perawatan.submitted_at', (int) $this->filterKondisiYear);
+            }
+
+            if ($this->filterKondisiOu) {
+                $query->where('assets.operating_unit', $this->filterKondisiOu);
+            }
+
+            if ($this->filterAssetStatus) {
+                $query->where('assets.status', $this->filterAssetStatus);
+            }
+
+            $rows = $query->select(
+                'assets.operating_unit',
+                'form_perawatan.kondisi_akhir as kondisi',
+                DB::raw('COUNT(DISTINCT form_perawatan.asset_id) as total')
+            )
+                ->groupBy('assets.operating_unit', 'form_perawatan.kondisi_akhir')
+                ->get();
+
+            $siteIds = collect($rows)->pluck('operating_unit')->unique()->values()->toArray();
+            $siteNames = $siteIds ? Site::whereIn('id_site', $siteIds)->pluck('site', 'id_site')->toArray() : [];
+
+            $result = [];
+            foreach ($rows as $row) {
+                $ouId = $row->operating_unit;
+                $kondisi = $row->kondisi === 'good_normal' ? 'good' : $row->kondisi;
+                if (! isset($result[$ouId])) {
+                    $result[$ouId] = [
+                        'ou_id' => $ouId,
+                        'ou' => $siteNames[$ouId] ?? $ouId,
+                        'totals' => ['good' => 0, 'fair' => 0, 'critical' => 0, 'poor' => 0],
+                        'total' => 0,
+                    ];
+                }
+                if (isset($result[$ouId]['totals'][$kondisi])) {
+                    $result[$ouId]['totals'][$kondisi] += (int) $row->total;
+                    $result[$ouId]['total'] += (int) $row->total;
+                }
+            }
+
+            $result = array_values($result);
+            usort($result, fn ($a, $b) => $b['total'] <=> $a['total']);
+
+            return $result;
+        });
+    }
+
     public function clearDashboardCache(): void
     {
         self::clearAllDashboardCache();
@@ -666,6 +783,8 @@ class Index extends Component
             'dashboard:empAssetSites',
             'dashboard:empStatusSites',
             'dashboard:orgHierarchy',
+            'dashboard:kondisiYears',
+            'dashboard:kondisiOus',
         ];
 
         foreach ($staticKeys as $key) {

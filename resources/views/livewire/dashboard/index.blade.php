@@ -803,6 +803,190 @@
         @endif
     </div>
 
+    {{-- Report 6c: Perawatan by Kondisi Akhir per Operating Unit Asset --}}
+    <div class="glass-card p-5">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
+            <h3 class="text-sm font-bold text-primary">{{ __('Perawatan by Kondisi Akhir per Operating Unit Asset') }}</h3>
+            <div class="flex items-center gap-2 flex-wrap">
+                <label class="text-xs text-muted">{{ __('Periode (Tahun)') }}:</label>
+                <select wire:model.live.debounce.300ms="filterKondisiYear"
+                    class="px-3 py-1.5 rounded-lg text-xs transition-colors duration-200"
+                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                    <option value="">{{ __('Semua Tahun') }}</option>
+                    @foreach($kondisiYears as $year)
+                        <option value="{{ $year }}">{{ $year }}</option>
+                    @endforeach
+                </select>
+                <label class="text-xs text-muted">{{ __('Operating Unit') }}:</label>
+                <select wire:model.live.debounce.300ms="filterKondisiOu"
+                    class="px-3 py-1.5 rounded-lg text-xs transition-colors duration-200"
+                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                    <option value="">{{ __('Semua') }}</option>
+                    @foreach($kondisiOus as $ou)
+                        <option value="{{ $ou['id'] }}">{{ $ou['name'] }}</option>
+                    @endforeach
+                </select>
+                <label class="text-xs text-muted">{{ __('Status Asset') }}:</label>
+                <select wire:model.live.debounce.300ms="filterAssetStatus"
+                    class="px-3 py-1.5 rounded-lg text-xs transition-colors duration-200"
+                    style="background: var(--color-input-bg, var(--color-glass-bg)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                    <option value="">{{ __('Semua') }}</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+                <div class="flex items-center gap-1.5">
+                    <a href="{{ route('admin.dashboard.perawatan-kondisi.export', ['format' => 'pdf', 'year' => $filterKondisiYear, 'ou' => $filterKondisiOu, 'asset_status' => $filterAssetStatus]) }}"
+                        target="_blank" rel="noopener"
+                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-colors duration-200 hover:opacity-90"
+                        style="background: #dc2626;">
+                        <span aria-hidden="true">&#128196;</span>{{ __('Export PDF') }}
+                    </a>
+                    <a href="{{ route('admin.dashboard.perawatan-kondisi.export', ['format' => 'html', 'year' => $filterKondisiYear, 'ou' => $filterKondisiOu, 'asset_status' => $filterAssetStatus]) }}"
+                        target="_blank" rel="noopener"
+                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 hover:opacity-90"
+                        style="background: var(--color-bg-secondary, rgba(255,255,255,0.08)); border: 1px solid var(--color-border); color: var(--color-text-primary);">
+                        <span aria-hidden="true">&#128196;</span>{{ __('Export HTML') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        @if(count($perawatanKondisi) > 0)
+            @php
+                $kcConditionOrder = ['good', 'fair', 'critical', 'poor'];
+                $kcColors = [
+                    'good' => ['label' => 'GOOD', 'solid' => '#22c55e'],
+                    'fair' => ['label' => 'FAIR', 'solid' => '#3b82f6'],
+                    'critical' => ['label' => 'CRITICAL', 'solid' => '#f97316'],
+                    'poor' => ['label' => 'POOR', 'solid' => '#ef4444'],
+                ];
+                $kcLabels = json_encode(array_column($perawatanKondisi, 'ou'));
+                $kcDatasets = [];
+                $kcTotals = [];
+                foreach ($kcConditionOrder as $k) {
+                    $data = array_map(fn ($r) => $r['totals'][$k] ?? 0, $perawatanKondisi);
+                    $kcDatasets[] = [
+                        'label' => $kcColors[$k]['label'],
+                        'data' => $data,
+                        'backgroundColor' => $kcColors[$k]['solid'],
+                        'borderColor' => $kcColors[$k]['solid'],
+                        'borderWidth' => 1,
+                        'borderRadius' => 3,
+                        'categoryPercentage' => 0.75,
+                        'maxBarThickness' => 42,
+                    ];
+                    $kcTotals[$k] = array_sum($data);
+                }
+                $kcDatasetsJson = json_encode($kcDatasets);
+                $kcGrandTotal = array_sum($kcTotals);
+            @endphp
+
+            <div class="flex items-center gap-2 flex-wrap mb-4">
+                <span class="text-xs text-muted">{{ __('Total unit (distinct asset) aktif yang telah dilakukan perawatan') }}:</span>
+                @foreach($kcConditionOrder as $k)
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+                        style="background: {{ $kcColors[$k]['solid'] }}1f; color: {{ $kcColors[$k]['solid'] }};">
+                        <span class="inline-block w-2 h-2 rounded-full" style="background: {{ $kcColors[$k]['solid'] }};"></span>
+                        {{ $kcColors[$k]['label'] }}: {{ $kcTotals[$k] }}
+                    </span>
+                @endforeach
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+                    style="background: rgba(168,85,247,0.15); color: #a855f7;">
+                    {{ __('Total') }}: {{ $kcGrandTotal }}
+                </span>
+            </div>
+
+            <div x-data="{
+                chart: null,
+                themeObserver: null,
+                init() {
+                    this.$nextTick(() => {
+                        const ctx = this.$refs.chartPerawatanKondisi;
+                        if (!ctx || typeof Chart === 'undefined') return;
+                        if (this.chart) this.chart.destroy();
+                        const existing = Chart.getChart(ctx);
+                        if (existing) existing.destroy();
+                        const kcValueLabelPlugin = {
+                            id: 'kcValueLabel',
+                            afterDatasetsDraw(chart) {
+                                const { ctx: c } = chart;
+                                const isDark = document.documentElement.classList.contains('dark');
+                                const totals = [];
+                                chart.data.datasets.forEach(ds => {
+                                    ds.data.forEach((v, i) => { totals[i] = (totals[i] || 0) + (v || 0); });
+                                });
+                                chart.data.datasets.forEach((ds, di) => {
+                                    const meta = chart.getDatasetMeta(di);
+                                    meta.data.forEach((seg, i) => {
+                                        const val = ds.data[i];
+                                        if (!seg || !val || val === 0) return;
+                                        const pct = totals[i] > 0 ? Math.round((val / totals[i]) * 100) : 0;
+                                        const label = val + ' (' + pct + '%)';
+                                        c.save();
+                                        c.font = '600 11px system-ui, -apple-system, sans-serif';
+                                        c.textAlign = 'center';
+                                        c.textBaseline = 'bottom';
+                                        c.lineJoin = 'round';
+                                        c.lineWidth = 3;
+                                        c.strokeStyle = isDark ? 'rgba(17,24,39,0.85)' : 'rgba(255,255,255,0.9)';
+                                        c.fillStyle = isDark ? '#f9fafb' : '#374151';
+                                        c.strokeText(label, seg.x, seg.y - 6);
+                                        c.fillText(label, seg.x, seg.y - 6);
+                                        c.restore();
+                                    });
+                                });
+                            }
+                        };
+                        this.chart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: {{ $kcLabels }},
+                                datasets: {{ $kcDatasetsJson }}
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                layout: { padding: { top: 24 } },
+                                plugins: {
+                                    legend: {
+                                        display: true,
+                                        position: 'top',
+                                        labels: { color: 'rgb(156,163,175)', boxWidth: 10, font: { size: 11 }, usePointStyle: true, pointStyle: 'rectRounded' }
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        ticks: { color: 'rgb(156,163,175)', font: { size: 11 }, maxRotation: 45, minRotation: 0 },
+                                        grid: { display: false }
+                                    },
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: { color: 'rgb(156,163,175)', stepSize: 1 },
+                                        grid: { color: 'rgb(229,231,235)' },
+                                        title: { display: true, text: '{{ __('Jumlah Unit Asset') }}', color: 'rgb(156,163,175)', font: { size: 11 } }
+                                    }
+                                }
+                            },
+                            plugins: [kcValueLabelPlugin]
+                        });
+                        this.themeObserver = new MutationObserver(() => {
+                            if (this.chart) this.chart.update('none');
+                        });
+                        this.themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+                    });
+                },
+                destroy() {
+                    if (this.themeObserver) this.themeObserver.disconnect();
+                    if (this.chart) this.chart.destroy();
+                }
+            }" style="height: {{ max(300, count($perawatanKondisi) * 70 + 80) }}px;" wire:ignore wire:key="kc-{{ md5($kcLabels.$kcDatasetsJson.$filterKondisiYear.$filterKondisiOu.$filterAssetStatus) }}">
+                <canvas x-ref="chartPerawatanKondisi"></canvas>
+            </div>
+        @else
+            <p class="text-sm text-muted text-center py-4">{{ __('Tidak ada data perawatan dengan kondisi akhir pada periode ini') }}</p>
+        @endif
+    </div>
+
     {{-- Report 6b: Employee Active vs Resigned Bar Chart --}}
     <div class="glass-card p-5">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">

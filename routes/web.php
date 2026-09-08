@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AssetExportController;
 use App\Http\Controllers\BulkPdfDownloadController;
+use App\Http\Controllers\DashboardExportController;
 use App\Http\Controllers\EmployeeExportController;
 use App\Http\Controllers\ExportPdfController;
 use App\Http\Controllers\FormExportController;
@@ -73,6 +74,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::view('dashboard', 'admin-dashboard')
             ->name('dashboard');
+
+        Route::get('dashboard/perawatan-kondisi/export/{format}', [DashboardExportController::class, 'export'])
+            ->whereIn('format', ['pdf', 'html'])
+            ->name('dashboard.perawatan-kondisi.export');
 
         // Sites
         Volt::route('sites', 'admin.pages.sites.index')
