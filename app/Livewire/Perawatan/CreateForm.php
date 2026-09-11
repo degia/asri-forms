@@ -975,8 +975,8 @@ class CreateForm extends Component
                     'status' => $item['status'] ?: null,
                     'keterangan' => $item['keterangan'] ?? null,
                     'sort_order' => $item['sort_order'] ?? 0,
-                    'full_charge_capacity' => $item['full_charge_capacity'] ?? null,
-                    'design_capacity' => $item['design_capacity'] ?? null,
+                    'full_charge_capacity' => is_numeric($item['full_charge_capacity'] ?? null) ? (int) $item['full_charge_capacity'] : null,
+                    'design_capacity' => is_numeric($item['design_capacity'] ?? null) ? (int) $item['design_capacity'] : null,
                 ]
             );
         }
