@@ -332,9 +332,15 @@
 
     {{-- SIGNATURES --}}
     @php
-        $diperiksa = $form->approvals->firstWhere('approval_level', 'diperiksa_oleh');
-        $diketahui = $form->approvals->firstWhere('approval_level', 'diketahui_oleh');
-        $disetujui = $form->approvals->firstWhere('approval_level', 'disetujui_oleh');
+        $signedApproval = fn (string $level) => $form->approvals
+            ->where('approval_level', $level)
+            ->where('status', 'approved')
+            ->sortByDesc('updated_at')
+            ->first() ?? $form->approvals->firstWhere('approval_level', $level);
+
+        $diperiksa = $signedApproval('diperiksa_oleh');
+        $diketahui = $signedApproval('diketahui_oleh');
+        $disetujui = $signedApproval('disetujui_oleh');
     @endphp
 
     <table class="signatures">

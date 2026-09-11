@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Approval;
 
-use App\Helpers\ActivityLogger;
 use App\Enums\ApprovalLevel;
 use App\Enums\FormStatus;
+use App\Helpers\ActivityLogger;
 use App\Models\FormApproval;
 use App\Models\FormPemeriksaan;
 use App\Models\FormPemeriksaanItem;
@@ -121,6 +121,8 @@ class ReviewForm extends Component
 
         $this->currentApproval = $form->approvals()
             ->where('approval_level', $this->approvalLevel)
+            ->orderByRaw("FIELD(status, 'approved', 'rejected', 'pending')")
+            ->orderByDesc('updated_at')
             ->first();
     }
 
@@ -265,6 +267,8 @@ class ReviewForm extends Component
 
             $approval = $form->approvals()
                 ->where('approval_level', $this->approvalLevel)
+                ->orderByRaw("FIELD(status, 'approved', 'rejected', 'pending')")
+                ->orderByDesc('updated_at')
                 ->first();
 
             $userId = Auth::id();

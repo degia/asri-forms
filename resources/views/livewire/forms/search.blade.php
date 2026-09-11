@@ -277,7 +277,7 @@ new #[Layout('components.app-layout')] class extends Component {}; ?>
         usort($_hardware, fn($a, $b) => ($a['sort_order'] ?? 0) - ($b['sort_order'] ?? 0));
         usort($_aplikasi, fn($a, $b) => ($a['sort_order'] ?? 0) - ($b['sort_order'] ?? 0));
         usort($_os, fn($a, $b) => ($a['sort_order'] ?? 0) - ($b['sort_order'] ?? 0));
-        $_approvals = $_form['approvals'] ?? [];
+        $_approvals = collect($_form['approvals'] ?? [])->sortBy(fn ($a) => ($a['status'] ?? '') === 'approved' ? 0 : 1)->values()->all();
         $_diperiksa =
             current(array_filter($_approvals, fn($a) => ($a['approval_level'] ?? '') === 'diperiksa_oleh')) ?: null;
         $_diketahui =

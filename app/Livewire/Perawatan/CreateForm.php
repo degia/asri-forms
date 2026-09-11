@@ -7,7 +7,6 @@ use App\Helpers\ActivityLogger;
 use App\Models\Asset;
 use App\Models\ChecklistTemplate;
 use App\Models\Employee;
-use App\Models\FormApproval;
 use App\Models\FormPerawatan;
 use App\Models\Site;
 use App\Models\User;
@@ -996,17 +995,23 @@ class CreateForm extends Component
         DB::beginTransaction();
 
         try {
-            $nomorForm = $this->formId
-                ? FormPerawatan::find($this->formId)->nomor_form
-                : $this->generateNomorForm();
+            $isNew = $this->formId === null;
+            $existing = $isNew ? null : FormPerawatan::with('approvals')->findOrFail($this->formId);
+
+            $nomorForm = $existing ? $existing->nomor_form : $this->generateNomorForm();
 
             $data = $this->getFormData();
             $data['nomor_form'] = $nomorForm;
-            $data['status'] = FormStatus::Submitted->value;
-            $data['submitted_at'] = now();
 
-            if ($this->formId) {
-                $form = FormPerawatan::findOrFail($this->formId);
+            // Form baru / draft: mulai siklus tanda tangan di level "diperiksa_oleh".
+            // Form yang sudah ditandatangani tidak direset agar signature yang ada tetap dipertahankan.
+            if (! $existing || $existing->status === FormStatus::Draft->value) {
+                $data['status'] = FormStatus::Submitted->value;
+                $data['submitted_at'] = now();
+            }
+
+            if ($existing) {
+                $form = $existing;
                 $form->update($data);
             } else {
                 $form = FormPerawatan::create($data);
@@ -1024,17 +1029,25 @@ class CreateForm extends Component
                 ]);
             }
 
-            FormApproval::create([
-                'approvable_type' => FormPerawatan::class,
-                'approvable_id' => $form->id,
-                'approval_level' => 'diperiksa_oleh',
-                'user_id' => Auth::id(),
-                'status' => 'pending',
-            ]);
+            $alreadySigned = $form->approvals()
+                ->where('approval_level', 'diperiksa_oleh')
+                ->where('status', 'approved')
+                ->exists();
+
+            if (! $alreadySigned) {
+                $form->approvals()->updateOrCreate(
+                    ['approval_level' => 'diperiksa_oleh'],
+                    ['user_id' => Auth::id(), 'status' => 'pending']
+                );
+            }
 
             DB::commit();
 
-            $this->redirect(route('perawatan.signature', $form->id));
+            if ($alreadySigned) {
+                $this->redirect(route('forms.search'));
+            } else {
+                $this->redirect(route('perawatan.signature', $form->id));
+            }
 
         } catch (\Exception $e) {
             DB::rollBack();
