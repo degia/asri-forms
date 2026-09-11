@@ -1,11 +1,11 @@
-<div class="space-y-6" x-data x-on:backup-deleted.window="$wire.$refresh()">
+<div class="space-y-6" x-data="{ loadingText: '{{ __('Sedang Merestore') }}' }" x-on:backup-deleted.window="$wire.$refresh()">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
             <h1 class="text-2xl font-bold text-primary">{{ __('Backup Data') }}</h1>
             <p class="text-sm text-muted mt-1">{{ __('Buat dan unduh cadangan database serta file penyimpanan') }}</p>
         </div>
         <div class="flex items-center gap-2">
-            <button wire:click="createBackup" wire:loading.attr="disabled"
+            <button wire:click="createBackup" @click="loadingText = '{{ __('Sedang Membuat Backup') }}'" wire:loading.attr="disabled"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
                 style="background: var(--color-primary); color: var(--color-button-text);">
                 <svg wire:loading.remove wire:target="createBackup" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,7 +50,7 @@
                     </svg>
                     <span>{{ __('Mengunggah') }}...</span>
                 </span>
-                <button type="submit" wire:loading.attr="disabled"
+                <button type="submit" @click="loadingText = '{{ __('Sedang Merestore') }}'" wire:loading.attr="disabled"
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200"
                     style="background: #f59e0b; color: white;">
                     <svg wire:loading.remove wire:target="uploadAndRestore" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,14 +66,44 @@
         </div>
     </div>
 
-    @if($isRestoring || $isCreating)
-        <div class="glass-card p-6 text-center">
-            <svg class="w-8 h-8 mx-auto mb-3 animate-spin" style="color: var(--color-primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-            <p class="text-sm text-muted">{{ $isRestoring ? __('Sedang merestore database, mohon tunggu') . '...' : __('Sedang membuat backup, mohon tunggu') . '...' }}</p>
+    {{-- Full-page loading overlay saat restore/backup berjalan --}}
+    <div wire:loading wire:target="restoreBackup, uploadAndRestore, createBackup"
+        class="fixed inset-0 z-[100] flex items-center justify-center"
+        style="display: none; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);"
+        x-on:click.stop>
+        <div class="glass-card p-8 text-center max-w-sm w-full" style="animation: popup-loading-pop 0.3s ease-out;" x-on:click.stop>
+            <div class="flex items-end justify-center gap-2 mb-5">
+                <span class="popup-loading-dot"></span>
+                <span class="popup-loading-dot" style="animation-delay: 0.15s;"></span>
+                <span class="popup-loading-dot" style="animation-delay: 0.3s;"></span>
+            </div>
+            <p class="text-base font-bold text-primary" x-text="loadingText"></p>
+            <p class="text-sm text-muted mt-2">{{ __('Database sedang diproses. Harap jangan menutup atau meninggalkan halaman ini.') }}</p>
         </div>
-    @endif
+    </div>
+    <style>
+        @keyframes popup-loading-pop {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes popup-loading-bounce {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-8px);
+                opacity: 1;
+            }
+        }
+        .popup-loading-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 9999px;
+            background: var(--color-primary);
+            animation: popup-loading-bounce 1.2s ease-in-out infinite;
+        }
+    </style>
 
     <div class="glass-card p-4">
         @if(count($this->backups) === 0)
@@ -119,6 +149,7 @@
                                             </svg>
                                         </a>
                                         <button wire:click="restoreBackup('{{ $backup['filename'] }}')"
+                                            @click="loadingText = '{{ __('Sedang Merestore') }}'"
                                             wire:confirm="{{ __('PERHATIAN! Merestore backup akan MENIMPA SELURUH DATA database saat ini. Lanjutkan?') }}"
                                             class="p-1.5 rounded transition-colors hover:opacity-80"
                                             wire:loading.attr="disabled"
